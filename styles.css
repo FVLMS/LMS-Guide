@@ -1,0 +1,84 @@
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    color: #333;
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.title {
+    color: #0066cc;
+    margin: 0;
+}
+
+.main-container {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 20px;
+}
+
+.steps-block {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.step {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.step:hover {
+    background: #e7f0ff;
+}
+
+.step.active {
+    background: #e7f0ff;
+    border-left: 3px solid #0066cc;
+}
+
+.step-number {
+    color: #0066cc;
+    font-weight: bold;
+    min-width: 25px;
+}
+
+.images-stack {
+    position: relative;
+    height: 400px;
+}
+
+.screenshot {
+    position: absolute;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    opacity: 0.8;
+    width: 400px;
+    height: 250px;
+    object-fit: cover;
+}
+
+.screenshot:hover, .screenshot.hover {
+    transform: translateY(-10px);
+    opacity: 1;
+    z-index: 10;
+}
+
+.tips {
+    background: #f0f7ff;
+    border-left: 4px solid #0066cc;
+    padding: 12px;
+    margin-top: 20px;
+    font-size: 0.9em;
+}

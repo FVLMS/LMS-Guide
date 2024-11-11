@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>How to Reset Your Password</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">How to Reset Your Password</h1>
+        <small>Last updated: Nov 2024</small>
+    </div>
+
+    <div class="main-container">
+        <div class="steps-block">
+            <div class="step active" 
+                 onclick="showImage(1)"
+                 onmouseover="highlightImage(1)"
+                 onmouseout="unhighlightImage(1)">
+                <div class="step-number">1.</div>
+                <div>
+                    <strong>Request Reset:</strong> Click "Forgot Password" on the login page and enter your email address
+                </div>
+            </div>
+            <div class="step"
+                 onclick="showImage(2)"
+                 onmouseover="highlightImage(2)"
+                 onmouseout="unhighlightImage(2)">
+                <div class="step-number">2.</div>
+                <div>
+                    <strong>Create New Password:</strong> Click the link in your email and set a new password
+                </div>
+            </div>
+
+            <div class="tips">
+                <strong>Quick Tips:</strong>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li>Make sure to use a strong password with mixed characters</li>
+                    <li>Check your spam folder if you don't see the reset email</li>
+                </ul>
+                Need help? support@company.com
+            </div>
+        </div>
+
+        <div class="images-stack">
+            <img src="https://mnfhs.sharepoint.com/sites/LMSTeam/Scripts/CornerstoneGuide/110.jpg" alt="Request password reset" class="screenshot" style="top: 0; left: 0; z-index: 2;">
+            <img src="https://mnfhs.sharepoint.com/sites/LMSTeam/Scripts/CornerstoneGuide/478.jpg" alt="Create new password" class="screenshot" style="top: 20px; left: 20px; z-index: 1;">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

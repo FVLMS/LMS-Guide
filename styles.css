@@ -1,9 +1,12 @@
+/* Previous styles remain the same until .screenshot selectors */
 body {
+    max-width: 1200px;
+    /* Increase the max-width to give more room for larger images */
+    margin: 0;
+    /* Remove auto-centering to move everything to the left */
+    padding: 20px;
     font-family: system-ui, -apple-system, sans-serif;
     line-height: 1.5;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
     color: #333;
 }
 
@@ -18,14 +21,17 @@ body {
 
 .main-container {
     display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 20px;
+    grid-template-columns: 300px 1fr;
+    /* Reduce the width of the steps block */
+    gap: 100px;
+    /* Reduce the gap between the steps and images */
 }
 
 .steps-block {
     background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
+    width: 100%;
 }
 
 .step {
@@ -53,26 +59,68 @@ body {
     min-width: 25px;
 }
 
-.images-stack {
+.images-container {
     position: relative;
-    height: 400px;
+    height: 1000px;
+    /* Increase height to accommodate larger images */
+    margin-top: 150px;
+    /* Adjust the margin to balance the layout */
+}
+
+.image-stack {
+    position: relative;
+    width: 1200px;
+    /* Increased width */
+    height: 600px;
+    /* Increased height */
 }
 
 .screenshot {
     position: absolute;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 1200px;
+    /* Increased width */
+    height: 600px;
+    /* Increased height */
     border-radius: 8px;
-    opacity: 0.8;
-    width: 400px;
-    height: 250px;
-    object-fit: cover;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background: white;
+    cursor: pointer;
 }
 
-.screenshot:hover, .screenshot.hover {
+/* Adjust positioning to shift left and reduce the stacking offset */
+.screenshot:nth-child(1) {
+    bottom: 0;
+    left: 0;
+    z-index: 4;
+}
+
+.screenshot:nth-child(2) {
+    bottom: 30px;
+    /* Reduce the offsets for tighter stacking */
+    left: 30px;
+    z-index: 3;
+}
+
+.screenshot:nth-child(3) {
+    bottom: 60px;
+    left: 60px;
+    z-index: 2;
+}
+
+.screenshot:nth-child(4) {
+    bottom: 90px;
+    left: 90px;
+    z-index: 1;
+}
+
+.screenshot:hover {
     transform: translateY(-10px);
-    opacity: 1;
-    z-index: 10;
+    /* Remove z-index adjustment */
+}
+
+.screenshot.active {
+    z-index: 5;
 }
 
 .tips {
@@ -81,4 +129,56 @@ body {
     padding: 12px;
     margin-top: 20px;
     font-size: 0.9em;
+}
+
+.navigation-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 30px;
+    /* Add ample space between the elements */
+}
+
+/* Styling for standalone arrow icons with improved consistency */
+.arrow-icon {
+    font-size: 2em;
+    /* Increase size for better visibility */
+    color: #0066cc;
+    /* Use the same blue color for consistency */
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+    /* Smooth hover effect */
+}
+
+.arrow-icon:hover {
+    color: #005bb5;
+    /* Darken color on hover for contrast */
+    transform: translateY(-3px);
+    /* Subtle lift effect on hover */
+}
+
+/* Play All button for distinction, but consistent look */
+button.play-all {
+    border-radius: 50px;
+    /* Softer rounded corners for a more polished look */
+    padding: 12px 40px;
+    /* More padding for balance and easier interaction */
+    background-color: #0066cc;
+    /* Keep button with blue background */
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    /* Make font size slightly larger for clarity */
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    /* Smooth transition for hover effect */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Add subtle shadow for depth */
+}
+
+button.play-all:hover {
+    background-color: #005bb5;
+    transform: translateY(-3px);
+    /* Subtle lift on hover */
 }

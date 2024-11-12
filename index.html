@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>How to Reset Your Password</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
     <div class="header">
         <h1 class="title">How to Reset Your Password</h1>
@@ -12,22 +15,30 @@
 
     <div class="main-container">
         <div class="steps-block">
-            <div class="step active" 
-                 onclick="showImage(1)"
-                 onmouseover="highlightImage(1)"
-                 onmouseout="unhighlightImage(1)">
+            <div class="step active" onclick="selectStep(1)" onmouseover="highlightImage(1)"
+                onmouseout="unhighlightImage(1)">
                 <div class="step-number">1.</div>
                 <div>
-                    <strong>Request Reset:</strong> Click "Forgot Password" on the login page and enter your email address
+                    <strong>Request Reset:</strong> Click "Forgot Password" on the login page and enter your email
+                    address
                 </div>
             </div>
-            <div class="step"
-                 onclick="showImage(2)"
-                 onmouseover="highlightImage(2)"
-                 onmouseout="unhighlightImage(2)">
+            <div class="step" onclick="selectStep(2)" onmouseover="highlightImage(2)" onmouseout="unhighlightImage(2)">
                 <div class="step-number">2.</div>
                 <div>
                     <strong>Create New Password:</strong> Click the link in your email and set a new password
+                </div>
+            </div>
+            <div class="step" onclick="selectStep(3)" onmouseover="highlightImage(3)" onmouseout="unhighlightImage(3)">
+                <div class="step-number">3.</div>
+                <div>
+                    <strong>Click assign</strong> Click the link in your email and set a new password
+                </div>
+            </div>
+            <div class="step" onclick="selectStep(4)" onmouseover="highlightImage(4)" onmouseout="unhighlightImage(4)">
+                <div class="step-number">4.</div>
+                <div>
+                    <strong>Run Report</strong> Click the link in your email and set a new password
                 </div>
             </div>
 
@@ -37,16 +48,36 @@
                     <li>Make sure to use a strong password with mixed characters</li>
                     <li>Check your spam folder if you don't see the reset email</li>
                 </ul>
-                Need help? support@company.com
+                Need help? LMS@fairview.org
             </div>
         </div>
 
-        <div class="images-stack">
-            <img src="https://mnfhs.sharepoint.com/sites/LMSTeam/Scripts/CornerstoneGuide/110.jpg" alt="Request password reset" class="screenshot" style="top: 0; left: 0; z-index: 2;">
-            <img src="https://mnfhs.sharepoint.com/sites/LMSTeam/Scripts/CornerstoneGuide/478.jpg" alt="Create new password" class="screenshot" style="top: 20px; left: 20px; z-index: 1;">
+        <div class="images-container">
+            <div class="image-stack">
+                <img src="SHAREPOINT_URL_1" alt="Step 1" class="screenshot" onclick="selectStep(1)"
+                    data-type="image">
+                <video src="SHAREPOINT_VIDEO_URL_2" class="screenshot" onclick="selectStep(2)" data-type="video" controls></video>
+                <img src="SHAREPOINT_URL_3" alt="Step 2" class="screenshot" onclick="selectStep(3)" data-type="image">
+                <video src="SHAREPOINT_VIDEO_URL_4" class="screenshot" onclick="selectStep(4)" data-type="video" controls></video>
+            </div>
+
+            <div class="navigation-buttons">
+                <span class="arrow-icon" onclick="prevStep()">
+                    <i class="fas fa-arrow-left"></i>
+                </span>
+                <button class="play-all" onclick="playAllVideos()">Play All</button>
+                <span class="arrow-icon" onclick="nextStep()">
+                    <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
+            
         </div>
     </div>
 
+
+
+
     <script src="script.js"></script>
 </body>
+
 </html>

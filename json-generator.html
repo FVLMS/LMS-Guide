@@ -371,7 +371,7 @@
             jsonOutput.textContent = JSON.stringify(recipe, null, 2);
             //const filename = document.getElementById('title').value.replace(/\s+/g, '_');
             //const filenameext = `${filename}.json`;
-            const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(recipe, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

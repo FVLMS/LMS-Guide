@@ -10,6 +10,19 @@ const folderName = urlParams.get('folder');
 const jsonUrl = `${baseUrl}${folderName}/content.json`;
 const assetsUrl = `${baseUrl}${folderName}/assets/`;
 
+document.addEventListener('DOMContentLoaded', () => {
+    const stepByStep = document.getElementById('stepByStep');
+    const playAll = document.getElementById('playAll');
+    const referenceMode = document.getElementById('referenceMode');
+    const detailsContainer = document.getElementById('detailsContainer');
+    const mediaStack = document.getElementById('mediaStack');
+
+    if (!stepByStep || !playAll || !referenceMode || !detailsContainer || !mediaStack) {
+        console.error('Required DOM elements not found');
+        return;
+    }
+});
+
 function switchMode(mode) {
     currentMode = mode;
 
@@ -107,7 +120,7 @@ function nextStep() {
 }
 
 async function loadContent() {
-    const response = await fetch('content.json');
+    const response = await fetch(jsonUrl);
     contentData = await response.json();
 
     document.getElementById('pageTitle').textContent = contentData.title;
@@ -185,7 +198,7 @@ function createImageElement(step, number) {
     imageWrapper.style.height = '100%';
 
     const img = document.createElement('img');
-    img.src = '${assetsUrl}${step.media.image};
+    img.src = '${assetsUrl}${step.media.image}';
     img.style.width = '100%';
     img.style.height = '100%';
     img.style.objectFit = 'contain';

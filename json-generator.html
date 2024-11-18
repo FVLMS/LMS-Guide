@@ -234,12 +234,16 @@
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Image URL</label>
-                            <input type="text" id="step-${stepCount}-image" class="w-full p-2 border rounded" placeholder="Image URL">
+                            <label class="block text-sm font-medium mb-2">Image Filename</label>
+                            <input type="text" id="step-${stepCount}-image" class="w-full p-2 border rounded" placeholder="Image Filename">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">Video URL</label>
-                            <input type="text" id="step-${stepCount}-video" class="w-full p-2 border rounded" placeholder="Video URL">
+                            <label class="block text-sm font-medium mb-2">Video Filename</label>
+                            <input type="text" id="step-${stepCount}-video" class="w-full p-2 border rounded" placeholder="Video Filename">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Audio Filename</label>
+                            <input type="text" id="step-${stepCount}-audio" class="w-full p-2 border rounded" placeholder="Audio Filename">
                         </div>
                     </div>
                     
@@ -350,6 +354,7 @@
                         media: {
                             image: document.getElementById(`step-${i}-image`).value,
                             video: document.getElementById(`step-${i}-video`).value,
+                            audio: document.getElementById(`step-${i}-audio`).value,
                             audio: null,
                             hotspots: hotspotManagers[i] ? hotspotManagers[i].getHotspotsData() : []
                         },
@@ -364,13 +369,13 @@
             // Display JSON
             const jsonOutput = document.getElementById('json-output');
             jsonOutput.textContent = JSON.stringify(recipe, null, 2);
-            const filename = document.getElementById('title').value.replace(/\s+/g, '_');
-            const filenameext = `${filename}.json`;
+            //const filename = document.getElementById('title').value.replace(/\s+/g, '_');
+            //const filenameext = `${filename}.json`;
             const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = filenameext;
+            link.download = 'content.json';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

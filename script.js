@@ -4,7 +4,7 @@ let overlayClicked = false; // Track if overlay has been clicked globally
 let currentStepNumber = 1; // Track the current step globally
 let currentOverlay = false;
 let overlayElement = null;  // Add this to track the overlay element
-const baseUrl = 'https://ymnfhs.sharepoint.com/sites/LMSTeam/LMS Public/CornerstoneTraining/';
+const baseUrl = 'https://mnfhs.sharepoint.com/sites/LMSTeam/LMS Public/CornerstoneTraining/';
 const urlParams = new URLSearchParams(window.location.search);
 const folderName = urlParams.get('folder');
 const jsonUrl = `${baseUrl}${folderName}/content.json`;
@@ -185,7 +185,7 @@ function createImageElement(step, number) {
     imageWrapper.style.height = '100%';
 
     const img = document.createElement('img');
-    img.src = step.media.image;
+    img.src = '${assetsUrl}${step.media.image};
     img.style.width = '100%';
     img.style.height = '100%';
     img.style.objectFit = 'contain';
@@ -313,7 +313,7 @@ function createVideoElement(step, number) {
 
     // Create the video element
     const video = document.createElement('video');
-    video.src = step.media.video;
+    video.src = '${assetsUrl}${step.media.video}';
     video.style.width = '100%';
     video.style.height = '100%';
     video.style.objectFit = 'contain';
@@ -321,6 +321,28 @@ function createVideoElement(step, number) {
     video.muted = true; // Allow autoplay compatibility
 
     container.appendChild(video);
+
+    const audio = document.createElement('audio');
+    audio.src = `${assetsUrl}${step.media.audio}`;
+    audio.style.display = 'none';
+    container.appendChild(audio);
+
+    video.onplay = () => audio.play();
+    video.onpause = () => audio.pause();
+    video.onended = () => audio.pause();
+
+    video.onloadedmetadata = () => {
+        audio.onloadedmetadata = () => {
+            const videoDuration = video.duration;
+            const audioDuration = audio.duration;
+
+            if (audioDuration > videoDuration) {
+                audio.playbackRate = videoDuration / audioDuration;
+            } else if (videoDuration > audioDuration) {
+                video.playbackRate = audioDuration / videoDuration;
+            }
+        };
+    };
 
     // Add overlay only if it hasn't been clicked globally
     if (!overlayClicked) {
@@ -366,59 +388,39 @@ function selectStep(stepNumber) {
     const selectedItem = mediaItems[stepNumber - 1];
     const reorderedItems = mediaItems.slice(stepNumber - 1).concat(mediaItems.slice(0, stepNumber - 1));
 
-    /*
-    if (currentMode === 'reference') {
-        const baseLeftOffset = 20; // Adjust horizontal spacing
-        const baseBottomOffset = 5; // Adjust vertical spacing
+    reorderedItems.forEach((item, index) => {
+        item.style.zIndex = 100 - index;
+        item.style.left = `${index * 30}px`;
+        item.style.bottom = `${index * 7}px`;
 
-        mediaItems.forEach((item, index) => {
-            const offsetIndex = index; // Use index for dynamic offsets
-            item.style.zIndex = 100 - offsetIndex; // Decrease z-index for stacking
-            item.style.left = `${offsetIndex * baseLeftOffset}px`; // Dynamic left offset
-            item.style.bottom = `${offsetIndex * baseBottomOffset}px`; // Dynamic bottom offset
-            item.style.transform = 'scale(0.9)'; // Slight scaling for inactive items
+        if (item === selectedItem) {
+            item.classList.add('active');
+            item.style.transform = 'scale(1)';
+            item.style.zIndex = 100;
 
-            if (item === selectedItem) {
-                item.classList.add('active');
-                item.style.transform = 'scale(1)';
-                item.style.zIndex = 100;
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    }
-
-    if (currentMode !== 'reference') {
-    */
-        reorderedItems.forEach((item, index) => {
-            item.style.zIndex = 100 - index;
-            item.style.left = `${index * 30}px`;
-            item.style.bottom = `${index * 7}px`;
-
-            if (item === selectedItem) {
-                item.classList.add('active');
-                item.style.transform = 'scale(1)';
-                item.style.zIndex = 100;
-
-                // Play the selected video and reset its time to the beginning
-                const video = item.querySelector('video');
-                if (video) {
-                    video.currentTime = 0;
-                    if (overlayClicked) {
-                        video.play().catch(error => console.warn('Playback prevented:', error));
-                    }
+            // Play the selected video and reset its time to the beginning
+            const video = item.querySelector('video');
+            const audio = item.querySelector('audio');
+            if (video && audio) {
+                video.currentTime = 0;
+                audio.currentTime = 0;
+                if (overlayClicked) {
+                    video.play().catch(error => console.warn('Playback prevented:', error));
+                    audio.play().catch(error => console.warn('Audio playback prevented:', error));
                 }
-            } else {
-                item.classList.remove('active');
-                // Pause any video that is not the selected one
-                const video = item.querySelector('video');
-                if (video) {
-                    video.pause();
-                }
-
             }
-        });
-   // }
+        } else {
+            item.classList.remove('active');
+            // Pause any video that is not the selected one
+            const video = item.querySelector('video');
+            const audio = item.querySelector('audio');
+            if (video && audio) {
+                video.pause();
+                audio.pause();
+            }
+
+        }
+    });
 
     // Highlight the selected step in the step list
     document.querySelectorAll('.step').forEach((step, index) => {

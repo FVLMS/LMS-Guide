@@ -1,0 +1,50 @@
+{
+  "title": "How To Sample",
+  "lastUpdated": "Nov 2024",
+  "introduction": "This is a test",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "first step",
+      "shortDescription": "",
+      "details": "<p>Test</p>",
+      "media": {
+        "image": "gradient (1).png",
+        "video": "",
+        "audio": null,
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 2,
+      "title": "Test2",
+      "shortDescription": "description",
+      "details": "<p>test</p>",
+      "media": {
+        "image": "gradient (2).png",
+        "video": "",
+        "audio": null,
+        "hotspots": []
+      },
+      "tips": []
+    }
+  ],
+  "globalTips": [
+    {
+      "category": "General Tips",
+      "items": [
+        "TIP!"
+      ]
+    }
+  ],
+  "support": {
+    "contactMethods": [
+      {
+        "type": "Email",
+        "value": "LMS@fairview.org",
+        "availability": "24/7"
+      }
+    ]
+  }
+}

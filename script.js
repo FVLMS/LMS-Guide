@@ -198,7 +198,7 @@ function createImageElement(step, number) {
     imageWrapper.style.height = '100%';
 
     const img = document.createElement('img');
-    img.src = '${assetsUrl}${step.media.image}';
+    img.src = `${assetsUrl}${step.media.image}`;
     img.style.width = '100%';
     img.style.height = '100%';
     img.style.objectFit = 'contain';
@@ -326,7 +326,7 @@ function createVideoElement(step, number) {
 
     // Create the video element
     const video = document.createElement('video');
-    video.src = '${assetsUrl}${step.media.video}';
+    video.src = `${assetsUrl}${step.media.video}`;
     video.style.width = '100%';
     video.style.height = '100%';
     video.style.objectFit = 'contain';

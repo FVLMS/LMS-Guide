@@ -1,0 +1,236 @@
+{
+    "title": "How to Fry Eggs (Extended Process)",
+    "lastUpdated": "Nov 2024",
+    "introduction": "This is a detailed 10-step guide on frying eggs, designed for practice or repetition. The process typically takes 15-20 minutes.",
+    "steps": [
+        {
+            "stepNumber": 1,
+            "title": "Crack Eggs",
+            "shortDescription": "Carefully crack the eggs into a bowl.",
+            "details": "Hold an <b>egg</b> firmly but gently. Tap it against a flat surface and open it over a bowl, ensuring no shells fall in.",
+            "verificationPoints": [
+                "Eggshells are completely removed",
+                "Egg yolk remains intact (if desired)"
+            ],
+            "media": {
+                "image": "sample-assets/1.png",
+                "video": "sample-assets/1.mp4",
+                "audio": null,
+                "hotspots": [
+                    {
+                        "id": "egg-tap",
+                        "x": 45,
+                        "y": 60,
+                        "title": "Tap Point",
+                        "description": "Tap the egg gently here against a flat surface"
+                    },
+                    {
+                        "id": "bowl-position",
+                        "x": 65,
+                        "y": 75,
+                        "title": "Bowl Position",
+                        "description": "Position the bowl here to catch the egg contents"
+                    }
+                ]
+            },
+            "tips": [
+                "Use fresh eggs for the best results",
+                "Crack eggs on a flat surface to minimize shell fragments"
+            ]
+        },
+        {
+            "stepNumber": 2,
+            "title": "Beat Eggs",
+            "shortDescription": "Whisk the eggs until well mixed.",
+            "details": "Use a fork or whisk to beat the eggs in a bowl until the yolks and whites are fully combined. Add a pinch of salt or pepper if desired.",
+            "verificationPoints": [
+                "Egg mixture is smooth and consistent",
+                "Seasoning is evenly distributed"
+            ],
+            "media": {
+                "image": "sample-assets/2.png",
+                "video": "sample-assets/2.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Whisk briskly for a fluffier texture",
+                "Add a splash of milk for creamier eggs, if desired"
+            ]
+        },
+        {
+            "stepNumber": 3,
+            "title": "Pour Eggs Into Pan",
+            "shortDescription": "Transfer the beaten eggs to a preheated pan.",
+            "details": "Heat a non-stick pan over medium heat and lightly coat with butter or oil. Pour the beaten eggs into the pan, spreading evenly.",
+            "verificationPoints": [
+                "Pan is preheated and greased",
+                "Egg mixture spreads evenly in the pan"
+            ],
+            "media": {
+                "image": "sample-assets/3.png",
+                "video": "sample-assets/3.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Use low to medium heat to avoid burning",
+                "Tilt the pan gently to ensure even coverage"
+            ]
+        },
+        {
+            "stepNumber": 4,
+            "title": "Fry Eggs",
+            "shortDescription": "Cook the eggs to your preferred consistency.",
+            "details": "Let the eggs cook undisturbed for a minute or two. Use a spatula to gently move them around if scrambling, or flip carefully if frying sunny-side up.",
+            "verificationPoints": [
+                "Eggs reach desired consistency (runny, firm, etc.)",
+                "No raw egg remains visible"
+            ],
+            "media": {
+                "image": "sample-assets/4.png",
+                "video": "sample-assets/4.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Adjust heat as needed to avoid overcooking",
+                "Use a non-stick spatula for easy handling"
+            ]
+        },
+        {
+            "stepNumber": 5,
+            "title": "Repeat: Crack Eggs",
+            "shortDescription": "Repeat the process of cracking eggs into a bowl.",
+            "details": "Follow the same technique as Step 1 to crack another set of eggs into a bowl, ensuring no shells fall in.",
+            "verificationPoints": [
+                "Eggshells are completely removed",
+                "Egg yolk remains intact (if desired)"
+            ],
+            "media": {
+                "image": "sample-assets/1.png",
+                "video": "sample-assets/1.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Maintain a steady hand for cleaner cracks",
+                "Discard shells immediately to keep the area clean"
+            ]
+        },
+        {
+            "stepNumber": 6,
+            "title": "Repeat: Beat Eggs",
+            "shortDescription": "Whisk the eggs again until well mixed.",
+            "details": "Just like in Step 2, whisk the eggs until the yolks and whites are fully combined. Add seasoning as desired.",
+            "verificationPoints": [
+                "Egg mixture is smooth and consistent",
+                "Seasoning is evenly distributed"
+            ],
+            "media": {
+                "image": "sample-assets/2.png",
+                "video": "sample-assets/2.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Use brisk, consistent movements for even mixing",
+                "Add a small amount of seasoning for variety"
+            ]
+        },
+        {
+            "stepNumber": 7,
+            "title": "Repeat: Pour Eggs Into Pan",
+            "shortDescription": "Pour the beaten eggs into the preheated pan again.",
+            "details": "Repeat Step 3 by heating the pan, greasing it lightly, and pouring the beaten eggs evenly.",
+            "verificationPoints": [
+                "Pan is preheated and greased",
+                "Egg mixture spreads evenly in the pan"
+            ],
+            "media": {
+                "image": "sample-assets/3.png",
+                "video": "sample-assets/3.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Check pan heat with a drop of water—it should sizzle gently",
+                "Use a spatula to spread eggs evenly if needed"
+            ]
+        },
+        {
+            "stepNumber": 8,
+            "title": "Repeat: Fry Eggs",
+            "shortDescription": "Cook the eggs to your preferred consistency again.",
+            "details": "As in Step 4, let the eggs cook undisturbed and use a spatula to adjust as needed.",
+            "verificationPoints": [
+                "Eggs reach desired consistency",
+                "No raw egg remains visible"
+            ],
+            "media": {
+                "image": "sample-assets/4.png",
+                "video": "sample-assets/4.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Monitor the heat carefully to prevent overcooking",
+                "Practice flipping for improved technique"
+            ]
+        },
+        {
+            "stepNumber": 9,
+            "title": "Repeat: Crack Eggs Again",
+            "shortDescription": "Repeat cracking eggs one more time.",
+            "details": "For additional practice, crack eggs into a bowl as in Step 1.",
+            "verificationPoints": [
+                "Eggshells are completely removed",
+                "Egg yolk remains intact (if desired)"
+            ],
+            "media": {
+                "image": "sample-assets/1.png",
+                "video": "sample-assets/1.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Focus on cracking technique to avoid shells"
+            ]
+        },
+        {
+            "stepNumber": 10,
+            "title": "Repeat: Beat Eggs Again",
+            "shortDescription": "Whisk the eggs one last time.",
+            "details": "Repeat Step 2, whisking the eggs until well combined and seasoned.",
+            "verificationPoints": [
+                "Egg mixture is smooth and consistent",
+                "Seasoning is evenly distributed"
+            ],
+            "media": {
+                "image": "sample-assets/2.png",
+                "video": "sample-assets/2.mp4",
+                "audio": null
+            },
+            "tips": [
+                "Keep whisking briskly for smooth consistency"
+            ]
+        }
+    ],
+    "globalTips": [
+        {
+            "category": "Egg Frying Practice",
+            "items": [
+                "Repetition builds confidence and skill in cooking",
+                "Experiment with different cooking times for varied textures",
+                "Adjust seasoning to explore different flavors"
+            ]
+        }
+    ],
+    "support": {
+        "contactMethods": [
+            {
+                "type": "Website",
+                "value": "www.eggcookinghelp.com",
+                "availability": "24/7"
+            },
+            {
+                "type": "Chat Support",
+                "value": "Live Chat on Website",
+                "availability": "Mon-Fri, 9am-5pm"
+            }
+        ],
+        "troubleshooting": "If your eggs stick or burn, reduce the heat and ensure the pan is properly greased."
+    }
+}

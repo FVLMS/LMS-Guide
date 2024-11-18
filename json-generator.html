@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recipe JSON Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .hotspot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(59, 130, 246, 0.5);
+            border: 2px solid rgb(59, 130, 246);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+    
+        .hotspot:hover {
+            background-color: rgba(59, 130, 246, 0.8);
+        }
+    
+        .hotspot.selected {
+            background-color: rgba(239, 68, 68, 0.5);
+            border-color: rgb(239, 68, 68);
+        }
+    
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold mb-6">Recipe JSON Generator</h1>
+        
+        <!-- Basic Info -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">Recipe Title</label>
+            <input type="text" id="title" class="w-full p-2 border rounded" placeholder="Enter recipe title">
+            
+            <label class="block text-sm font-medium mt-4 mb-2">Introduction</label>
+            <textarea id="introduction" class="w-full p-2 border rounded" placeholder="Enter recipe introduction"></textarea>
+        </div>
+
+        <!-- Steps Container -->
+        <div id="steps-container" class="space-y-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Steps</h2>
+                <button onclick="addStep()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Step</button>
+            </div>
+        </div>
+
+        <!-- Global Tips -->
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold mb-2">Global Tips</h2>
+            <textarea id="globalTips" class="w-full p-2 border rounded" placeholder="Enter global tips"></textarea>
+        </div>
+
+        <!-- Generate JSON Button -->
+        <div class="mt-6">
+            <button onclick="generateJSON()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">Generate JSON</button>
+        </div>
+
+        <!-- JSON Output -->
+        <div class="mt-6">
+            <pre id="json-output" class="bg-gray-100 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap"></pre>
+        </div>
+    </div>
+
+    <script>
+        let stepCount = 0;
+
+        //hotspot functionality
+        const hotspotManagers = {};
+
+        class HotspotManager {
+            constructor(stepNumber) {
+                this.stepNumber = stepNumber;
+                this.hotspots = [];
+                this.selectedHotspot = null;
+                this.isAddingMode = false;
+            }
+
+            toggleAddingMode() {
+                this.isAddingMode = !this.isAddingMode;
+                const container = document.getElementById(`step-${this.stepNumber}-image-container`);
+                container.style.cursor = this.isAddingMode ? 'crosshair' : 'default';
+            }
+
+            addHotspot(x, y, container) {
+                const rect = container.getBoundingClientRect();
+                const percentX = ((x - rect.left) / rect.width * 100).toFixed(2);
+                const percentY = ((y - rect.top) / rect.height * 100).toFixed(2);
+
+                const hotspot = {
+                    id: `hotspot-${Date.now()}`,
+                    x: parseFloat(percentX),
+                    y: parseFloat(percentY),
+                    title: 'New Hotspot',
+                    description: 'Click to edit description'
+                };
+
+                this.hotspots.push(hotspot);
+                this.renderHotspots();
+                this.selectHotspot(hotspot.id);
+                return hotspot;
+            }
+
+            renderHotspots() {
+                const hotspotsLayer = document.getElementById(`step-${this.stepNumber}-hotspots`);
+                hotspotsLayer.innerHTML = '';
+
+                this.hotspots.forEach(hotspot => {
+                    const dot = document.createElement('div');
+                    dot.className = `hotspot ${this.selectedHotspot === hotspot.id ? 'selected' : ''}`;
+                    dot.style.left = `${hotspot.x}%`;
+                    dot.style.top = `${hotspot.y}%`;
+                    dot.setAttribute('data-id', hotspot.id);
+
+                    dot.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.selectHotspot(hotspot.id);
+                    });
+
+                    hotspotsLayer.appendChild(dot);
+                });
+            }
+
+            selectHotspot(id) {
+                this.selectedHotspot = id;
+                this.renderHotspots();
+                this.showHotspotDetails(id);
+            }
+
+            showHotspotDetails(id) {
+                const detailsDiv = document.getElementById(`step-${this.stepNumber}-hotspot-details`);
+                const hotspot = this.hotspots.find(h => h.id === id);
+
+                if (hotspot) {
+                    detailsDiv.innerHTML = `
+            <div class="bg-white p-4 rounded-lg shadow mt-4">
+                <h4 class="font-medium mb-2">Edit Hotspot</h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Title</label>
+                        <input type="text" value="${hotspot.title}" 
+                            class="w-full p-2 border rounded"
+                            onchange="hotspotManagers[${this.stepNumber}].updateHotspot('${id}', {title: this.value})">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Description</label>
+                        <textarea class="w-full p-2 border rounded" 
+                            onchange="hotspotManagers[${this.stepNumber}].updateHotspot('${id}', {description: this.value})"
+                            >${hotspot.description}</textarea>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        Position: ${hotspot.x.toFixed(1)}%, ${hotspot.y.toFixed(1)}%
+                    </div>
+                    <button onclick="hotspotManagers[${this.stepNumber}].deleteHotspot('${id}')"
+                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                        Delete Hotspot
+                    </button>
+                </div>
+            </div>
+        `;
+                } else {
+                    detailsDiv.innerHTML = '';
+                }
+            }
+
+            updateHotspot(id, updates) {
+                const hotspot = this.hotspots.find(h => h.id === id);
+                if (hotspot) {
+                    Object.assign(hotspot, updates);
+                    this.renderHotspots();
+                }
+            }
+
+            deleteHotspot(id) {
+                this.hotspots = this.hotspots.filter(h => h.id !== id);
+                this.selectedHotspot = null;
+                this.renderHotspots();
+                this.showHotspotDetails(null);
+            }
+
+            getHotspotsData() {
+                return this.hotspots.map(({ id, ...hotspot }) => hotspot);
+            }
+        }
+
+        // Initialize TinyMCE
+        function initEditor(elementId) {
+            tinymce.init({
+                selector: `#${elementId}`,
+                height: 300,
+                menubar: false,
+                plugins: 'lists link',
+                toolbar: 'undo redo | formatselect | bold italic | bullist numlist | link',
+                content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }'
+            });
+        }
+
+        function addStep() {
+            stepCount++;
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'bg-gray-50 p-4 rounded-lg mt-4';
+            stepDiv.id = `step-${stepCount}`;
+            
+            stepDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Step ${stepCount}</h3>
+                    <button onclick="removeStep(${stepCount})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Remove</button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Title</label>
+                        <input type="text" id="step-${stepCount}-title" class="w-full p-2 border rounded" placeholder="Step title">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Short Description</label>
+                        <input type="text" id="step-${stepCount}-short" class="w-full p-2 border rounded" placeholder="Short description">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Image Upload (for hotspots)</label>
+                        <input type="file" id="step-${stepCount}-image-upload" accept="image/*" class="w-full p-2 border rounded">
+                        <div id="step-${stepCount}-image-preview" class="mt-2"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Image URL</label>
+                            <input type="text" id="step-${stepCount}-image" class="w-full p-2 border rounded" placeholder="Image URL">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Video URL</label>
+                            <input type="text" id="step-${stepCount}-video" class="w-full p-2 border rounded" placeholder="Video URL">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Detailed Instructions</label>
+                        <textarea id="step-${stepCount}-details"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tips</label>
+                        <div id="step-${stepCount}-tips" class="space-y-2">
+                            <input type="text" class="w-full p-2 border rounded" placeholder="Enter a tip">
+                        </div>
+                        <button onclick="addTip(${stepCount})" class="mt-2 bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">Add Tip</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('steps-container').appendChild(stepDiv);
+            initEditor(`step-${stepCount}-details`);
+            
+            // Add image upload handler
+            document.getElementById(`step-${stepCount}-image-upload`).addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = document.getElementById(`step-${stepCount}-image-preview`);
+                        preview.innerHTML = `
+                <div class="mt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm font-medium">Image Preview & Hotspots</p>
+                        <button onclick="hotspotManagers[${stepCount}].toggleAddingMode()" 
+                            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">
+                            Add Hotspot
+                        </button>
+                    </div>
+                    <div id="step-${stepCount}-image-container" class="image-container">
+                        <img src="${e.target.result}" class="max-w-full h-auto rounded">
+                        <div id="step-${stepCount}-hotspots"></div>
+                    </div>
+                    <div id="step-${stepCount}-hotspot-details"></div>
+                </div>
+            `;
+
+                        // Initialize hotspot manager
+                        hotspotManagers[stepCount] = new HotspotManager(stepCount);
+
+                        // Add click handler for adding new hotspots
+                        const imgContainer = document.getElementById(`step-${stepCount}-image-container`);
+                        imgContainer.addEventListener('click', function (e) {
+                            if (hotspotManagers[stepCount].isAddingMode) {
+                                hotspotManagers[stepCount].addHotspot(e.clientX, e.clientY, this);
+                                hotspotManagers[stepCount].toggleAddingMode();
+                            }
+                        });
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function removeStep(stepNum) {
+            const stepElement = document.getElementById(`step-${stepNum}`);
+            if (stepElement) {
+                tinymce.remove(`#step-${stepNum}-details`);
+                stepElement.remove();
+            }
+        }
+
+        function addTip(stepNum) {
+            const tipsContainer = document.getElementById(`step-${stepNum}-tips`);
+            const newTip = document.createElement('input');
+            newTip.type = 'text';
+            newTip.className = 'w-full p-2 border rounded mt-2';
+            newTip.placeholder = 'Enter a tip';
+            tipsContainer.appendChild(newTip);
+        }
+
+        function generateJSON() {
+            const recipe = {
+                title: document.getElementById('title').value,
+                lastUpdated: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
+                introduction: document.getElementById('introduction').value,
+                steps: [],
+                globalTips: [{
+                    category: 'General Tips',
+                    items: [document.getElementById('globalTips').value]
+                }],
+                support: {
+                    contactMethods: [{
+                        type: 'Email',
+                        value: 'LMS@fairview.org',
+                        availability: '24/7'
+                    }]
+                }
+            };
+
+            // Collect steps
+            for (let i = 1; i <= stepCount; i++) {
+                const stepElement = document.getElementById(`step-${i}`);
+                if (stepElement) {
+                    const step = {
+                        stepNumber: i,
+                        title: document.getElementById(`step-${i}-title`).value,
+                        shortDescription: document.getElementById(`step-${i}-short`).value,
+                        details: tinymce.get(`step-${i}-details`).getContent(),
+                        media: {
+                            image: document.getElementById(`step-${i}-image`).value,
+                            video: document.getElementById(`step-${i}-video`).value,
+                            audio: null,
+                            hotspots: hotspotManagers[i] ? hotspotManagers[i].getHotspotsData() : []
+                        },
+                        tips: Array.from(document.getElementById(`step-${i}-tips`).getElementsByTagName('input'))
+                            .map(input => input.value)
+                            .filter(tip => tip.trim() !== '')
+                    };
+                    recipe.steps.push(step);
+                }
+            }
+
+            // Display JSON
+            const jsonOutput = document.getElementById('json-output');
+            jsonOutput.textContent = JSON.stringify(recipe, null, 2);
+            const filename = document.getElementById('title').value.replace(/\s+/g, '_');
+            const filenameext = `${filename}.json`;
+            const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filenameext;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            //jsonOutput.textContent = JSON.stringify(recipe, null, 2);
+            // Copy to clipboard
+           // navigator.clipboard.writeText(JSON.stringify(recipe, null, 2))
+               // .then(() => alert('JSON copied to clipboard!'))
+               // .catch(err => console.error('Failed to copy JSON:', err));
+
+                
+        }
+    </script>
+</body>
+</html>

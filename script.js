@@ -7,7 +7,7 @@ let overlayElement = null;  // Add this to track the overlay element
 const baseUrl = 'https://mnfhs.sharepoint.com/sites/LMSTeam/LMS Public/CornerstoneTraining/';
 const urlParams = new URLSearchParams(window.location.search);
 const title = urlParams.get('title');
-const jsonUrl = `/content/${title}.json`;
+const jsonUrl = `LMS-Guide/content/${title}.json`;
 const assetsUrl = `${baseUrl}${title}/`;
 
 document.addEventListener('DOMContentLoaded', () => {

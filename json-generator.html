@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Recipe JSON Generator</title>
+    <title>LMS Guide JSON Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
@@ -34,15 +34,15 @@
 </head>
 <body class="bg-gray-100 p-6">
     <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
-        <h1 class="text-2xl font-bold mb-6">Recipe JSON Generator</h1>
+        <h1 class="text-2xl font-bold mb-6">LMS Guide JSON Generator</h1>
         
         <!-- Basic Info -->
         <div class="mb-6">
-            <label class="block text-sm font-medium mb-2">Recipe Title</label>
-            <input type="text" id="title" class="w-full p-2 border rounded" placeholder="Enter recipe title">
+            <label class="block text-sm font-medium mb-2">Guide Title</label>
+            <input type="text" id="title" class="w-full p-2 border rounded" placeholder="Enter Guide title">
             
             <label class="block text-sm font-medium mt-4 mb-2">Introduction</label>
-            <textarea id="introduction" class="w-full p-2 border rounded" placeholder="Enter recipe introduction"></textarea>
+            <textarea id="introduction" class="w-full p-2 border rounded" placeholder="Enter Guide introduction"></textarea>
         </div>
 
         <!-- Steps Container -->
@@ -324,7 +324,7 @@
         }
 
         function generateJSON() {
-            const recipe = {
+            const guide = {
                 title: document.getElementById('title').value,
                 lastUpdated: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
                 introduction: document.getElementById('introduction').value,
@@ -362,16 +362,16 @@
                             .map(input => input.value)
                             .filter(tip => tip.trim() !== '')
                     };
-                    recipe.steps.push(step);
+                    guide.steps.push(step);
                 }
             }
 
             // Display JSON
             const jsonOutput = document.getElementById('json-output');
-            jsonOutput.textContent = JSON.stringify(recipe, null, 2);
+            jsonOutput.textContent = JSON.stringify(guide, null, 2);
             const filename = document.getElementById('title').value.replace(/\s+/g, '_');
             const filenameext = `${filename}.json`;
-            const blob = new Blob([JSON.stringify(recipe, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(guide, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -381,9 +381,9 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            //jsonOutput.textContent = JSON.stringify(recipe, null, 2);
+            //jsonOutput.textContent = JSON.stringify(guide, null, 2);
             // Copy to clipboard
-           // navigator.clipboard.writeText(JSON.stringify(recipe, null, 2))
+           // navigator.clipboard.writeText(JSON.stringify(guide, null, 2))
                // .then(() => alert('JSON copied to clipboard!'))
                // .catch(err => console.error('Failed to copy JSON:', err));
 

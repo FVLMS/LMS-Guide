@@ -15,7 +15,7 @@
             "media": {
                 "image": "1.png",
                 "video": "1.mp4",
-                "audio": null,
+                "audio": "1.wav",
                 "hotspots": [
                     {
                         "id": "egg-tap",
@@ -50,7 +50,7 @@
             "media": {
                 "image": "2.png",
                 "video": "2.mp4",
-                "audio": null
+                "audio": "2.wav"
             },
             "tips": [
                 "Whisk briskly for a fluffier texture",
@@ -69,7 +69,7 @@
             "media": {
                 "image": "3.png",
                 "video": "3.mp4",
-                "audio": null
+                "audio": "3.wav"
             },
             "tips": [
                 "Use low to medium heat to avoid burning",
@@ -88,7 +88,7 @@
             "media": {
                 "image": "4.png",
                 "video": "4.mp4",
-                "audio": null
+                "audio": "4.wav"
             },
             "tips": [
                 "Adjust heat as needed to avoid overcooking",

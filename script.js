@@ -392,12 +392,9 @@ function removeAllOverlays() {
 
 
 function selectStep(stepNumber) {
-    currentStepNumber = stepNumber
+    currentStepNumber = stepNumber;
     const mediaItems = Array.from(document.querySelectorAll('.media-item'));
 
-    
-
-    // Rotate the stack so the selected item appears at the front
     const selectedItem = mediaItems[stepNumber - 1];
     const reorderedItems = mediaItems.slice(stepNumber - 1).concat(mediaItems.slice(0, stepNumber - 1));
 
@@ -411,37 +408,38 @@ function selectStep(stepNumber) {
             item.style.transform = 'scale(1)';
             item.style.zIndex = 100;
 
-            // Play the selected video and reset its time to the beginning
             const video = item.querySelector('video');
             const audio = item.querySelector('audio');
             if (video && audio) {
                 video.currentTime = 0;
                 audio.currentTime = 0;
-                if (overlayClicked) {
-                    video.play().catch(error => console.warn('Playback prevented:', error));
-                    audio.play().catch(error => console.warn('Audio playback prevented:', error));
+                if (overlayClicked && currentMode === 'auto') {
+                    Promise.all([
+                        video.play().catch(e => console.warn('Video playback prevented:', e)),
+                        audio.play().catch(e => console.warn('Audio playback prevented:', e))
+                    ]).catch(error => {
+                        console.warn('Playback prevented:', error);
+                    });
                 }
             }
         } else {
             item.classList.remove('active');
-            // Pause any video that is not the selected one
             const video = item.querySelector('video');
             const audio = item.querySelector('audio');
             if (video && audio) {
                 video.pause();
                 audio.pause();
             }
-
         }
     });
 
-    // Highlight the selected step in the step list
+    // Update step list and details
     document.querySelectorAll('.step').forEach((step, index) => {
         step.classList.toggle('active', index + 1 === stepNumber);
     });
 
     if (currentMode === 'reference') {
-        loadDetails(stepNumber); // Load details if in "Image + Text" mode
+        loadDetails(stepNumber);
     }
 }
 
@@ -451,24 +449,51 @@ function playAllMedia() {
 
     let currentStep = currentStepNumber;
     const mediaItems = Array.from(document.querySelectorAll('.media-item'))
-        .map(item => item.querySelector('video')) // Get the video elements
-        .filter(video => video); // Filter out nulls
+        .map(item => ({
+            video: item.querySelector('video'),
+            audio: item.querySelector('audio')
+        }))
+        .filter(media => media.video && media.audio);
 
     function playNext() {
         if (currentStep <= mediaItems.length) {
             selectStep(currentStep);
-            const currentVideo = mediaItems[currentStep - 1];
+            const currentMedia = mediaItems[currentStep - 1];
 
-            currentVideo.currentTime = 0;
-            currentVideo.play().catch(error => {
+            // Reset both video and audio to beginning
+            currentMedia.video.currentTime = 0;
+            currentMedia.audio.currentTime = 0;
+
+            // Create promises for both video and audio playback
+            const videoPromise = currentMedia.video.play().catch(error => {
+                console.error("Video playback error:", error);
+                return Promise.reject(error);
+            });
+
+            const audioPromise = currentMedia.audio.play().catch(error => {
+                console.error("Audio playback error:", error);
+                return Promise.reject(error);
+            });
+
+            // Handle both promises
+            Promise.all([videoPromise, audioPromise]).catch(error => {
                 if (error.name === 'NotAllowedError') {
                     console.log("User interaction required for autoplay. Waiting for interaction.");
-                } else {
-                    console.error("Playback error:", error);
+                    // Add a temporary overlay for user interaction
+                    const interactionOverlay = document.createElement('div');
+                    interactionOverlay.className = 'video-overlay';
+                    interactionOverlay.innerHTML = '<div class="play-icon">Click to start playback</div>';
+                    interactionOverlay.onclick = (e) => {
+                        e.stopPropagation();
+                        interactionOverlay.remove();
+                        playNext(); // Retry playback after user interaction
+                    };
+                    currentMedia.video.parentElement.appendChild(interactionOverlay);
                 }
             });
 
-            currentVideo.onended = () => {
+            // Use video's ended event as the trigger for next item
+            currentMedia.video.onended = () => {
                 currentStep++;
                 playNext();
             };
@@ -479,6 +504,7 @@ function playAllMedia() {
 
     playNext();
 }
+
 
 function applyHoverEffect(stepNumber) {
     const mediaItems = Array.from(document.querySelectorAll('.media-item'));

@@ -369,13 +369,13 @@
             // Display JSON
             const jsonOutput = document.getElementById('json-output');
             jsonOutput.textContent = JSON.stringify(recipe, null, 2);
-            //const filename = document.getElementById('title').value.replace(/\s+/g, '_');
-            //const filenameext = `${filename}.json`;
+            const filename = document.getElementById('title').value.replace(/\s+/g, '_');
+            const filenameext = `${filename}.json`;
             const blob = new Blob([JSON.stringify(recipe, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'content.json';
+            link.download = filenameext;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

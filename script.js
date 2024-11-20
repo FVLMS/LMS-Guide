@@ -319,53 +319,35 @@ function showMaximizedView(imageSrc) {
 }
 
 function createVideoElement(step, number) {
-    // Create a container div for the video and overlay
     const container = document.createElement('div');
     container.className = 'media-item';
     container.onclick = () => selectStep(number);
 
-    // Create the video element
+    // Create single video element referencing the main video
     const video = document.createElement('video');
-    video.src = `${assetsUrl}${step.media.video}`;
+    video.src = `${assetsUrl}${contentData.mainVideo}`; // Use the main video source
     video.style.width = '100%';
     video.style.height = '100%';
     video.style.objectFit = 'contain';
     video.controls = true;
-    video.muted = true; // Allow autoplay compatibility
+    video.muted = true;
+
+    // Set initial time based on step timestamp
+    if (step.media.timestamp) {
+        video.currentTime = step.media.timestamp.start;
+    }
 
     container.appendChild(video);
 
-    const audio = document.createElement('audio');
-    audio.src = `${assetsUrl}${step.media.audio}`;
-    audio.style.display = 'none';
-    container.appendChild(audio);
-
-    video.onplay = () => audio.play();
-    video.onpause = () => audio.pause();
-    video.onended = () => audio.pause();
-
-    video.onloadedmetadata = () => {
-        audio.onloadedmetadata = () => {
-            const videoDuration = video.duration;
-            const audioDuration = audio.duration;
-
-            if (audioDuration > videoDuration) {
-                audio.playbackRate = videoDuration / audioDuration;
-            } else if (videoDuration > audioDuration) {
-                video.playbackRate = audioDuration / videoDuration;
-            }
-        };
-    };
-
-    // Add overlay only if it hasn't been clicked globally
+    // Add overlay if not clicked
     if (!overlayClicked) {
         const overlay = document.createElement('div');
         overlay.className = 'video-overlay';
 
         overlay.onclick = (e) => {
             e.stopPropagation();
-            overlayClicked = true; // Set the global flag to true
-            removeAllOverlays(); // Remove overlays globally
+            overlayClicked = true;
+            removeAllOverlays();
             video.play().catch(error => console.warn('Playback failed:', error));
         };
 
@@ -394,6 +376,7 @@ function removeAllOverlays() {
 function selectStep(stepNumber) {
     currentStepNumber = stepNumber;
     const mediaItems = Array.from(document.querySelectorAll('.media-item'));
+    const stepData = contentData.steps[stepNumber - 1];
 
     const selectedItem = mediaItems[stepNumber - 1];
     const reorderedItems = mediaItems.slice(stepNumber - 1).concat(mediaItems.slice(0, stepNumber - 1));
@@ -403,37 +386,41 @@ function selectStep(stepNumber) {
         item.style.left = `${index * 30}px`;
         item.style.bottom = `${index * 7}px`;
 
+        const video = item.querySelector('video');
+
         if (item === selectedItem) {
             item.classList.add('active');
             item.style.transform = 'scale(1)';
             item.style.zIndex = 100;
 
-            const video = item.querySelector('video');
-            const audio = item.querySelector('audio');
-            if (video && audio) {
-                video.currentTime = 0;
-                audio.currentTime = 0;
+            if (video && stepData.media.timestamp) {
+                video.currentTime = stepData.media.timestamp.start;
+
                 if (overlayClicked && currentMode === 'auto') {
-                    Promise.all([
-                        video.play().catch(e => console.warn('Video playback prevented:', e)),
-                        audio.play().catch(e => console.warn('Audio playback prevented:', e))
-                    ]).catch(error => {
-                        console.warn('Playback prevented:', error);
-                    });
+                    video.play().then(() => {
+                        // Add timeupdate listener to handle segment end
+                        const timeCheckHandler = () => {
+                            if (video.currentTime >= stepData.media.timestamp.end) {
+                                video.pause();
+                                video.removeEventListener('timeupdate', timeCheckHandler);
+                                if (currentMode === 'auto') {
+                                    const nextStepNumber = stepNumber === contentData.steps.length ? 1 : stepNumber + 1;
+                                    selectStep(nextStepNumber);
+                                }
+                            }
+                        };
+                        video.addEventListener('timeupdate', timeCheckHandler);
+                    }).catch(error => console.warn('Playback prevented:', error));
                 }
             }
         } else {
             item.classList.remove('active');
-            const video = item.querySelector('video');
-            const audio = item.querySelector('audio');
-            if (video && audio) {
+            if (video) {
                 video.pause();
-                audio.pause();
             }
         }
     });
 
-    // Update step list and details
     document.querySelectorAll('.step').forEach((step, index) => {
         step.classList.toggle('active', index + 1 === stepNumber);
     });
@@ -451,52 +438,43 @@ function playAllMedia() {
     const mediaItems = Array.from(document.querySelectorAll('.media-item'))
         .map(item => ({
             video: item.querySelector('video'),
-            audio: item.querySelector('audio')
+            stepData: contentData.steps[currentStep - 1]
         }))
-        .filter(media => media.video && media.audio);
+        .filter(media => media.video);
 
     function playNext() {
         if (currentStep <= mediaItems.length) {
             selectStep(currentStep);
             const currentMedia = mediaItems[currentStep - 1];
 
-            // Reset both video and audio to beginning
-            currentMedia.video.currentTime = 0;
-            currentMedia.audio.currentTime = 0;
+            if (currentMedia.stepData.media.timestamp) {
+                currentMedia.video.currentTime = currentMedia.stepData.media.timestamp.start;
 
-            // Create promises for both video and audio playback
-            const videoPromise = currentMedia.video.play().catch(error => {
-                console.error("Video playback error:", error);
-                return Promise.reject(error);
-            });
+                currentMedia.video.play().catch(error => {
+                    if (error.name === 'NotAllowedError') {
+                        console.log("User interaction required for autoplay. Waiting for interaction.");
+                        const interactionOverlay = document.createElement('div');
+                        interactionOverlay.className = 'video-overlay';
+                        interactionOverlay.innerHTML = '<div class="play-icon">Click to start playback</div>';
+                        interactionOverlay.onclick = (e) => {
+                            e.stopPropagation();
+                            interactionOverlay.remove();
+                            playNext();
+                        };
+                        currentMedia.video.parentElement.appendChild(interactionOverlay);
+                    }
+                });
 
-            const audioPromise = currentMedia.audio.play().catch(error => {
-                console.error("Audio playback error:", error);
-                return Promise.reject(error);
-            });
-
-            // Handle both promises
-            Promise.all([videoPromise, audioPromise]).catch(error => {
-                if (error.name === 'NotAllowedError') {
-                    console.log("User interaction required for autoplay. Waiting for interaction.");
-                    // Add a temporary overlay for user interaction
-                    const interactionOverlay = document.createElement('div');
-                    interactionOverlay.className = 'video-overlay';
-                    interactionOverlay.innerHTML = '<div class="play-icon">Click to start playback</div>';
-                    interactionOverlay.onclick = (e) => {
-                        e.stopPropagation();
-                        interactionOverlay.remove();
-                        playNext(); // Retry playback after user interaction
-                    };
-                    currentMedia.video.parentElement.appendChild(interactionOverlay);
-                }
-            });
-
-            // Use video's ended event as the trigger for next item
-            currentMedia.video.onended = () => {
-                currentStep++;
-                playNext();
-            };
+                const timeCheckHandler = () => {
+                    if (currentMedia.video.currentTime >= currentMedia.stepData.media.timestamp.end) {
+                        currentMedia.video.pause();
+                        currentMedia.video.removeEventListener('timeupdate', timeCheckHandler);
+                        currentStep++;
+                        playNext();
+                    }
+                };
+                currentMedia.video.addEventListener('timeupdate', timeCheckHandler);
+            }
         } else {
             console.log('All media has been played.');
         }
@@ -504,7 +482,6 @@ function playAllMedia() {
 
     playNext();
 }
-
 
 function applyHoverEffect(stepNumber) {
     const mediaItems = Array.from(document.querySelectorAll('.media-item'));
@@ -525,24 +502,20 @@ function removeHoverEffect(stepNumber) {
 }
 
 function getTotalVideoDuration() {
-    const videoElements = document.querySelectorAll('.media-item video');
-    let totalDuration = 0;
+    // Only need to check one video since it's the same source
+    const video = document.querySelector('.media-item video');
+    if (!video) return;
 
-    const promises = Array.from(videoElements).map((video) => {
-        return new Promise((resolve) => {
-            video.addEventListener('loadedmetadata', () => {
-                totalDuration += video.duration;
-                resolve();
-            });
+    return new Promise((resolve) => {
+        video.addEventListener('loadedmetadata', () => {
+            const totalDuration = video.duration;
+            const totalMinutes = Math.floor(totalDuration / 60);
+            const totalSeconds = Math.floor(totalDuration % 60);
+            const totalDurationText = `Last updated: ${contentData.lastUpdated} | Duration: ${totalMinutes}m ${totalSeconds}s`;
+
+            document.getElementById('lastUpdated').textContent = totalDurationText;
+            resolve();
         });
-    });
-
-    return Promise.all(promises).then(() => {
-        const totalMinutes = Math.floor(totalDuration / 60);
-        const totalSeconds = Math.floor(totalDuration % 60);
-        const totalDurationText = `Last updated: ${contentData.lastUpdated} | Duration: ${totalMinutes}m ${totalSeconds}s`;
-
-        document.getElementById('lastUpdated').textContent = totalDurationText;
     });
 }
 

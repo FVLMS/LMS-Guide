@@ -35,15 +35,21 @@
 <body class="bg-gray-100 p-6">
     <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
         <h1 class="text-2xl font-bold mb-6">LMS Guide JSON Generator</h1>
-        
+
         <!-- Basic Info -->
         <div class="mb-6">
             <label class="block text-sm font-medium mb-2">Guide Title</label>
             <input type="text" id="title" class="w-full p-2 border rounded" placeholder="Enter Guide title">
-            
+
             <label class="block text-sm font-medium mt-4 mb-2">Introduction</label>
             <textarea id="introduction" class="w-full p-2 border rounded" placeholder="Enter Guide introduction"></textarea>
+            
+            <label class="block text-sm font-medium mt-4 mb-2">Main Video Filename</label>
+            <input type="text" id="mainVideo" class="w-full p-2 border rounded" placeholder="Enter main video filename">
+
+            
         </div>
+
 
         <!-- Steps Container -->
         <div id="steps-container" class="space-y-6">
@@ -204,63 +210,63 @@
         }
 
         function addStep() {
-            stepCount++;
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'bg-gray-50 p-4 rounded-lg mt-4';
-            stepDiv.id = `step-${stepCount}`;
-            
-            stepDiv.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium">Step ${stepCount}</h3>
-                    <button onclick="removeStep(${stepCount})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Remove</button>
-                </div>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Title</label>
-                        <input type="text" id="step-${stepCount}-title" class="w-full p-2 border rounded" placeholder="Step title">
+                stepCount++;
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'bg-gray-50 p-4 rounded-lg mt-4';
+                stepDiv.id = `step-${stepCount}`;
+
+                stepDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium">Step ${stepCount}</h3>
+                        <button onclick="removeStep(${stepCount})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Remove</button>
                     </div>
                     
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Short Description</label>
-                        <input type="text" id="step-${stepCount}-short" class="w-full p-2 border rounded" placeholder="Short description">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Image Upload (for hotspots)</label>
-                        <input type="file" id="step-${stepCount}-image-upload" accept="image/*" class="w-full p-2 border rounded">
-                        <div id="step-${stepCount}-image-preview" class="mt-2"></div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Image Filename</label>
-                            <input type="text" id="step-${stepCount}-image" class="w-full p-2 border rounded" placeholder="Image Filename">
+                            <label class="block text-sm font-medium mb-2">Title</label>
+                            <input type="text" id="step-${stepCount}-title" class="w-full p-2 border rounded" placeholder="Step title">
                         </div>
+                        
                         <div>
-                            <label class="block text-sm font-medium mb-2">Video Filename</label>
-                            <input type="text" id="step-${stepCount}-video" class="w-full p-2 border rounded" placeholder="Video Filename">
+                            <label class="block text-sm font-medium mb-2">Short Description</label>
+                            <input type="text" id="step-${stepCount}-short" class="w-full p-2 border rounded" placeholder="Short description">
                         </div>
+                        
                         <div>
-                            <label class="block text-sm font-medium mb-2">Audio Filename</label>
-                            <input type="text" id="step-${stepCount}-audio" class="w-full p-2 border rounded" placeholder="Audio Filename">
+                            <label class="block text-sm font-medium mb-2">Image Upload (for hotspots)</label>
+                            <input type="file" id="step-${stepCount}-image-upload" accept="image/*" class="w-full p-2 border rounded">
+                            <div id="step-${stepCount}-image-preview" class="mt-2"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Image Filename</label>
+                                <input type="text" id="step-${stepCount}-image" class="w-full p-2 border rounded" placeholder="Image Filename">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Start Time (seconds)</label>
+                                <input type="number" id="step-${stepCount}-timestamp-start" class="w-full p-2 border rounded" placeholder="0" min="0" step="0.1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">End Time (seconds)</label>
+                                <input type="number" id="step-${stepCount}-timestamp-end" class="w-full p-2 border rounded" placeholder="0" min="0" step="0.1">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Detailed Instructions</label>
+                            <textarea id="step-${stepCount}-details"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Tips</label>
+                            <div id="step-${stepCount}-tips" class="space-y-2">
+                                <input type="text" class="w-full p-2 border rounded" placeholder="Enter a tip">
+                            </div>
+                            <button onclick="addTip(${stepCount})" class="mt-2 bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">Add Tip</button>
                         </div>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Detailed Instructions</label>
-                        <textarea id="step-${stepCount}-details"></textarea>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Tips</label>
-                        <div id="step-${stepCount}-tips" class="space-y-2">
-                            <input type="text" class="w-full p-2 border rounded" placeholder="Enter a tip">
-                        </div>
-                        <button onclick="addTip(${stepCount})" class="mt-2 bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">Add Tip</button>
-                    </div>
-                </div>
-            `;
+                `;
             
             document.getElementById('steps-container').appendChild(stepDiv);
             initEditor(`step-${stepCount}-details`);
@@ -324,49 +330,49 @@
         }
 
         function generateJSON() {
-            const guide = {
-                title: document.getElementById('title').value,
-                lastUpdated: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
-                introduction: document.getElementById('introduction').value,
-                steps: [],
-                globalTips: [{
-                    category: 'General Tips',
-                    items: [document.getElementById('globalTips').value]
-                }],
-                support: {
-                    contactMethods: [{
-                        type: 'Email',
-                        value: 'LMS@fairview.org',
-                        availability: '24/7'
-                    }]
-                }
-            };
+                const guide = {
+                    title: document.getElementById('title').value,
+                    lastUpdated: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
+                    introduction: document.getElementById('introduction').value,
+                    mainVideo: document.getElementById('mainVideo').value,
+                    steps: [],
+                    globalTips: [{
+                        category: 'General Tips',
+                        items: [document.getElementById('globalTips').value]
+                    }],
+                    support: {
+                        contactMethods: [{
+                            type: 'Email',
+                            value: 'LMS@fairview.org',
+                            availability: '24/7'
+                        }]
+                    }
+                };
 
-            // Collect steps
-            for (let i = 1; i <= stepCount; i++) {
-                const stepElement = document.getElementById(`step-${i}`);
-                if (stepElement) {
-                    const step = {
-                        stepNumber: i,
-                        title: document.getElementById(`step-${i}-title`).value,
-                        shortDescription: document.getElementById(`step-${i}-short`).value,
-                        details: tinymce.get(`step-${i}-details`).getContent(),
-                        media: {
-                            image: document.getElementById(`step-${i}-image`).value,
-                            video: document.getElementById(`step-${i}-video`).value,
-                            audio: document.getElementById(`step-${i}-audio`).value,
-                            audio: null,
-                            hotspots: hotspotManagers[i] ? hotspotManagers[i].getHotspotsData() : []
-                        },
-                        tips: Array.from(document.getElementById(`step-${i}-tips`).getElementsByTagName('input'))
-                            .map(input => input.value)
-                            .filter(tip => tip.trim() !== '')
-                    };
-                    guide.steps.push(step);
+                // Collect steps
+                for (let i = 1; i <= stepCount; i++) {
+                    const stepElement = document.getElementById(`step-${i}`);
+                    if (stepElement) {
+                        const step = {
+                            stepNumber: i,
+                            title: document.getElementById(`step-${i}-title`).value,
+                            shortDescription: document.getElementById(`step-${i}-short`).value,
+                            details: tinymce.get(`step-${i}-details`).getContent(),
+                            media: {
+                                image: document.getElementById(`step-${i}-image`).value,
+                                timestamp: {
+                                    start: parseFloat(document.getElementById(`step-${i}-timestamp-start`).value) || 0,
+                                    end: parseFloat(document.getElementById(`step-${i}-timestamp-end`).value) || 0
+                                },
+                                hotspots: hotspotManagers[i] ? hotspotManagers[i].getHotspotsData() : []
+                            },
+                            tips: Array.from(document.getElementById(`step-${i}-tips`).getElementsByTagName('input'))
+                                .map(input => input.value)
+                                .filter(tip => tip.trim() !== '')
+                        };
+                        guide.steps.push(step);
+                    }
                 }
-            }
-
-            // Display JSON
             const jsonOutput = document.getElementById('json-output');
             jsonOutput.textContent = JSON.stringify(guide, null, 2);
             const filename = document.getElementById('title').value.replace(/\s+/g, '_');
@@ -380,14 +386,6 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-
-            //jsonOutput.textContent = JSON.stringify(guide, null, 2);
-            // Copy to clipboard
-           // navigator.clipboard.writeText(JSON.stringify(guide, null, 2))
-               // .then(() => alert('JSON copied to clipboard!'))
-               // .catch(err => console.error('Failed to copy JSON:', err));
-
-                
         }
     </script>
 </body>

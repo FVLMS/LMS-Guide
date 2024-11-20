@@ -323,16 +323,22 @@ function createVideoElement(step, number) {
     container.className = 'media-item';
     container.onclick = () => selectStep(number);
 
-    // Create single video element referencing the main video
     const video = document.createElement('video');
-    video.src = `${assetsUrl}${contentData.mainVideo}`; // Use the main video source
+    video.src = `${assetsUrl}${contentData.mainVideo}`;
     video.style.width = '100%';
     video.style.height = '100%';
     video.style.objectFit = 'contain';
     video.controls = true;
-    video.muted = true;
+    video.muted = false; // Don't mute by default
 
-    // Set initial time based on step timestamp
+    // Add timeupdate listener for step-by-step mode
+    video.addEventListener('timeupdate', () => {
+        if (currentMode === 'step' && video.currentTime >= step.media.timestamp.end) {
+            video.pause();
+            video.currentTime = step.media.timestamp.end;
+        }
+    });
+
     if (step.media.timestamp) {
         video.currentTime = step.media.timestamp.start;
     }
@@ -348,7 +354,10 @@ function createVideoElement(step, number) {
             e.stopPropagation();
             overlayClicked = true;
             removeAllOverlays();
-            video.play().catch(error => console.warn('Playback failed:', error));
+            video.muted = true; // Temporarily mute for autoplay
+            video.play().then(() => {
+                video.muted = false; // Unmute after autoplay starts
+            }).catch(error => console.warn('Playback failed:', error));
         };
 
         const playIcon = document.createElement('div');
@@ -396,21 +405,30 @@ function selectStep(stepNumber) {
             if (video && stepData.media.timestamp) {
                 video.currentTime = stepData.media.timestamp.start;
 
-                if (overlayClicked && currentMode === 'auto') {
-                    video.play().then(() => {
-                        // Add timeupdate listener to handle segment end
-                        const timeCheckHandler = () => {
-                            if (video.currentTime >= stepData.media.timestamp.end) {
-                                video.pause();
-                                video.removeEventListener('timeupdate', timeCheckHandler);
-                                if (currentMode === 'auto') {
+                if (overlayClicked) {
+                    if (currentMode === 'auto') {
+                        video.play().then(() => {
+                            const timeCheckHandler = () => {
+                                if (video.currentTime >= stepData.media.timestamp.end) {
+                                    video.pause();
+                                    video.removeEventListener('timeupdate', timeCheckHandler);
                                     const nextStepNumber = stepNumber === contentData.steps.length ? 1 : stepNumber + 1;
                                     selectStep(nextStepNumber);
                                 }
-                            }
-                        };
-                        video.addEventListener('timeupdate', timeCheckHandler);
-                    }).catch(error => console.warn('Playback prevented:', error));
+                            };
+                            video.addEventListener('timeupdate', timeCheckHandler);
+                        }).catch(error => console.warn('Playback prevented:', error));
+                    } else if (currentMode === 'step') {
+                        // In step mode, start playing but stop at end timestamp
+                        video.play().then(() => {
+                            video.addEventListener('timeupdate', () => {
+                                if (video.currentTime >= stepData.media.timestamp.end) {
+                                    video.pause();
+                                    video.currentTime = stepData.media.timestamp.end;
+                                }
+                            });
+                        }).catch(error => console.warn('Playback prevented:', error));
+                    }
                 }
             }
         } else {
@@ -449,8 +467,11 @@ function playAllMedia() {
 
             if (currentMedia.stepData.media.timestamp) {
                 currentMedia.video.currentTime = currentMedia.stepData.media.timestamp.start;
+                currentMedia.video.muted = true; // Temporarily mute for autoplay
 
-                currentMedia.video.play().catch(error => {
+                currentMedia.video.play().then(() => {
+                    currentMedia.video.muted = false; // Unmute after playback starts
+                }).catch(error => {
                     if (error.name === 'NotAllowedError') {
                         console.log("User interaction required for autoplay. Waiting for interaction.");
                         const interactionOverlay = document.createElement('div');

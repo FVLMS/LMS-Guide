@@ -176,11 +176,15 @@ Nursing</td> <!-- Discipline -->
         </tbody>
     </table>
     <script>
+	    console.log('Script loaded'); // This log should appear in the console
+
 		const loginChecker = document.getElementById('loginChecker');
 		const loginStatus = document.getElementById('loginStatus');
 		loginChecker.onload = () => {
-			console.log('Iframe loaded, waiting to check...');
-			setTimeout(() => {
+			console.log('Iframe onload triggered.');
+			let attempts = 0;
+			const interval = setInterval(() => {
+				attempts++;
 				try {
 					const iframeLocation = loginChecker.contentWindow.location.href;
 					console.log('Iframe location:', iframeLocation);
@@ -191,11 +195,16 @@ Nursing</td> <!-- Discipline -->
 						loginStatus.textContent = 'You are logged in!';
 						loginStatus.style.color = 'green';
 					}
+					clearInterval(interval); // Stop checking once successful
 				} catch (error) {
-					loginStatus.textContent = 'Unable to verify login status. Please log in.';
-					console.error('Cross-origin error: Unable to access iframe location.', error);
+					console.error('Cross-origin error or not ready yet.', error);
 				}
-			}, 500); // Delay of 500ms
+
+				if (attempts > 10) { // Stop after 10 attempts
+					clearInterval(interval);
+					loginStatus.textContent = 'Unable to verify login status. Please log in.';
+				}
+			}, 200); // Check every 200ms
 		};
 	
         // Filter function for Name and Checklist Name

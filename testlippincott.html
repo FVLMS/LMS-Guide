@@ -181,31 +181,32 @@ Nursing</td> <!-- Discipline -->
 		const loginChecker = document.getElementById('loginChecker');
 		const loginStatus = document.getElementById('loginStatus');
 		loginChecker.onload = () => {
-			console.log('Iframe onload triggered.');
-			let attempts = 0;
-			const interval = setInterval(() => {
-				attempts++;
-				try {
-					const iframeLocation = loginChecker.contentWindow.location.href;
-					console.log('Iframe location:', iframeLocation);
+		console.log('Iframe onload triggered at:', new Date().toISOString());
+		let attempts = 0;
+		const interval = setInterval(() => {
+			attempts++;
+			console.log(`Attempt ${attempts} to check iframe location.`);
+			try {
+				const iframeLocation = loginChecker.contentWindow.location.href;
+				console.log('Iframe location:', iframeLocation);
 
-					if (iframeLocation.includes('logoutReloadPage')) {
-						loginStatus.textContent = 'You are not logged in. Please log in.';
-					} else {
-						loginStatus.textContent = 'You are logged in!';
-						loginStatus.style.color = 'green';
-					}
-					clearInterval(interval); // Stop checking once successful
-				} catch (error) {
-					console.error('Cross-origin error or not ready yet.', error);
+				if (iframeLocation.includes('logoutReloadPage')) {
+					loginStatus.textContent = 'You are not logged in. Please log in.';
+				} else {
+					loginStatus.textContent = 'You are logged in!';
+					loginStatus.style.color = 'green';
 				}
+				clearInterval(interval); // Stop checking once successful
+			} catch (error) {
+				console.error('Cross-origin error or not ready yet:', error);
+			}
 
-				if (attempts > 10) { // Stop after 10 attempts
-					clearInterval(interval);
-					loginStatus.textContent = 'Unable to verify login status. Please log in.';
-				}
-			}, 200); // Check every 200ms
-		};
+			if (attempts > 10) { // Stop after 10 attempts
+				clearInterval(interval);
+				loginStatus.textContent = 'Unable to verify login status. Please log in.';
+			}
+		}, 200); // Check every 200ms
+	};
 	
         // Filter function for Name and Checklist Name
         function filterTable() {

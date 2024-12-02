@@ -177,28 +177,26 @@ Nursing</td> <!-- Discipline -->
     </table>
     <script>
 		const loginChecker = document.getElementById('loginChecker');
-    const loginStatus = document.getElementById('loginStatus');
+const loginStatus = document.getElementById('loginStatus');
 
-    loginChecker.src = 'https://legacy-procedures.lww.com/lnp/dashboard.do?m=claimEvaluations';
+loginChecker.onload = () => {
+    try {
+        // Check the iframe's current location
+        const iframeLocation = loginChecker.contentWindow.location.href;
 
-    loginChecker.onload = () => {
-        try {
-            // Try to access the iframe content
-            const iframeLocation = loginChecker.contentWindow.location.href;
-
-            // Check if redirected to the logout page
-            if (iframeLocation.includes('logoutReloadPage')) {
-                loginStatus.textContent = 'You are not logged in. Please log in.';
-            } else {
-                loginStatus.textContent = 'You are logged in!';
-                loginStatus.style.color = 'green';
-            }
-        } catch (error) {
-            // If we can't access the iframe due to cross-origin restrictions, fallback to manual check
-            console.error('CORS prevents detecting iframe location.');
-            loginStatus.textContent = 'Unable to verify login status. Please log in.';
+        // If redirected to the logout page
+        if (iframeLocation.includes('logoutReloadPage')) {
+            loginStatus.textContent = 'You are not logged in. Please log in.';
+        } else {
+            loginStatus.textContent = 'You are logged in!';
+            loginStatus.style.color = 'green';
         }
-    };
+    } catch (error) {
+        // If cross-origin restrictions apply
+        loginStatus.textContent = 'Unable to verify login status. Please log in.';
+        console.error('Cross-origin error: Unable to access iframe location.');
+    }
+};
 	
         // Filter function for Name and Checklist Name
         function filterTable() {

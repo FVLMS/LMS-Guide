@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Due Lippincott Checklists</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #filterInput {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .red {
+            color: red;
+        }
+        a {
+            color: blue;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lippincott Due Checklists</h1>
+	    <p id="loginStatus" style="font-weight: bold; color: red;"></p>
+
+	<p>Make sure to <a href="https://lippincottsolutionssuite.lww.com/auth/login">log in</a> to Lippincott before clicking the grade links.</p>
+    <div class="filter-container">
+        <input type="text" id="nameFilterInput" class="filter-input" placeholder="Filter by Employee Name" oninput="filterTable()">
+        <input type="text" id="checklistFilterInput" class="filter-input" placeholder="Filter by Checklist Name" oninput="filterTable()">
+    </div>
+    <table id="dynamicTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Employee</th>
+                <th>Dept</th>
+                <th>Checklist Name</th>
+                <th>Discipline</th>
+                <th>Assigned</th>
+                <th>Due</th>
+                <th>Grade Checklist</th>
+            </tr>
+        </thead>
+        <tbody>
+
+                <tr>
+                    <td>23390447</td> <!-- ID -->
+                    <td>Richardson, Alex,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>12-lead electrocardiogram (ECG), ambulatory care</td> <!-- Checklist Name -->
+                    <td>Medical Assistant
+Nursing</td> <!-- Discipline -->
+                    <td>11/26/2024</td> <!-- Assigned -->
+                    <td>12/27/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=23390447" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>23351885</td> <!-- ID -->
+                    <td>Ahneman, Kim,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>Chest tube drainage system setup, neonatal</td> <!-- Checklist Name -->
+                    <td>Nursing</td> <!-- Discipline -->
+                    <td>11/22/2024</td> <!-- Assigned -->
+                    <td>12/23/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=23351885" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>23351886</td> <!-- ID -->
+                    <td>Ahneman, Kim,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>Chest tube drainage system monitoring and care, neonatal</td> <!-- Checklist Name -->
+                    <td>Nursing</td> <!-- Discipline -->
+                    <td>11/22/2024</td> <!-- Assigned -->
+                    <td>12/23/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=23351886" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>22900492</td> <!-- ID -->
+                    <td>Goring, Jill,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>12-lead electrocardiogram (ECG), ambulatory care</td> <!-- Checklist Name -->
+                    <td>Medical Assistant
+Nursing</td> <!-- Discipline -->
+                    <td>10/15/2024</td> <!-- Assigned -->
+                    <td>11/15/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=22900492" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>22743786</td> <!-- ID -->
+                    <td>Walser, Mellanie,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>12-lead electrocardiogram (ECG)</td> <!-- Checklist Name -->
+                    <td>Nursing</td> <!-- Discipline -->
+                    <td>10/03/2024</td> <!-- Assigned -->
+                    <td>11/03/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=22743786" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>22743819</td> <!-- ID -->
+                    <td>Lauren, Julibeth,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>Documentation, paper-based</td> <!-- Checklist Name -->
+                    <td>Nursing</td> <!-- Discipline -->
+                    <td>10/03/2024</td> <!-- Assigned -->
+                    <td>11/03/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=22743819" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>22743820</td> <!-- ID -->
+                    <td>Walser, Mellanie,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>Documentation, paper-based</td> <!-- Checklist Name -->
+                    <td>Nursing</td> <!-- Discipline -->
+                    <td>10/03/2024</td> <!-- Assigned -->
+                    <td>11/03/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=22743820" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>22743826</td> <!-- ID -->
+                    <td>Lauren, Julibeth,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>Documentation, computer-based</td> <!-- Checklist Name -->
+                    <td>Nursing</td> <!-- Discipline -->
+                    <td>10/03/2024</td> <!-- Assigned -->
+                    <td>11/03/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=22743826" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+                <tr>
+                    <td>22743827</td> <!-- ID -->
+                    <td>Walser, Mellanie,</td> <!-- Examinee (renamed Employee) -->
+                    <td>Administration</td> <!-- Dept -->
+                    <td>Documentation, computer-based</td> <!-- Checklist Name -->
+                    <td>Nursing</td> <!-- Discipline -->
+                    <td>10/03/2024</td> <!-- Assigned -->
+                    <td>11/03/2024</td> <!-- Due -->
+                    <td><a href="https://legacy-procedures.lww.com/lnp/dashboard.do?m=startEvaluation&assignmentId=22743827" target="_blank">Grade</a></td> <!-- Grade Checklist -->
+                </tr>
+            
+        </tbody>
+    </table>
+    <script>
+		async function checkLoginStatus() {
+            const loginStatusElement = document.getElementById('loginStatus');
+            const targetUrl = 'https://legacy-procedures.lww.com/lnp/dashboard.do?m=claimEvaluations';
+
+            try {
+                const response = await fetch(targetUrl, { credentials: 'include' });
+                const responseText = await response.text();
+
+                if (responseText.includes('logoutReloadPage')) {
+                    loginStatusElement.textContent = 'You are not logged in. Please log in to access the features.';
+                } else {
+                    loginStatusElement.textContent = 'You are logged in and ready to use the system.';
+                    loginStatusElement.style.color = 'green';
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                loginStatusElement.textContent = 'Unable to check login status. Please try again later.';
+            }
+        }
+
+        // Run the login check on page load
+        checkLoginStatus();
+        // Filter function for Name and Checklist Name
+        function filterTable() {
+            const nameFilter = document.getElementById('nameFilterInput').value.toLowerCase();
+            const checklistFilter = document.getElementById('checklistFilterInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#dynamicTable tbody tr');
+
+            rows.forEach(row => {
+                const nameCell = row.cells[1]?.textContent.toLowerCase() || '';
+                const checklistCell = row.cells[3]?.textContent.toLowerCase() || '';
+
+                const nameMatches = !nameFilter || nameCell.includes(nameFilter);
+                const checklistMatches = !checklistFilter || checklistCell.includes(checklistFilter);
+
+                row.style.display = nameMatches && checklistMatches ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

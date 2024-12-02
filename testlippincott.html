@@ -177,26 +177,26 @@ Nursing</td> <!-- Discipline -->
     </table>
     <script>
 		const loginChecker = document.getElementById('loginChecker');
-const loginStatus = document.getElementById('loginStatus');
+		const loginStatus = document.getElementById('loginStatus');
+		loginChecker.onload = () => {
+			console.log('Iframe loaded, waiting to check...');
+			setTimeout(() => {
+				try {
+					const iframeLocation = loginChecker.contentWindow.location.href;
+					console.log('Iframe location:', iframeLocation);
 
-loginChecker.onload = () => {
-    try {
-        // Check the iframe's current location
-        const iframeLocation = loginChecker.contentWindow.location.href;
-
-        // If redirected to the logout page
-        if (iframeLocation.includes('logoutReloadPage')) {
-            loginStatus.textContent = 'You are not logged in. Please log in.';
-        } else {
-            loginStatus.textContent = 'You are logged in!';
-            loginStatus.style.color = 'green';
-        }
-    } catch (error) {
-        // If cross-origin restrictions apply
-        loginStatus.textContent = 'Unable to verify login status. Please log in.';
-        console.error('Cross-origin error: Unable to access iframe location.');
-    }
-};
+					if (iframeLocation.includes('logoutReloadPage')) {
+						loginStatus.textContent = 'You are not logged in. Please log in.';
+					} else {
+						loginStatus.textContent = 'You are logged in!';
+						loginStatus.style.color = 'green';
+					}
+				} catch (error) {
+					loginStatus.textContent = 'Unable to verify login status. Please log in.';
+					console.error('Cross-origin error: Unable to access iframe location.', error);
+				}
+			}, 500); // Delay of 500ms
+		};
 	
         // Filter function for Name and Checklist Name
         function filterTable() {

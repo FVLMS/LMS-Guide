@@ -47,6 +47,56 @@
             text-decoration: underline;
         }
     </style>
+	<script>
+	    console.log('Script loaded'); // This log should appear in the console
+
+		const loginChecker = document.getElementById('loginChecker');
+		const loginStatus = document.getElementById('loginStatus');
+		loginChecker.onload = () => {
+		console.log('Iframe onload triggered at:', new Date().toISOString());
+		let attempts = 0;
+		const interval = setInterval(() => {
+			attempts++;
+			console.log(`Attempt ${attempts} to check iframe location.`);
+			try {
+				const iframeLocation = loginChecker.contentWindow.location.href;
+				console.log('Iframe location:', iframeLocation);
+
+				if (iframeLocation.includes('logoutReloadPage')) {
+					loginStatus.textContent = 'You are not logged in. Please log in.';
+				} else {
+					loginStatus.textContent = 'You are logged in!';
+					loginStatus.style.color = 'green';
+				}
+				clearInterval(interval); // Stop checking once successful
+			} catch (error) {
+				console.error('Cross-origin error or not ready yet:', error);
+			}
+
+			if (attempts > 10) { // Stop after 10 attempts
+				clearInterval(interval);
+				loginStatus.textContent = 'Unable to verify login status. Please log in.';
+			}
+		}, 200); // Check every 200ms
+	};
+	
+        // Filter function for Name and Checklist Name
+        function filterTable() {
+            const nameFilter = document.getElementById('nameFilterInput').value.toLowerCase();
+            const checklistFilter = document.getElementById('checklistFilterInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#dynamicTable tbody tr');
+
+            rows.forEach(row => {
+                const nameCell = row.cells[1]?.textContent.toLowerCase() || '';
+                const checklistCell = row.cells[3]?.textContent.toLowerCase() || '';
+
+                const nameMatches = !nameFilter || nameCell.includes(nameFilter);
+                const checklistMatches = !checklistFilter || checklistCell.includes(checklistFilter);
+
+                row.style.display = nameMatches && checklistMatches ? '' : 'none';
+            });
+        }
+    </script>
 </head>
 <body>
     <h1>Lippincott Due Checklists</h1>
@@ -175,55 +225,6 @@ Nursing</td> <!-- Discipline -->
             
         </tbody>
     </table>
-    <script>
-	    console.log('Script loaded'); // This log should appear in the console
-
-		const loginChecker = document.getElementById('loginChecker');
-		const loginStatus = document.getElementById('loginStatus');
-		loginChecker.onload = () => {
-		console.log('Iframe onload triggered at:', new Date().toISOString());
-		let attempts = 0;
-		const interval = setInterval(() => {
-			attempts++;
-			console.log(`Attempt ${attempts} to check iframe location.`);
-			try {
-				const iframeLocation = loginChecker.contentWindow.location.href;
-				console.log('Iframe location:', iframeLocation);
-
-				if (iframeLocation.includes('logoutReloadPage')) {
-					loginStatus.textContent = 'You are not logged in. Please log in.';
-				} else {
-					loginStatus.textContent = 'You are logged in!';
-					loginStatus.style.color = 'green';
-				}
-				clearInterval(interval); // Stop checking once successful
-			} catch (error) {
-				console.error('Cross-origin error or not ready yet:', error);
-			}
-
-			if (attempts > 10) { // Stop after 10 attempts
-				clearInterval(interval);
-				loginStatus.textContent = 'Unable to verify login status. Please log in.';
-			}
-		}, 200); // Check every 200ms
-	};
-	
-        // Filter function for Name and Checklist Name
-        function filterTable() {
-            const nameFilter = document.getElementById('nameFilterInput').value.toLowerCase();
-            const checklistFilter = document.getElementById('checklistFilterInput').value.toLowerCase();
-            const rows = document.querySelectorAll('#dynamicTable tbody tr');
-
-            rows.forEach(row => {
-                const nameCell = row.cells[1]?.textContent.toLowerCase() || '';
-                const checklistCell = row.cells[3]?.textContent.toLowerCase() || '';
-
-                const nameMatches = !nameFilter || nameCell.includes(nameFilter);
-                const checklistMatches = !checklistFilter || checklistCell.includes(checklistFilter);
-
-                row.style.display = nameMatches && checklistMatches ? '' : 'none';
-            });
-        }
-    </script>
+    
 </body>
 </html>

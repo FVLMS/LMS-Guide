@@ -50,8 +50,8 @@
 </head>
 <body>
     <h1>Lippincott Due Checklists</h1>
-	    <p id="loginStatus" style="font-weight: bold; color: red;"></p>
-
+ <p id="loginStatus" style="font-weight: bold; color: red;"></p>
+	<iframe id="loginChecker" style="display: none;"></iframe>
 	<p>Make sure to <a href="https://lippincottsolutionssuite.lww.com/auth/login">log in</a> to Lippincott before clicking the grade links.</p>
     <div class="filter-container">
         <input type="text" id="nameFilterInput" class="filter-input" placeholder="Filter by Employee Name" oninput="filterTable()">
@@ -176,28 +176,30 @@ Nursing</td> <!-- Discipline -->
         </tbody>
     </table>
     <script>
-		async function checkLoginStatus() {
-            const loginStatusElement = document.getElementById('loginStatus');
-            const targetUrl = 'https://legacy-procedures.lww.com/lnp/dashboard.do?m=claimEvaluations';
+		const loginChecker = document.getElementById('loginChecker');
+    const loginStatus = document.getElementById('loginStatus');
 
-            try {
-                const response = await fetch(targetUrl, { credentials: 'include' });
-                const responseText = await response.text();
+    loginChecker.src = 'https://legacy-procedures.lww.com/lnp/dashboard.do?m=claimEvaluations';
 
-                if (responseText.includes('logoutReloadPage')) {
-                    loginStatusElement.textContent = 'You are not logged in. Please log in to access the features.';
-                } else {
-                    loginStatusElement.textContent = 'You are logged in and ready to use the system.';
-                    loginStatusElement.style.color = 'green';
-                }
-            } catch (error) {
-                console.error('Error checking login status:', error);
-                loginStatusElement.textContent = 'Unable to check login status. Please try again later.';
+    loginChecker.onload = () => {
+        try {
+            // Try to access the iframe content
+            const iframeLocation = loginChecker.contentWindow.location.href;
+
+            // Check if redirected to the logout page
+            if (iframeLocation.includes('logoutReloadPage')) {
+                loginStatus.textContent = 'You are not logged in. Please log in.';
+            } else {
+                loginStatus.textContent = 'You are logged in!';
+                loginStatus.style.color = 'green';
             }
+        } catch (error) {
+            // If we can't access the iframe due to cross-origin restrictions, fallback to manual check
+            console.error('CORS prevents detecting iframe location.');
+            loginStatus.textContent = 'Unable to verify login status. Please log in.';
         }
-
-        // Run the login check on page load
-        checkLoginStatus();
+    };
+	
         // Filter function for Name and Checklist Name
         function filterTable() {
             const nameFilter = document.getElementById('nameFilterInput').value.toLowerCase();

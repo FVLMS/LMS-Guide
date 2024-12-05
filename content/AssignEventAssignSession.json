@@ -1,0 +1,159 @@
+{
+  "title": "Assign Event/Assign Session",
+  "lastUpdated": "Dec 2024",
+  "introduction": "This guide will show you how to quickly and easily enroll staff in live instructor-led training sessions. Managers can enroll their team members, while administrators have broader options depending on their permissions. In Cornerstone, an Event is like a course template—for example, BLS Renewal Course. A Session is a specific instance of that course, like BLS Renewal Course on January 15 at 3 p.m.",
+  "mainVideo": "AssignEventAssignSession.mp4",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "Introduction",
+      "shortDescription": "",
+      "details": "This guide will show you how to quickly and easily enroll staff in live instructor-led training sessions. Managers can enroll their team members, while administrators have broader options depending on their permissions. In Cornerstone, an Event is like a course template—for example, BLS Renewal Course. A Session is a specific instance of that course, like BLS Renewal Course on January 15 at 3 p.m.",
+      "media": {
+        "image": "Step2SearchForAnEvent.png",
+        "timestamp": {
+          "start": 0,
+          "end": 36
+        }
+      },
+      "tips": []
+    },
+	{
+      "stepNumber": 2,
+      "title": "Search for an Event",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Under the Learning dropdown, select Assign Training.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">The Learning Search Page will open.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Simply enter a key word or the name of the course. Top results will populate in the dropdown.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Press Enter to view all search results.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">You can use the filter options to narrow your search results.</li>\n</ol>",
+      "media": {
+        "image": "Step2SearchForAnEvent.png",
+        "timestamp": {
+          "start": 36,
+          "end": 57
+        },
+        "hotspots": [
+          {
+            "x": 89.13,
+            "y": 45.76,
+            "title": "Learning Search Page",
+            "description": "To navigate to the Learning Search page first go to Assign Training"
+          },
+          {
+            "x": 37.79,
+            "y": 29.17,
+            "title": "Global Search Icon",
+            "description": "Search for events here using the full title or keywords"
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 3,
+      "title": "Select an event",
+      "shortDescription": "step3selectanevent.png",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click on the event title to access the Event Details.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click Show More to view additional course details.</li>\n</ol>",
+      "media": {
+        "image": "",
+        "timestamp": {
+          "start": 61,
+          "end": 68
+        },
+        "hotspots": [
+          {
+            "x": 41.46,
+            "y": 81.39,
+            "title": "Show More",
+            "description": "Click here for additional information."
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 4,
+      "title": "Select a session",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">There are two ways to enroll a learner in a session: (1)<span style=\"mso-spacerun: yes;\">&nbsp; </span>allow them to choose their own session by assigning the overall event, or (2) enroll them directly in a scheduled session.</p>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">To assign a learner an <span style=\"font-weight: bold;\">event:</span></p>\n<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the Assign button for the event.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">When you assign the <span style=\"font-weight: bold;\">event</span>, the learner receives a task on their transcript prompting them to enroll in a session that works for their schedule.</li>\n</ol>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Assigning the <span style=\"font-weight: bold;\">session</span> follows the same steps as assigning the <span style=\"font-weight: bold;\">event</span>.</p>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">&nbsp;</p>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">To assign a learner to a specific <span style=\"font-weight: bold;\">session:</span>&nbsp;</p>\n<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the 'Select a Session' button, or scroll down .</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">To see all available sessions, click 'Show More.'</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Once you find the right session, Click the black 'View Details' button.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Review the session details to confirm it&rsquo;s correct and that a seat is available.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Finally, click the white 'Assign' button.</li>\n</ol>",
+      "media": {
+        "image": "Step4selectsession.png",
+        "timestamp": {
+          "start": 71,
+          "end": 116
+        },
+        "hotspots": [
+          {
+            "x": 69.16,
+            "y": 49.62,
+            "title": "Available Seats",
+            "description": "Review the available remaining open seats."
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 5,
+      "title": "Select learners to assign",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">To select a learner:</p>\n<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Find their name and click the checkbox next to it.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Checking the box adds the learner to the selected list.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Continue searching for more learners and clicking the checkbox next to their names.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Toggle \"Show Selected\" to review the full list of selected learners.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Once you have your complete list of names, scroll down and click the blue \"Continue to Details\" button.</li>\n</ol>",
+      "media": {
+        "image": "step5selectlearnerstoassign.png",
+        "timestamp": {
+          "start": 119,
+          "end": 144
+        },
+        "hotspots": [
+          {
+            "x": 86.44,
+            "y": 59.71,
+            "title": "Show Selected",
+            "description": "Toggle this feature to review the selected learners."
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 6,
+      "title": " Confirm the assignment",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the checkbox next to \"Automatically Register Users\" to add them to the class roster.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Some events may require manager approval before learners are registered in the session.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Once ready, click the Submit button.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Cornerstone will navigate you back to the Event Details page.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Notice the green checkmark in the bottom left will fly in with a confirmation that the assignment was made.</li>\n</ol>",
+      "media": {
+        "image": "step6confirmtheassignment.png",
+        "timestamp": {
+          "start": 148,
+          "end": 196
+        },
+        "hotspots": [
+          {
+            "x": 52.98,
+            "y": 57.84,
+            "title": "Add to Class Roster",
+            "description": "Click the check box to add users to the class roster"
+          }
+        ]
+      },
+      "tips": [
+        "If the learner is assigned an Event will appear on the learner’s homepage under \"Assigned Training.\" From there, they will select a session that fits their schedule.",
+        "If the learner is assigned a Session will appear under the learner's \"Upcoming Enrolled Sessions.\"",
+        "To confirm the assignment, you can always review a learner's transcript."
+      ]
+    }
+  ],
+  "globalTips": [
+    {
+      "category": "General Tips",
+      "items": [
+        "Need help? LMS@fairview.org"
+      ]
+    }
+  ],
+  "support": {
+    "contactMethods": [
+      {
+        "type": "Email",
+        "value": "LMS@fairview.org",
+        "availability": "24/7"
+      }
+    ]
+  }
+}

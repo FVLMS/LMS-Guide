@@ -13,7 +13,7 @@
         "image": "Step1introduction.png",
         "timestamp": {
           "start": 0,
-          "end": 36
+          "end": 33
         }
       },
       "tips": []
@@ -26,7 +26,7 @@
       "media": {
         "image": "Step2SearchForAnEvent.png",
         "timestamp": {
-          "start": 36,
+          "start": 34,
           "end": 57
         },
         "hotspots": [
@@ -54,8 +54,8 @@
       "media": {
         "image": "step3selectanevent.png",
         "timestamp": {
-          "start": 61,
-          "end": 68
+          "start": 58,
+          "end": 68.5
         },
         "hotspots": [
           {
@@ -76,7 +76,7 @@
       "media": {
         "image": "Step4selectsession.png",
         "timestamp": {
-          "start": 71,
+          "start": 69,
           "end": 116
         },
         "hotspots": [
@@ -120,7 +120,7 @@
       "media": {
         "image": "step6confirmtheassignment.png",
         "timestamp": {
-          "start": 148,
+          "start": 145,
           "end": 196
         },
         "hotspots": [

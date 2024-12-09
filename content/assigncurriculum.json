@@ -13,7 +13,7 @@
         "image": "1.png",
         "timestamp": {
           "start": 0,
-          "end": 25
+          "end": 26
         },
         "hotspots": []
       },
@@ -27,7 +27,7 @@
       "media": {
         "image": "2.png",
         "timestamp": {
-          "start": 26,
+          "start": 27,
           "end": 48
         },
         "hotspots": [
@@ -50,7 +50,7 @@
         "image": "3.png",
         "timestamp": {
           "start": 49,
-          "end": 60
+          "end": 61
         },
         "hotspots": []
       },
@@ -64,8 +64,8 @@
       "media": {
         "image": "4.png",
         "timestamp": {
-          "start": 61,
-          "end": 86
+          "start": 62,
+          "end": 87
         },
         "hotspots": [
           {
@@ -86,7 +86,7 @@
       "media": {
         "image": "5.png",
         "timestamp": {
-          "start": 87,
+          "start": 87.5,
           "end": 126
         },
         "hotspots": []

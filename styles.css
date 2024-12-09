@@ -1,5 +1,4 @@
 body {
-    max-width: 1200px;
     margin: 20px;
     padding: 20px;
     font-family: system-ui, -apple-system, sans-serif;
@@ -8,21 +7,33 @@ body {
 }
 
 .header {
+    max-width: 1200px;
     margin-bottom: 40px;
 }
 
 .title {
     color: #0066cc;
     margin: 0;
+    white-space: nowrap;
+    max-width: 100% !important;!i;!;
+}
+
+.three-way-toggle {
+    max-width: 1200px;
+    display: inline-flex;
+    /* Changed to inline-flex to prevent full-width */
+    align-items: center;
+    background-color: #f3f4f6;
+    border-radius: 25px;
+    width: fit-content;
 }
 
 .main-container {
     display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: 50px;
-    max-width: 2000px;
-    margin: 0 auto;
-    padding: 20px;
+    grid-template-columns: 410px 1fr;
+    /* gap: 50px; */
+    margin: 0;
+    padding-top: 20px;
     position: relative;
     min-height: 300px;
 }
@@ -31,7 +42,7 @@ body {
     background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
-    width: 100%;
+    width: 80%;
 }
 
 .step {
@@ -42,6 +53,11 @@ body {
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
+}
+
+#lastUpdated {
+    display: block;
+    padding-bottom: 30px;
 }
 
 .step:hover {
@@ -61,6 +77,7 @@ body {
 
 .images-container {
     position: relative;
+    !i;!;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -68,20 +85,33 @@ body {
     min-height: 900px;
 }
 
+.media-stack {
+    position: relative;
+    width: min(1400px, calc(50vw - 600px));
+    height: calc(min(1400px, calc(100vw - 600px)) * 9/16);
+    /* margin-left: 40px; */
+    margin-top: -100px !important;
+}
+
+#mediaStack .media-item:not(.active):hover {
+    transform: translateY(-10px) scale(1.02) !important;
+}
+
 .media-item {
     position: absolute;
-    width: min(1400px, calc(100vw - 600px));
+    width: min(1400px, calc(100vw - 700px));
     height: calc(min(1400px, calc(100vw - 600px)) * 9/16);
     border-radius: 8px;
     overflow: hidden;
     backface-visibility: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease,  box-shadow 0.3s ease-in-out;
-    background: white;
+    /* background: white; */
     cursor: pointer;
     object-fit: contain;
-    background-color: #ffffff;
-
+    max-width: min(1400px, calc(100vw - 700px));
+    height: auto;
+    /* background-color: #ffffff; */
 }
 
 .media-item video {
@@ -89,18 +119,6 @@ body {
     /* Ensure the video itself is also rounded */
     object-fit: cover;
     /* Optional: ensures the video scales nicely within the container */
-}
-
-#mediaStack .media-item:not(.active):hover {
-    transform: translateY(-10px) scale(1.02) !important;
-}
-
-
-.media-stack {
-    position: relative;
-    width: min(1400px, calc(100vw - 600px));
-    height: calc(min(1400px, calc(100vw - 600px)) * 9/16);
-    margin-left: 40px;
 }
 
 .navigation-buttons {
@@ -153,37 +171,6 @@ body {
     font-size: 0.9em;
 }
 
-@media (max-width: 1200px) {
-    .main-container {
-        grid-template-columns: 300px 1fr;
-        gap: 40px;
-    }
-
-    .media-stack,
-    .media-item,
-    .navigation-buttons {
-        width: min(1000px, calc(100vw - 400px));
-        height: calc(min(1000px, calc(100vw - 400px)) * 9/16);
-    }
-}
-
-@media (max-width: 900px) {
-    .main-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .media-stack,
-    .media-item,
-    .navigation-buttons {
-        width: min(1000px, calc(100vw - 80px));
-        height: calc(min(1000px, calc(100vw - 80px)) * 9/16);
-        margin-left: 20px;
-    }
-}
-
-
-
 .maximize-btn {
     position: absolute;
     bottom: 1rem;
@@ -219,23 +206,13 @@ body {
     object-fit: contain;
 }
 
-.three-way-toggle {
-    display: inline-flex;
-    margin-left: 20px;
-    /* Changed to inline-flex to prevent full-width */
-    align-items: center;
-    background-color: #f3f4f6;
-    border-radius: 25px;
-    width: fit-content;
-}
-
 /* Individual toggle options */
 .toggle-option {
     padding: 8px 16px;
     border-radius: 25px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
     /* Prevent text wrapping */
@@ -322,7 +299,8 @@ body {
 }
 
 .details-info {
-    width: 100%;
+    min-width: 700px;
+    width: 75%;
     /* Ensure it aligns with the media width */
     margin-top: 10px;
     padding: 15px;
@@ -330,22 +308,18 @@ body {
     border-radius: 8px;
     border-left: 4px solid #0066cc;
     color: #333;
-    font-size: 1em;
+    font-size: 1.3em !important;
     line-height: 1.6;
     text-align: left;
-    margin-left: 40px;
+    /* margin-left: 40px; */
 }
 
-
-.small-media {
-    width: 100%;
-    max-width: 650px;
-    max-height: 500px;
+.details-info ol li {
+    font-size: 1em !important;
 }
 
-.small-media .media-item {
-    width: 100%;
-    height: 100%;
+.details-info p {
+    font-size: 1em !important;
 }
 
 /* Hotspot styles */

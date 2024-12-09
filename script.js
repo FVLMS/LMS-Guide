@@ -129,7 +129,7 @@ async function loadContent() {
     renderSteps();
     renderMedia();
     getTotalVideoDuration();
-    document.getElementById('introduction').textContent = contentData.introduction;
+    // document.getElementById('introduction').textContent = contentData.introduction;
     detailsContainer.style.display = 'none';
 
     selectStep(1);
@@ -208,43 +208,34 @@ function createImageElement(step, number) {
     container.appendChild(imageWrapper);
 
     if (step.media.hotspots) {
-        img.onload = () => {
+        const updateHotspotPositions = () => {
+            const imgRect = img.getBoundingClientRect();
             const wrapperRect = imageWrapper.getBoundingClientRect();
-            const imageAspectRatio = img.naturalWidth / img.naturalHeight;
-            const wrapperAspectRatio = wrapperRect.width / wrapperRect.height;
-
-            let renderedWidth, renderedHeight, leftOffset, topOffset;
-
-            if (imageAspectRatio > wrapperAspectRatio) {
-                renderedWidth = wrapperRect.width;
-                renderedHeight = wrapperRect.width / imageAspectRatio;
-                leftOffset = 0;
-                topOffset = (wrapperRect.height - renderedHeight) / 2;
-            } else {
-                renderedHeight = wrapperRect.height;
-                renderedWidth = wrapperRect.height * imageAspectRatio;
-                topOffset = 0;
-                leftOffset = (wrapperRect.width - renderedWidth) / 2;
-            }
-
+            
+            const scale = img.naturalWidth / imgRect.width;
+            const actualWidth = imgRect.width;
+            const actualHeight = imgRect.height;
+            
+            const leftOffset = (wrapperRect.width - actualWidth) / 2;
+            const topOffset = (wrapperRect.height - actualHeight) / 2;
+            
+            imageWrapper.querySelectorAll('.hotspot, .hotspot-overlay').forEach(el => el.remove());
+            
             step.media.hotspots.forEach(hotspot => {
-                console.log('Creating hotspot');
                 const hotspotElement = document.createElement('div');
                 hotspotElement.className = 'hotspot';
-                hotspotElement.style.position = 'absolute';
-
-                const x = (hotspot.x / 100) * renderedWidth + leftOffset;
-                const y = (hotspot.y / 100) * renderedHeight + topOffset;
-
+                
+                const x = (hotspot.x / 100) * actualWidth + leftOffset;
+                const y = (hotspot.y / 100) * actualHeight + topOffset;
+                
                 hotspotElement.style.left = `${x}px`;
                 hotspotElement.style.top = `${y}px`;
-
+                
                 const tooltip = document.createElement('div');
                 tooltip.className = 'hotspot-tooltip';
                 tooltip.textContent = hotspot.title;
                 hotspotElement.appendChild(tooltip);
-
-                // Add the overlay (hidden by default)
+                
                 const overlay = document.createElement('div');
                 overlay.className = 'hotspot-overlay';
                 overlay.style.position = 'absolute';
@@ -255,53 +246,33 @@ function createImageElement(step, number) {
                 overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
                 overlay.style.color = 'white';
                 overlay.style.display = 'none';
-                overlay.style.padding = '20px';
-                overlay.style.boxSizing = 'border-box';
                 overlay.style.zIndex = '1000';
                 overlay.innerHTML = `
                     <strong>${hotspot.title}</strong>
                     <p>${hotspot.description}</p>
                 `;
-
-                // Add a document-wide click handler when showing the overlay
+                
                 hotspotElement.onclick = (e) => {
-                    currentOverlay = true;
-                    overlayElement = overlay;  // Store reference to the overlay
                     e.stopPropagation();
+                    currentOverlay = true;
+                    overlayElement = overlay;
                     overlay.style.display = 'flex';
+                    overlay.style.flexDirection = 'column';
+                    overlay.style.justifyContent = 'center';
+                    overlay.style.alignItems = 'center';
+                    overlay.style.padding = '20px';
+                    overlay.style.textAlign = 'center';
                 };
                 
                 imageWrapper.appendChild(overlay);
-
-                hotspotElement.addEventListener('mouseenter', () => {
-                    const hotspotRect = hotspotElement.getBoundingClientRect();
-                    const tooltipRect = tooltip.getBoundingClientRect();
-                    const containerRect = imageWrapper.getBoundingClientRect();
-
-                    tooltip.style.transform = 'translateX(-50%)';
-                    tooltip.style.left = '50%';
-                    tooltip.style.right = 'auto';
-                    tooltip.style.top = '-30px';
-                    tooltip.style.bottom = 'auto';
-
-                    if (hotspotRect.left - (tooltipRect.width / 2) < containerRect.left) {
-                        tooltip.style.transform = 'translateX(0)';
-                        tooltip.style.left = '0';
-                    } else if (hotspotRect.right + (tooltipRect.width / 2) > containerRect.right) {
-                        tooltip.style.transform = 'translateX(-100%)';
-                        tooltip.style.left = '100%';
-                    }
-
-                    if (hotspotRect.top - tooltipRect.height < containerRect.top) {
-                        tooltip.style.top = 'auto';
-                        tooltip.style.bottom = '-30px';
-                    }
-                });
-
                 imageWrapper.appendChild(hotspotElement);
             });
         };
+
+        img.onload = updateHotspotPositions;
+        new ResizeObserver(updateHotspotPositions).observe(imageWrapper);
     }
+    
     return container;
 }
 

@@ -138,7 +138,7 @@ async function loadContent() {
 
 function renderSteps() {
     const stepsContainer = document.getElementById('stepsContainer');
-    stepsContainer.innerHTML = '';
+    //stepsContainer.innerHTML = '';
 
     contentData.steps.forEach((step, index) => {
         const stepElement = createStepElement(step, index + 1);

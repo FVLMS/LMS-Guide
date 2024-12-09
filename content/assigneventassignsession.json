@@ -13,7 +13,7 @@
         "image": "Step1introduction.png",
         "timestamp": {
           "start": 0,
-          "end": 33
+          "end": 32.5
         }
       },
       "tips": []
@@ -27,7 +27,7 @@
         "image": "Step2SearchForAnEvent.png",
         "timestamp": {
           "start": 34,
-          "end": 57
+          "end": 58
         },
         "hotspots": [
           {
@@ -54,7 +54,7 @@
       "media": {
         "image": "step3selectanevent.png",
         "timestamp": {
-          "start": 58,
+          "start": 59,
           "end": 68.5
         },
         "hotspots": [
@@ -77,7 +77,7 @@
         "image": "Step4selectsession.png",
         "timestamp": {
           "start": 69,
-          "end": 118
+          "end": 117
         },
         "hotspots": [
           {
@@ -98,8 +98,8 @@
       "media": {
         "image": "step5selectlearnerstoassign.png",
         "timestamp": {
-          "start": 119,
-          "end": 144
+          "start": 118,
+          "end": 144.5
         },
         "hotspots": [
           {

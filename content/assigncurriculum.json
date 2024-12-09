@@ -1,0 +1,114 @@
+{
+  "title": "assigncurriculum",
+  "lastUpdated": "Dec 2024",
+  "introduction": "In this guide, we will show you how to assign curriculum to learners.\nA curriculum is a package of learning objects, such as online courses, instructor led events, checklists, or tests.\nManagers can assign to their team members, while administrators have broader options depending on their permissions.\n",
+  "mainVideo": "assigncurriculum.mp4",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "Introduction",
+      "shortDescription": "",
+      "details": "<p>In this guide, we will show you how to assign curriculum to learners.<br>A curriculum is a package of learning objects, such as online courses, instructor led events, checklists, or tests.<br>Managers can assign to their team members, while administrators have broader options depending on their permissions.</p>",
+      "media": {
+        "image": "1.png",
+        "timestamp": {
+          "start": 0,
+          "end": 25
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 2,
+      "title": "Search for an Curriculum",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the menu icon.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Under the Learning dropdown, select Assign Training.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">The Learning Search Page will populate.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Simply enter a key word or the name of the curriculum.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Top results will populate in the dropdown.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Press Enter to view all search results</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">You can use the filter options to narrow your search results.</li>\n</ol>",
+      "media": {
+        "image": "2.png",
+        "timestamp": {
+          "start": 26,
+          "end": 48
+        },
+        "hotspots": [
+          {
+            "x": 30.68,
+            "y": 46.21,
+            "title": "Filters",
+            "description": "Use the drop down next to each header to sort your results."
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 3,
+      "title": "Select a Curriculum",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Click on the title of the training to access Curriculum Details.</p>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Click Show More if you want to review the details.</p>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Finally, click the white 'Assign' button</p>",
+      "media": {
+        "image": "3.png",
+        "timestamp": {
+          "start": 49,
+          "end": 60
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 4,
+      "title": "Select Learners to Assign",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Here you will see a list of all the learners you have access to.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">To select a learner, find their name and click the checkbox next to it.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Checking the box adds the learner to the selected list.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Continue searching for more learners and clicking the checkbox next to their names.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Toggle \"Show Selected\" to review the full list of selected learners.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Once you have your complete list of names, scroll down and click the blue \"Continue to Details\" button.</li>\n</ol>",
+      "media": {
+        "image": "4.png",
+        "timestamp": {
+          "start": 61,
+          "end": 86
+        },
+        "hotspots": [
+          {
+            "x": 86.93,
+            "y": 37.24,
+            "title": "Show Selected ",
+            "description": "Toggle this button to see the currently selected learners."
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 5,
+      "title": "Submit and Confirm the Assignment",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Here Cornerstone will allow you to identify a due date.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">If this field is left blank the assignment will be made with no due date.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the checkbox next to \"Automatically Register Users.\"</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Once ready, click the blue 'Submit' button.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Cornerstone will navigate you back to the Curriculum Details page.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Notice the green checkmark in the bottom left will fly in with a confirmation that the assignment was made.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">The curriculum will now appear for the identified learner on their Assigned Training page in Cornerstone.</li>\n</ol>",
+      "media": {
+        "image": "5.png",
+        "timestamp": {
+          "start": 87,
+          "end": 126
+        },
+        "hotspots": []
+      },
+      "tips": []
+    }
+  ],
+  "globalTips": [
+    {
+      "category": "General Tips",
+      "items": [
+        ""
+      ]
+    }
+  ],
+  "support": {
+    "contactMethods": [
+      {
+        "type": "Email",
+        "value": "LMS@fairview.org",
+        "availability": "24/7"
+      }
+    ]
+  }
+}

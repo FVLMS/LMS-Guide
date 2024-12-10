@@ -1,0 +1,100 @@
+{
+  "title": "gradechecklists",
+  "lastUpdated": "Dec 2024",
+  "introduction": "In this guide, we’ll show you how to grade Cornerstone checklists. Lippincott checklists follow a different process.",
+  "mainVideo": "GradeChecklists.mp4",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "Access Grade Checklist Page",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">To begin, click the menu icon<span style=\"font-style: italic;\">.</span></li>\n<li>Under the Learning dropdown, click on Grade Checklists.</li>\n</ol>",
+      "media": {
+        "image": "1.png",
+        "timestamp": {
+          "start": 16,
+          "end": 24
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 2,
+      "title": "Find Checklist to Grade",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Filter the list of all outstanding checklists by entering learner name, ID, and/or checklist title.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the search button.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click on the checklist title for the learner you are trying to grade.</li>\n</ol>",
+      "media": {
+        "image": "2.png",
+        "timestamp": {
+          "start": 26,
+          "end": 40
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 3,
+      "title": "Grading Checklist Item",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">For each item observed, select the correct date and rating of the item.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">When you are finished, check the box next to the item to mark it complete.</li>\n</ol>",
+      "media": {
+        "image": "3.png",
+        "timestamp": {
+          "start": 43,
+          "end": 56
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 4,
+      "title": "Adding Observation Notes",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click on the Observation Notes button at the top of the checklist.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Type in any notes you wish to make.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">If you do want the employee to see the note, uncheck the hide note from employee checkbox.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the Post button.</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the Back button to return to the checklist when finished.</li>\n</ol>",
+      "media": {
+        "image": "4.png",
+        "timestamp": {
+          "start": 58,
+          "end": 118
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 5,
+      "title": "Sign off Checklist",
+      "shortDescription": "",
+      "details": "<p>Once all items have been graded in the checklist and marked complete, you can then sign it off.</p>\n<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click Sign at the bottom of the checklist and it will populate your signature and mark the date it was signed.</li>\n</ol>\n<p>The history section will also appear below, stating when the checklist was signed and by whom.</p>\n<p>The sign option won't be available until all items have been graded with a check mark.</p>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Most checklists will require the manager to approve the checklist completion after it's been signed by the preceptor.</p>",
+      "media": {
+        "image": "5.png",
+        "timestamp": {
+          "start": 120,
+          "end": 149
+        },
+        "hotspots": []
+      },
+      "tips": []
+    }
+  ],
+  "globalTips": [
+    {
+      "category": "General Tips",
+      "items": [
+        ""
+      ]
+    }
+  ],
+  "support": {
+    "contactMethods": [
+      {
+        "type": "Email",
+        "value": "LMS@fairview.org",
+        "availability": "24/7"
+      }
+    ]
+  }
+}

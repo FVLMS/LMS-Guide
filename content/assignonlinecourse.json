@@ -108,14 +108,5 @@
         ""
       ]
     }
-  ],
-  "support": {
-    "contactMethods": [
-      {
-        "type": "Email",
-        "value": "LMS@fairview.org",
-        "availability": "24/7"
-      }
-    ]
-  }
+  ]
 }

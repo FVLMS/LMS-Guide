@@ -96,8 +96,7 @@ function createTipsElement() {
 
     tipsDiv.innerHTML = `
         <strong>Quick Tips:</strong>
-        <ul>${tipsList}</ul>
-        
+        <ul>${tipsList}</ul>  
     `;
     // Need help? ${contentData.support.contactMethods[0].value}
 

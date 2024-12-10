@@ -13,7 +13,7 @@
         "image": "s1.png",
         "timestamp": {
           "start": 0,
-          "end": 25
+          "end": 24.5
         },
         "hotspots": []
       },
@@ -28,7 +28,7 @@
         "image": "s2.png",
         "timestamp": {
           "start": 26,
-          "end": 43
+          "end": 43.5
         },
         "hotspots": [
           {
@@ -71,8 +71,8 @@
       "media": {
         "image": "s4.png",
         "timestamp": {
-          "start": 57,
-          "end": 84
+          "start": 57.5,
+          "end": 84.1
         },
         "hotspots": [
           {

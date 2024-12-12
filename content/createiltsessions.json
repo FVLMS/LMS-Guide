@@ -90,7 +90,7 @@
       "shortDescription": "",
       "details": "<ol>\n<li>Review the details filled out for the previous step on this screen.</li>\n<li>Click the Check Conflicts button.</li>\n<li>If the Status circle for the part is yellow or red, that means this classroom may already be scheduled for another event or session.&nbsp;</li>\n<li>Edit the part if needed.</li>\n<li>Click Next to continue.</li>\n</ol>",
       "media": {
-        "image": "",
+        "image": "s5.png",
         "timestamp": {
           "start": 99,
           "end": 117

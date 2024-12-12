@@ -1,5 +1,5 @@
 {
-  "title": "CreateILTSessions",
+  "title": "createiltsessions",
   "lastUpdated": "Dec 2024",
   "introduction": "In this guide, we’ll show you how to create a new ILT session. A session is a scheduled instance of an event.",
   "mainVideo": "CreateILTSessions.mp4",

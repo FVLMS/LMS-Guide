@@ -13,7 +13,7 @@
         "image": "s10.png",
         "timestamp": {
           "start": 0,
-          "end": 13
+          "end": 14
         },
         "hotspots": []
       },
@@ -27,7 +27,7 @@
       "media": {
         "image": "s1.png",
         "timestamp": {
-          "start": 14,
+          "start": 15,
           "end": 24
         },
         "hotspots": []
@@ -108,7 +108,7 @@
         "image": "s5.png",
         "timestamp": {
           "start": 99,
-          "end": 117
+          "end": 118
         },
         "hotspots": []
       },
@@ -122,8 +122,8 @@
       "media": {
         "image": "s6.png",
         "timestamp": {
-          "start": 118,
-          "end": 137
+          "start": 119,
+          "end": 138
         },
         "hotspots": [
           {
@@ -144,7 +144,7 @@
       "media": {
         "image": "s7.png",
         "timestamp": {
-          "start": 138,
+          "start": 139,
           "end": 161
         },
         "hotspots": []
@@ -160,7 +160,7 @@
         "image": "s8.png",
         "timestamp": {
           "start": 162,
-          "end": 182
+          "end": 183
         },
         "hotspots": []
       },
@@ -174,8 +174,8 @@
       "media": {
         "image": "s9.png",
         "timestamp": {
-          "start": 183,
-          "end": 204
+          "start": 184,
+          "end": 206
         },
         "hotspots": []
       },

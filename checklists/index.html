@@ -81,6 +81,10 @@
         .checklist-item.flagged {
             border-left: 4px solid var(--warning-color);
         }
+            
+        .checklist-item.archived {
+            opacity: 0.6;
+        }
 
         .item-content {
             display: flex;
@@ -321,93 +325,111 @@
             content_css: 'document'
         });
         function showDetailView() {
-                document.getElementById('checklistListView').classList.remove('active');
-                document.getElementById('checklistDetailView').classList.add('active');
+            document.getElementById('checklistListView').classList.remove('active');
+            document.getElementById('checklistDetailView').classList.add('active');
+        }
+
+        function updateFilterButtons() {
+            const flaggedCountElement = document.getElementById('flaggedCount');
+            const clearFilterElement = document.getElementById('clearFilter');
+            const count = flaggedChecklists.size;
+
+            if (count > 0) {
+                flaggedCountElement.style.display = 'inline-flex';
+                document.getElementById('flaggedCountText').textContent = `${count} Flagged`;
+            } else {
+                flaggedCountElement.style.display = 'none';
             }
 
-            function updateFilterButtons() {
-                const flaggedCountElement = document.getElementById('flaggedCount');
-                const clearFilterElement = document.getElementById('clearFilter');
-                const count = flaggedChecklists.size;
+            // Show/hide clear filter button based on filter state
+            clearFilterElement.style.display = showOnlyFlagged ? 'inline-flex' : 'none';
+            flaggedCountElement.classList.toggle('active', showOnlyFlagged);
+        }
 
-                if (count > 0) {
-                    flaggedCountElement.style.display = 'inline-flex';
-                    document.getElementById('flaggedCountText').textContent = `${count} Flagged`;
-                } else {
-                    flaggedCountElement.style.display = 'none';
+        function toggleFlaggedFilter() {
+            showOnlyFlagged = !showOnlyFlagged;
+            loadChecklists(document.getElementById('searchBox').value);
+        }
+
+        function clearFlaggedFilter() {
+            showOnlyFlagged = false;
+            loadChecklists(document.getElementById('searchBox').value);
+        }
+
+        function showListView() {
+                document.getElementById('checklistListView').classList.add('active');
+                document.getElementById('checklistDetailView').classList.remove('active');
+            }
+
+        async function selectChecklist(checklistId, title) {
+            currentChecklistId = checklistId;
+            document.getElementById('selectedChecklistTitle').textContent = title;
+            showDetailView();
+            await loadChecklistItems();
+        }
+
+        async function loadChecklists(searchTerm = '') {
+            const checklistsRef = db.collection('checklists');
+            const snapshot = await checklistsRef.get();
+            const checklistList = document.getElementById('checklistList');
+            checklistList.innerHTML = '';
+            flaggedChecklists.clear();
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const { isChecklistFlagged, reasons } = checkForFlags(data);
+
+                if (isChecklistFlagged) {
+                    flaggedChecklists.add(doc.id);
                 }
 
-                // Show/hide clear filter button based on filter state
-                clearFilterElement.style.display = showOnlyFlagged ? 'inline-flex' : 'none';
-                flaggedCountElement.classList.toggle('active', showOnlyFlagged);
-            }
+                if ((!showOnlyFlagged || isChecklistFlagged) &&
+                    (!searchTerm || data.ChecklistName.toLowerCase().includes(searchTerm.toLowerCase()))) {
+                    const div = document.createElement('div');
+                    div.className = `checklist-item${isChecklistFlagged ? ' flagged' : ''}`;
 
-            function toggleFlaggedFilter() {
-                showOnlyFlagged = !showOnlyFlagged;
-                loadChecklists(document.getElementById('searchBox').value);
-            }
-
-            function clearFlaggedFilter() {
-                showOnlyFlagged = false;
-                loadChecklists(document.getElementById('searchBox').value);
-            }
-
-            function showListView() {
-                    document.getElementById('checklistListView').classList.add('active');
-                    document.getElementById('checklistDetailView').classList.remove('active');
-                }
-
-            async function selectChecklist(checklistId, title) {
-                currentChecklistId = checklistId;
-                document.getElementById('selectedChecklistTitle').textContent = title;
-                showDetailView();
-                await loadChecklistItems();
-            }
-
-            async function loadChecklists(searchTerm = '') {
-                const checklistsRef = db.collection('checklists');
-                const snapshot = await checklistsRef.get();
-                const checklistList = document.getElementById('checklistList');
-                checklistList.innerHTML = '';
-                flaggedChecklists.clear();
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const { isChecklistFlagged, reasons } = checkForFlags(data);
-
+                    let flaggedInfo = '';
                     if (isChecklistFlagged) {
-                        flaggedChecklists.add(doc.id);
+                        flaggedInfo = `
+                        <div class="flag-reason">
+                            ${reasons.join('<br>')}
+                        </div>
+                    `;
                     }
 
-                    if ((!showOnlyFlagged || isChecklistFlagged) &&
-                        (!searchTerm || data.ChecklistName.toLowerCase().includes(searchTerm.toLowerCase()))) {
-                        const div = document.createElement('div');
-                        div.className = `checklist-item${isChecklistFlagged ? ' flagged' : ''}`;
-
-                        let flaggedInfo = '';
-                        if (isChecklistFlagged) {
-                            flaggedInfo = `
-                            <div class="flag-reason">
-                                ${reasons.join('<br>')}
-                            </div>
-                        `;
-                        }
-
-                        div.innerHTML = `
+                    div.className = `checklist-item${isChecklistFlagged ? ' flagged' : ''}${data.archived ? ' archived' : ''}`;
+                    div.innerHTML = `
                         <div class="item-content">
                             <span>${data.ChecklistName}</span>
                             <div class="item-actions">
                                 <button class="button button-primary" onclick="selectChecklist('${doc.id}', '${data.ChecklistName.replace(/'/g, "\\'")}')">View</button>
+                                <button class="button ${data.archived ? 'button-success' : 'button-danger'}" 
+                                    onclick="toggleArchive('${doc.id}', ${data.archived ? 'false' : 'true'})">
+                                    ${data.archived ? 'Unarchive' : 'Archive'}
+                                </button>
                             </div>
                         </div>
                         ${flaggedInfo}
                     `;
-                        checklistList.appendChild(div);
-                    }
-                });
+                    checklistList.appendChild(div);
+                }
+            });
 
-                updateFilterButtons();
+            updateFilterButtons();
+        }
+
+        async function toggleArchive(checklistId, archive) {
+            try {
+                await db.collection('checklists').doc(checklistId).update({
+                    archived: archive,
+                    UpdatedDate: new Date().toISOString()
+                });
+                await loadChecklists(document.getElementById('searchBox').value);
+            } catch (error) {
+                console.error('Error toggling archive:', error);
+                alert('Error updating archive status');
             }
+        }
 
         function checkForFlags(checklistData) {
             let isChecklistFlagged = false;

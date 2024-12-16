@@ -521,6 +521,7 @@
                     ItemContents: 'New item'
                 };
 
+
                 // Insert the new item at the specified index
                 currentItems.splice(index, 0, newItem);
 
@@ -530,7 +531,8 @@
                 }
 
                 await db.collection('checklists').doc(currentChecklistId).update({
-                    Items: currentItems
+                    Items: currentItems,
+                    UpdatedDate: new Date().toISOString() // Add this line
                 });
 
                 displayItems();
@@ -555,7 +557,8 @@
                 currentItems[currentEditingIndex].ItemContents = newContent;
 
                 await db.collection('checklists').doc(currentChecklistId).update({
-                    Items: currentItems
+                    Items: currentItems,
+                    UpdatedDate: new Date().toISOString() // Add this line
                 });
 
                 document.getElementById('editorModal').classList.remove('active');
@@ -570,7 +573,8 @@
                 currentItems.forEach((item, i) => item.ItemID = i + 1);
 
                 await db.collection('checklists').doc(currentChecklistId).update({
-                    Items: currentItems
+                    Items: currentItems,
+                    UpdatedDate: new Date().toISOString() // Add this line
                 });
                 displayItems();
             }

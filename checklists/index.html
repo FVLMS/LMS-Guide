@@ -252,6 +252,21 @@
             color: var(--warning-color);
             margin-top: 8px;
         }
+
+        .checklist-item.dragging {
+            opacity: 0.5;
+            border: 2px dashed var(--primary-color);
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #9ca3af;
+            padding: 0 8px;
+        }
+
+        .drag-handle:hover {
+            color: #6b7280;
+        }
     </style>
 </head>
 
@@ -499,23 +514,29 @@
                         itemDiv.className = `checklist-item${reasons.length > 0 ? ' flagged' : ''}`;
 
                         // Item content with flag reasons if any
+                        itemDiv.draggable = true;
+                        itemDiv.dataset.index = index;
+                        itemDiv.addEventListener('dragstart', handleDragStart);
+                        itemDiv.addEventListener('dragover', handleDragOver);
+                        itemDiv.addEventListener('drop', handleDrop);
+                        itemDiv.addEventListener('dragend', handleDragEnd);
+
                         itemDiv.innerHTML = `
-            <div class="item-content">
-                <span class="item-number">${item.ItemID}.</span>
-                <div class="item-body">${item.ItemContents}</div>
-                <div class="item-actions">
-                    <div class="item-actions">
-                        <button class="edit-button" onclick="editItem(${index})">Edit</button>
-                        <button class="delete-button" onclick="deleteItem(${index})">Delete</button>
-                    </div>
-                </div>
-            </div>
-            ${reasons.length > 0 ? `
-                <div class="flag-reason">
-                    ${reasons.join('<br>')}
-                </div>
-            ` : ''}
-        `;
+                            <div class="item-content">
+                                <span class="drag-handle">☰</span>
+                                <span class="item-number">${item.ItemID}.</span>
+                                <div class="item-body">${item.ItemContents}</div>
+                                <div class="item-actions">
+                                    <button class="edit-button" onclick="editItem(${index})">Edit</button>
+                                    <button class="delete-button" onclick="deleteItem(${index})">Delete</button>
+                                </div>
+                            </div>
+                            ${reasons.length > 0 ? `
+                                <div class="flag-reason">
+                                    ${reasons.join('<br>')}
+                                </div>
+                            ` : ''}
+                        `;
 
                         // Add item button
                         const addButton = document.createElement('button');
@@ -599,6 +620,48 @@
                     UpdatedDate: new Date().toISOString() // Add this line
                 });
                 displayItems();
+            }
+
+            let draggedItem = null;
+
+            function handleDragStart(e) {
+                draggedItem = this;
+                this.classList.add('dragging');
+            }
+
+            function handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            async function handleDrop(e) {
+                e.preventDefault();
+                if (draggedItem === this) return;
+
+                const fromIndex = parseInt(draggedItem.dataset.index);
+                const toIndex = parseInt(this.dataset.index);
+
+                // Reorder the items array
+                const [movedItem] = currentItems.splice(fromIndex, 1);
+                currentItems.splice(toIndex, 0, movedItem);
+
+                // Update IDs
+                currentItems.forEach((item, index) => {
+                    item.ItemID = index + 1;
+                });
+
+                // Save to Firebase
+                await db.collection('checklists').doc(currentChecklistId).update({
+                    Items: currentItems,
+                    UpdatedDate: new Date().toISOString()
+                });
+
+                // Refresh display
+                displayItems();
+            }
+
+            function handleDragEnd(e) {
+                this.classList.remove('dragging');
+                draggedItem = null;
             }
 
             // Initialize search functionality

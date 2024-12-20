@@ -18,7 +18,8 @@
             font-size: 16px;
         }
 
-        .item {
+        .item,
+        .title {
             padding: 10px;
             border: 1px solid #ccc;
             margin-bottom: 10px;
@@ -28,13 +29,24 @@
         .hidden {
             display: none;
         }
+
+        button {
+            margin-top: 10px;
+        }
     </style>
 </head>
 
 <body>
     <h1>Checklist Viewer</h1>
-    <input type="text" id="filter" placeholder="Filter items...">
-    <div id="checklist"></div>
+    <div id="title-view">
+        <input type="text" id="filter" placeholder="Filter titles...">
+        <div id="titles"></div>
+    </div>
+    <div id="item-view" style="display: none;">
+        <button id="back-button">Back to Titles</button>
+        <h2 id="current-title"></h2>
+        <div id="items"></div>
+    </div>
 
     <script>
         async function fetchData() {
@@ -63,38 +75,79 @@
             }
         }
 
-        function displayItems(items) {
-            const checklist = document.getElementById('checklist');
-            checklist.innerHTML = ''; // Clear existing items
-
+        function groupItemsByTitle(items) {
+            const grouped = {};
             items.forEach(item => {
-                if (!item) return; // Skip invalid items
+                if (!item) return;
                 const { title, order, checklistItem } = item;
+                if (!grouped[title]) {
+                    grouped[title] = [];
+                }
+                grouped[title].push({ order, checklistItem });
+            });
+            return grouped;
+        }
+
+        function displayTitles(groupedItems) {
+            const titlesContainer = document.getElementById('titles');
+            titlesContainer.innerHTML = ''; // Clear existing titles
+
+            Object.keys(groupedItems).forEach(title => {
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'title';
+                titleDiv.innerHTML = `<strong>${title}</strong>`;
+                const viewButton = document.createElement('button');
+                viewButton.textContent = 'View';
+                viewButton.addEventListener('click', () => displayItems(title, groupedItems[title]));
+                titleDiv.appendChild(viewButton);
+                titlesContainer.appendChild(titleDiv);
+            });
+        }
+
+        function displayItems(title, items) {
+            // Switch to item view
+            document.getElementById('title-view').style.display = 'none';
+            document.getElementById('item-view').style.display = 'block';
+
+            // Display the current title
+            const currentTitle = document.getElementById('current-title');
+            currentTitle.textContent = title;
+
+            // Display the checklist items
+            const itemsContainer = document.getElementById('items');
+            itemsContainer.innerHTML = ''; // Clear existing items
+            items.forEach(({ order, checklistItem }) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'item';
-                itemDiv.dataset.title = title.toLowerCase();
-                itemDiv.dataset.item = checklistItem.toLowerCase();
-                itemDiv.innerHTML = `<strong>${title} (Order: ${order})</strong><br>${checklistItem}`;
-                checklist.appendChild(itemDiv);
+                itemDiv.innerHTML = `<strong>Order: ${order}</strong><br>${checklistItem}`;
+                itemsContainer.appendChild(itemDiv);
             });
         }
 
-        function filterItems(event) {
+        function filterTitles(event) {
             const filterText = event.target.value.toLowerCase();
-            const items = document.querySelectorAll('.item');
+            const titles = document.querySelectorAll('.title');
 
-            items.forEach(item => {
-                const matchesFilter = item.dataset.title.includes(filterText) || item.dataset.item.includes(filterText);
-                item.classList.toggle('hidden', !matchesFilter);
+            titles.forEach(title => {
+                const titleText = title.querySelector('strong').textContent.toLowerCase();
+                title.classList.toggle('hidden', !titleText.includes(filterText));
             });
         }
 
-        document.getElementById('filter').addEventListener('input', filterItems);
+        function backToTitles() {
+            // Switch back to title view
+            document.getElementById('title-view').style.display = 'block';
+            document.getElementById('item-view').style.display = 'none';
+        }
+
+        document.getElementById('filter').addEventListener('input', filterTitles);
+        document.getElementById('back-button').addEventListener('click', backToTitles);
 
         (async function init() {
             const rawData = await fetchData();
             const parsedItems = rawData.map(parseLine).filter(Boolean); // Parse and filter out null values
-            displayItems(parsedItems);
+            const groupedItems = groupItemsByTitle(parsedItems);
+            displayTitles(groupedItems);
         })();
     </script>
 </body>

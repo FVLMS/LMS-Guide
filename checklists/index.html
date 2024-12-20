@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #filter {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .item {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Checklist Viewer</h1>
+    <input type="text" id="filter" placeholder="Filter items...">
+    <div id="checklist"></div>
+
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('data.txt');
+                const data = await response.text();
+                return data.split('ENDOFLINE').filter(line => line.trim() !== '');
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                return [];
+            }
+        }
+
+        function parseLine(line) {
+            const [title, order, checklistItem] = line.split('|');
+            return { title, order, checklistItem };
+        }
+
+        function displayItems(items) {
+            const checklist = document.getElementById('checklist');
+            checklist.innerHTML = ''; // Clear existing items
+
+            items.forEach(line => {
+                const { title, order, checklistItem } = parseLine(line);
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.dataset.title = title.toLowerCase();
+                itemDiv.dataset.item = checklistItem.toLowerCase();
+                itemDiv.innerHTML = `<strong>${title} (Order: ${order})</strong><br>${checklistItem}`;
+                checklist.appendChild(itemDiv);
+            });
+        }
+
+        function filterItems(event) {
+            const filterText = event.target.value.toLowerCase();
+            const items = document.querySelectorAll('.item');
+
+            items.forEach(item => {
+                const matchesFilter = item.dataset.title.includes(filterText) || item.dataset.item.includes(filterText);
+                item.classList.toggle('hidden', !matchesFilter);
+            });
+        }
+
+        document.getElementById('filter').addEventListener('input', filterItems);
+
+        (async function init() {
+            const rawData = await fetchData();
+            const parsedItems = rawData.map(parseLine);
+            displayItems(parsedItems);
+        })();
+    </script>
+</body>
+
+</html>

@@ -49,16 +49,27 @@
         }
 
         function parseLine(line) {
-            const [title, order, checklistItem] = line.split('|');
-            return { title, order, checklistItem };
+            try {
+                const parts = line.split('|');
+                if (parts.length !== 3) {
+                    console.warn(`Skipping invalid line: ${line}`);
+                    return null;
+                }
+                const [title, order, checklistItem] = parts;
+                return { title: title.trim(), order: order.trim(), checklistItem: checklistItem.trim() };
+            } catch (error) {
+                console.error("Error parsing line:", line, error);
+                return null;
+            }
         }
 
         function displayItems(items) {
             const checklist = document.getElementById('checklist');
             checklist.innerHTML = ''; // Clear existing items
 
-            items.forEach(line => {
-                const { title, order, checklistItem } = parseLine(line);
+            items.forEach(item => {
+                if (!item) return; // Skip invalid items
+                const { title, order, checklistItem } = item;
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'item';
                 itemDiv.dataset.title = title.toLowerCase();
@@ -82,7 +93,7 @@
 
         (async function init() {
             const rawData = await fetchData();
-            const parsedItems = rawData.map(parseLine);
+            const parsedItems = rawData.map(parseLine).filter(Boolean); // Parse and filter out null values
             displayItems(parsedItems);
         })();
     </script>

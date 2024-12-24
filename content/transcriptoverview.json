@@ -1,0 +1,129 @@
+{
+  "title": "transcriptoverview",
+  "lastUpdated": "Dec 2024",
+  "introduction": "",
+  "mainVideo": "TranscriptOverview.mp4",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "Introduction",
+      "shortDescription": "",
+      "details": "<ol>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">In this guide, we&rsquo;ll show you everything you need to know about your learning transcript.</p>\n</li>\n</ol>",
+      "media": {
+        "image": "ts1.png",
+        "timestamp": {
+          "start": 0,
+          "end": 12.5
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 2,
+      "title": "Accessing Learner Transcript",
+      "shortDescription": "",
+      "details": "<ol>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">To access your transcript, you can click the My Transcript link on the homepage, or the My Transcript item in the Menu, under Learning.</p>\n</li>\n</ol>",
+      "media": {
+        "image": "ts2.png",
+        "timestamp": {
+          "start": 13,
+          "end": 23.5
+        },
+        "hotspots": [
+          {
+            "x": 58.88,
+            "y": 33.19,
+            "title": "Transcript",
+            "description": "This link takes you directly to your learning transcript"
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 3,
+      "title": "Filtering Transcript",
+      "shortDescription": "",
+      "details": "<ol>\n<li>The training is already sorted by due date in ascending order.</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">You can filter the Training status by All, Active, Completed, or Archived in the Training Status dropdown.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">You can sort and filter the visible items, or search for a specific title using the search bar.</p>\n</li>\n</ol>",
+      "media": {
+        "image": "ts3.png",
+        "timestamp": {
+          "start": 24,
+          "end": 45
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 4,
+      "title": "Launch Training",
+      "shortDescription": "",
+      "details": "<ol>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">For each training item you will see a black button with dropdown titled Launch, Open Curriculum, or Select Session. This depends on the type of training assigned.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">The buttons allow quick action to the next step.</p>\n<ol>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Launch button opens the learning so you are able to progress through the content.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Open Curriculum button opens the course curriculum to either the beginning or where you last left off.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Select a Session button takes you to the Event page to be able to review the available sessions in order to request (enroll) a date and time that works for you.</p>\n</li>\n</ol>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Using the dropdown arrow will allow you to View the Training Details which provides you with all of the additional information associated with the learning object.</p>\n</li>\n</ol>",
+      "media": {
+        "image": "ts4.png",
+        "timestamp": {
+          "start": 46,
+          "end": 86
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 5,
+      "title": "Print Certificates",
+      "shortDescription": "",
+      "details": "<ol>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">If you need to print a certificate for a completed learning, simply filter your transcript to the Completed Training Status.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Then click the View Certificate button for the learning needed.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">This will open a new window with your certificate of completion to either save as a PDF or print.</p>\n</li>\n</ol>",
+      "media": {
+        "image": "ts5.png",
+        "timestamp": {
+          "start": 87,
+          "end": 109
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 6,
+      "title": "Retake Completed Lessons",
+      "shortDescription": "",
+      "details": "<ol>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">To review previously completed content, filter your transcript to the Completed Training Status.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Then, once you find the content you would like to review, click the black dropdown and select the Open Curriculum or Launch options.</p>\n</li>\n<li>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">For Curriculum, once the content is opened, you will see another drop down in the top right of your screen. You can either click Request, which will assign a new instance of the training to your Active transcript, or click Launch, which will open the content in a new tab for you to review.</p>\n</li>\n</ol>",
+      "media": {
+        "image": "",
+        "timestamp": {
+          "start": 110,
+          "end": 151
+        },
+        "hotspots": [
+          {
+            "x": 74.69,
+            "y": 51.1,
+            "title": "Launch vs Open Curriculum",
+            "description": "If you are reviewing an Online Class instead of a Curriculum, the Launch option would populate instead of Open Curriculum."
+          }
+        ]
+      },
+      "tips": []
+    }
+  ],
+  "globalTips": [
+    {
+      "category": "General Tips",
+      "items": [
+        ""
+      ]
+    }
+  ],
+  "support": {
+    "contactMethods": [
+      {
+        "type": "Email",
+        "value": "LMS@fairview.org",
+        "availability": "24/7"
+      }
+    ]
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "title": "enduseroverview",
+  "lastUpdated": "Dec 2024",
+  "introduction": "Welcome to your new Learning Management System! This short video will guide you through key features, so you can hit the ground running. Let’s get started!",
+  "mainVideo": "EndUserOverview.mp4",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "Login Using Single Sign-On",
+      "shortDescription": "",
+      "details": "<ol style=\"direction: ltr; unicode-bidi: embed; margin-top: 0in; margin-bottom: 0in; font-family: Calibri; font-size: 11.0pt; font-weight: normal; font-style: normal;\" type=\"1\">\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\" value=\"1\"><span style=\"font-family: Calibri; font-size: 11.0pt; font-weight: normal; font-style: normal;\">Click the link from the email notice or intranet page</span></li>\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">If not on the network, log into your Fairview Office365 account</span></li>\n</ol>",
+      "media": {
+        "image": "1.png",
+        "timestamp": {
+          "start": 6,
+          "end": 28
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 2,
+      "title": "Welcome Screen Overview",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">This is the Welcome screen. You can return to this screen anytime by clicking the Fairview Logo in the upper left corner. From here you can quickly access:</p>\n<ul style=\"direction: ltr; unicode-bidi: embed; margin-top: 0in; margin-bottom: 0in;\" type=\"disc\">\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">Resources</span></li>\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">Assignments</span></li>\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">Class enrollments</span></li>\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">And Certifications</span></li>\n</ul>",
+      "media": {
+        "image": "2.png",
+        "timestamp": {
+          "start": 30,
+          "end": 45
+        },
+        "hotspots": [
+          {
+            "x": 6.07,
+            "y": 3.67,
+            "title": "Fairview Logo",
+            "description": "Click here anytime you wish to return to the Welcome page"
+          },
+          {
+            "x": 38.79,
+            "y": 65.3,
+            "title": "Assigned Training",
+            "description": "This is where your assignments will appear. You can access any curriculums, online courses, enroll into sessions using the action links."
+          },
+          {
+            "x": 72.86,
+            "y": 65.53,
+            "title": "Upcoming Sessions",
+            "description": "This widget will list any upcoming sessions you are currently enrolled in. Clicking on the session title will take you to the session details page."
+          },
+          {
+            "x": 71.26,
+            "y": 76.6,
+            "title": "Certifications",
+            "description": "The certifications widget will display your currently due certifications and when they expire"
+          },
+          {
+            "x": 3,
+            "y": 79.37,
+            "title": "Your Inbox",
+            "description": "The inbox widget is another way to access your transcript. It will also tell you if you are approved for any trainings that you requested and how many you are currently registered for."
+          },
+          {
+            "x": 4.72,
+            "y": 65.53,
+            "title": "Training Overview",
+            "description": "This is a quick summary of your overall progress for assignments. It will list what is overdue, due soon and anything that is assigned with no due date."
+          },
+          {
+            "x": 55.21,
+            "y": 34.83,
+            "title": "Help Guides",
+            "description": "This link will take you to the online packet that will have all of the available resources in how to navigate the new LMS!"
+          },
+          {
+            "x": 55.94,
+            "y": 41.98,
+            "title": "My transcript",
+            "description": "Another way to access your transcript"
+          },
+          {
+            "x": 55.33,
+            "y": 48.91,
+            "title": "Catalog",
+            "description": "This is a quick easy way to access the course catalog. This is where you can self-enroll into any trainings."
+          },
+          {
+            "x": 55.33,
+            "y": 55.6,
+            "title": "Event Calender",
+            "description": "The event calendar will take you to all the available sessions that have been scheduled and where you can self-enroll as well."
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 3,
+      "title": "Launch an Online Course",
+      "shortDescription": "",
+      "details": "<ol>\n<li>&nbsp;Click on the title of the online course under Assigned Training</li>\n<li>Then click on the black \"Launch\" button to access the content</li>\n</ol>\n<p>Note* Clicking the \"Launch\" action link on the Welcome page will automatically load the course</p>",
+      "media": {
+        "image": "3.png",
+        "timestamp": {
+          "start": 47,
+          "end": 87
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 4,
+      "title": "Enroll in a session",
+      "shortDescription": "",
+      "details": "<ol>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Click the \"Select Session\" button to open the session options page</li>\n<li style=\"font-family: Calibri; font-size: 11pt;\">Register by clicking \"View Details\", and then \"Request\".</li>\n</ol>\n<p>There will be a black box in the lower left-hand corner, stating your enrollment action was completed. You will receive the calendar invite by email.</p>",
+      "media": {
+        "image": "4.png",
+        "timestamp": {
+          "start": 89,
+          "end": 109.5
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 5,
+      "title": "Open a Curriculum",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Click Open Curriculum. You will see your overall progress, and any sections that the content may be organized within. Note that some curriculum may require items to be completed in a certain order, and some may have optional items.</p>\n<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">&nbsp;</p>",
+      "media": {
+        "image": "2.png",
+        "timestamp": {
+          "start": 111,
+          "end": 132.5
+        },
+        "hotspots": [
+          {
+            "x": 63.05,
+            "y": 77.83,
+            "title": "Open Curriculum",
+            "description": "Click the action link \"Open Curriculum\" to launch the content and access any of the trainings within."
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 6,
+      "title": "Self-Enrolling via Course Catalog",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Type a keyword in the search bar to pull up any matching lessons, courses, curriculum, tests, or checklists. Click on the item to open the details page. From here you can launch the lesson to add it to your assignments and begin immediately. You can also save it for later to add it to your assignments for another time.</p>",
+      "media": {
+        "image": "6.png",
+        "timestamp": {
+          "start": 134,
+          "end": 159
+        },
+        "hotspots": [
+          {
+            "x": 40.13,
+            "y": 24.03,
+            "title": "Search Bar",
+            "description": "Use the search bar at the top if you know the exact title of the training"
+          },
+          {
+            "x": 19.67,
+            "y": 32.27,
+            "title": "Filters",
+            "description": "You can use the filters available to search for any content if you are unsure what the title is"
+          }
+        ]
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 7,
+      "title": "View your Transcript",
+      "shortDescription": "",
+      "details": "<p>Click on \"My transcript\" to access and review your learning history. From there you can:</p>\n<ul style=\"direction: ltr; unicode-bidi: embed; margin-top: 0in; margin-bottom: 0in;\" type=\"disc\">\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">Filter courses by status or date.</span></li>\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">Launch or retake courses with just one click.</span></li>\n<li style=\"margin-top: 0; margin-bottom: 0; vertical-align: middle;\"><span style=\"font-family: Calibri; font-size: 11.0pt;\">And print certificates.</span></li>\n</ul>\n<p>&nbsp;</p>",
+      "media": {
+        "image": "7.png",
+        "timestamp": {
+          "start": 161,
+          "end": 176
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 8,
+      "title": "Reach out to the LMS team with any questions",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">If you have questions about these processes, reach out to the LMS team by emailing us at <a href=\"mailto:LMS@fairview.org\">LMS@fairview.org</a>.</p>",
+      "media": {
+        "image": "8.png",
+        "timestamp": {
+          "start": 177,
+          "end": 185
+        },
+        "hotspots": []
+      },
+      "tips": []
+    }
+  ],
+  "globalTips": [
+    {
+      "category": "General Tips",
+      "items": [
+        ""
+      ]
+    }
+  ],
+  "support": {
+    "contactMethods": [
+      {
+        "type": "Email",
+        "value": "LMS@fairview.org",
+        "availability": "24/7"
+      }
+    ]
+  }
+}

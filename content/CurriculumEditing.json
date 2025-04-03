@@ -1,0 +1,152 @@
+{
+  "title": "CurriculumEditing",
+  "lastUpdated": "Apr 2025",
+  "introduction": "In this guide, we will show how to edit curricula. Curricula are a collection of learning objects, such as lessons, tests, and events.",
+  "mainVideo": "curriculumediting.mp4",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "Introduction",
+      "shortDescription": "",
+      "details": "<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">In this guide, we will show how to edit curricula. Curricula are a collection of learning objects, such as lessons, tests, and events.</p>",
+      "media": {
+        "image": "c1.png",
+        "timestamp": {
+          "start": 0,
+          "end": 10
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 2,
+      "title": "Search for a Curriculum to Edit",
+      "shortDescription": "",
+      "details": "<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">Click on Catalog from the Content Management dropdown in the Menu. Click Curricula to open the Curricula Administration page.&nbsp;Search for the curriculum you would like to edit.&nbsp;Click the Edit link for the Curriculum you are searching for. If the title cuts off in the search results, you can hover your mouse over the title to expand it.</p>",
+      "media": {
+        "image": "c2.png",
+        "timestamp": {
+          "start": 11,
+          "end": 36
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 3,
+      "title": "General Section",
+      "shortDescription": "",
+      "details": "<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">The general page allows you to edit many fields. Some are mandatory, indicated by the red asterisk, and cannot be blank.&nbsp;Here you can make changes to the title, description, objectives, and owner etc.&nbsp;Curriculum player 2.0 should always be selected before you leave the page.&nbsp;To navigate to a different sections, you can either click one of the other menu option at the top left, or click next at the bottom. Clicking save at any point will bring you back to the Curricula search page so it is recommended to only save when you are finished.</p>",
+      "media": {
+        "image": "c3.png",
+        "timestamp": {
+          "start": 36,
+          "end": 75
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 4,
+      "title": "Availability",
+      "shortDescription": "",
+      "details": "<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">The availability tab limits the users that can see and access the curriculum.</p>\n<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">To change who can access the select criteria drop down allows you to select organization units such as cost center or division. After selecting a unit from the dropdown, click the Select icon, then search for your unit.</p>\n<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">You can toggle the Register upon approval, pre-approval, and include subordinates check boxes</p>\n<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">Then click add on the right and submit at the bottom.</p>",
+      "media": {
+        "image": "c4.png",
+        "timestamp": {
+          "start": 76,
+          "end": 106
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 5,
+      "title": "Emails",
+      "shortDescription": "",
+      "details": "<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">The emails section allows you to choose between no emails, custom email, and System defaults. We recommend using the System Defaults.</p>",
+      "media": {
+        "image": "c5.png",
+        "timestamp": {
+          "start": 107,
+          "end": 121
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 6,
+      "title": " Structure",
+      "shortDescription": "",
+      "details": "<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">The structure tab is where the items in the curriculum are held. At the top of the screen, you can see 3 check boxes which control the recurrence options. Note that if the current curriculum version is assigned to staff, there will be a light blue warning at the top of your screen.</p>",
+      "media": {
+        "image": "c6.png",
+        "timestamp": {
+          "start": 122,
+          "end": 144
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 7,
+      "title": " Sections Overview",
+      "shortDescription": "",
+      "details": "<p style=\"margin-top: 0pt; margin-bottom: 8pt; font-family: Calibri; font-size: 11.0pt;\">A section is a category that can differentiate groups of learning objects. To add this item, click the add section button and title it. Next, click add training next to the created section. Then in the dialogue box you mat search for the intended course, click add on the right-hand side and then select the black add box at the bottom right. The curriculum player can only display up to 3 sections.</p>",
+      "media": {
+        "image": "c7.png",
+        "timestamp": {
+          "start": 145,
+          "end": 175
+        },
+        "hotspots": []
+      },
+      "tips": []
+    },
+    {
+      "stepNumber": 8,
+      "title": " Edit Curricula Contents",
+      "shortDescription": "",
+      "details": "<p style=\"margin: 0in; font-family: Calibri; font-size: 11.0pt;\">Click the Add Training button to add learning objects to the section of the curriculum.&nbsp;This opens the Select Training window in which the administrator can select the training items. After selection, the Selected Training section displays the Title, Type, and Version of the selected training.<span style=\"mso-spacerun: yes;\">&nbsp;</span>Before adding the training, administrators can select Pay Upfront, Pre-Approve, Auto Register, and Auto-Launch options. To remove a training click the trash can icon on the right side of each training and confirm in the pop up box.&nbsp;Once you have made the necessary edits to the curriculum you can now click save at the bottom right of the page.</p>",
+      "media": {
+        "image": "c8.png",
+        "timestamp": {
+          "start": 176,
+          "end": 230
+        },
+        "hotspots": [
+          {
+            "x": 55.31,
+            "y": 78.13,
+            "title": "Add Checklist",
+            "description": "To add a checklist, you must select the drop down next to add training. Search for the checklist you want to add. Select the checklist from the list. This closes the pop-up and adds the checklist to the section. "
+          }
+        ]
+      },
+      "tips": []
+    }
+  ],
+  "globalTips": [
+    {
+      "category": "General Tips",
+      "items": [
+        "Structure can be complex, for help please reach out to LMS@Fairview.org and/or view the Cornerstone help guide:\n\nhttps://help.csod.com/help/csod_0/Content/Catalog/Curriculua_Administration/Create_Curriculum/Curriculum_-_Create_-_Step_6_-_Structure.htm?tocpath=Learning%7CCourse%20Catalog%7CCurricula%7CCurricula%20Management%7CCurriculum%20-%20Create%7C_____7"
+      ]
+    }
+  ],
+  "support": {
+    "contactMethods": [
+      {
+        "type": "Email",
+        "value": "LMS@fairview.org",
+        "availability": "24/7"
+      }
+    ]
+  }
+}

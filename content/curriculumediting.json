@@ -13,7 +13,7 @@
         "image": "c1.png",
         "timestamp": {
           "start": 0,
-          "end": 10.8
+          "end": 10.72
         },
         "hotspots": []
       },
@@ -28,7 +28,7 @@
         "image": "c2.png",
         "timestamp": {
           "start": 11,
-          "end": 36.7
+          "end": 36.1
         },
         "hotspots": []
       },
@@ -42,8 +42,8 @@
       "media": {
         "image": "c3.png",
         "timestamp": {
-          "start": 36,
-          "end": 75
+          "start": 36.5,
+          "end": 74.5
         },
         "hotspots": []
       },
@@ -57,8 +57,8 @@
       "media": {
         "image": "c4.png",
         "timestamp": {
-          "start": 76,
-          "end": 106
+          "start": 75.8,
+          "end": 106.1
         },
         "hotspots": []
       },
@@ -73,7 +73,7 @@
         "image": "c5.png",
         "timestamp": {
           "start": 107,
-          "end": 121
+          "end": 121.3
         },
         "hotspots": []
       },

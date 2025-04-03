@@ -122,8 +122,8 @@
         },
         "hotspots": [
           {
-            "x": 55.31,
-            "y": 78.13,
+            "x": 50.31,
+            "y": 84.13,
             "title": "Add Checklist",
             "description": "To add a checklist, you must select the drop down next to add training. Search for the checklist you want to add. Select the checklist from the list. This closes the pop-up and adds the checklist to the section. "
           }

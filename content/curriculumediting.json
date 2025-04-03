@@ -43,7 +43,7 @@
         "image": "c3.png",
         "timestamp": {
           "start": 36.5,
-          "end": 74.5
+          "end": 74.8
         },
         "hotspots": []
       },
@@ -136,7 +136,7 @@
     {
       "category": "General Tips",
       "items": [
-        "Structure can be complex, for help please reach out to LMS@Fairview.org and/or view the Cornerstone help guide:\n\nhttps://help.csod.com/help/csod_0/Content/Catalog/Curriculua_Administration/Create_Curriculum/Curriculum_-_Create_-_Step_6_-_Structure.htm?tocpath=Learning%7CCourse%20Catalog%7CCurricula%7CCurricula%20Management%7CCurriculum%20-%20Create%7C_____7"
+        "Structure can be complex, for help please reach out to LMS@Fairview.org and/or view the <a href="https://help.csod.com/help/csod_0/Content/Catalog/Curriculua_Administration/Create_Curriculum/Curriculum_-_Create_-_Step_6_-_Structure.htm?tocpath=Learning%7CCourse%20Catalog%7CCurricula%7CCurricula%20Management%7CCurriculum%20-%20Create%7C_____7">Cornerstone help guide:</a>"
       ]
     }
   ],

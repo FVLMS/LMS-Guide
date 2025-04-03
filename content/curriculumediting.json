@@ -1,3 +1,4 @@
+
 {
   "title": "curriculumediting",
   "lastUpdated": "Apr 2025",
@@ -43,7 +44,7 @@
         "image": "c3.png",
         "timestamp": {
           "start": 36.5,
-          "end": 74.8
+          "end": 74.5
         },
         "hotspots": []
       },
@@ -125,7 +126,7 @@
             "x": 49.31,
             "y": 85.13,
             "title": "Add Checklist",
-            "description": "To add a checklist, you must select the drop down next to add training. Search for the checklist you want to add. Select the checklist from the list. This closes the pop-up and adds the checklist to the section. "
+            "description": "To add a checklist, you must select the drop down next to add training. Search for the checklist you want to add. Select the checklist from the list. This closes the pop-up and adds the checklist to the section. "
           }
         ]
       },
@@ -136,7 +137,7 @@
     {
       "category": "General Tips",
       "items": [
-        "Structure can be complex, for help please reach out to LMS@Fairview.org and/or view the"
+        "Structure can be complex, for help please reach out to LMS@Fairview.org and/or view the Cornerstone help guide:\n\nhttps://help.csod.com/help/csod_0/Content/Catalog/Curriculua_Administration/Create_Curriculum/Curriculum_-_Create_-_Step_6_-_Structure.htm?tocpath=Learning%7CCourse%20Catalog%7CCurricula%7CCurricula%20Management%7CCurriculum%20-%20Create%7C_____7"
       ]
     }
   ],

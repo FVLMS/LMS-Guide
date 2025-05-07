@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Email Templates Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0056b3;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            color: #0056b3;
+            margin-top: 30px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #343a40;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        .email-section {
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #fdfdff;
+        }
+        .details-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .details-list li {
+            margin-bottom: 8px;
+        }
+        .details-list strong {
+            color: #004085;
+        }
+        .email-subject {
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        .email-body, pre {
+            background-color: #e9ecef;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.95em;
+            color: #212529;
+        }
+        code {
+            background-color: #d1ecf1;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: "Courier New", Courier, monospace;
+            color: #0c5460;
+            font-weight: bold;
+        }
+        hr {
+            margin-top: 30px;
+            margin-bottom: 30px;
+            border: 0;
+            border-top: 1px solid #dee2e6;
+        }
+        .note {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guide to LMS Email Templates</h1>
+        <p>This guide provides an overview of automated email templates sent from the Learning Management System (LMS). Each entry details the email's trigger, purpose, intended recipients, and the template content. Placeholders (e.g., <code>TRAINEE.FIRST.NAME</code>) are indicated within the templates and are dynamically populated by the system.</p>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>1. Request Training</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Request training</li>
+                <li><strong>Purpose (What):</strong> Informs approvers when users request training, providing details on what was requested and by whom.</li>
+                <li><strong>Recipient (Who):</strong> Sent to approvers with users requesting training.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>Request Training - Approver</code></p>
+            <div class="email-body">
+Dear <code>APPROVER.FIRST.NAME</code> <code>APPROVER.LAST.NAME</code>:<br><br>
+<code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code> has requested approval for the following training item:<br>
+Title: <code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Please use the following link to approve/deny the training listed above:<br>
+<code>APPROVAL.LINK</code><br><br>
+If you have any questions or concerns, please contact your learning organization.<br><br>
+Regards,<br>
+Learning Management System (LMS) Team<br>
+Fairview Health Services<br>
+701 25th Avenue South | Suite 500 | Minneapolis 55454<br>
+LMS@fairview.org | mhealthfairview.org<br>
+LMS Support | 612.365.0420 (M-Th 7 am – 5 pm, Fri 7 am – 3:30 pm)
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>2. Assign Training – Approval Needed</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Assign Training – Next approver if training request is pending</li>
+                <li><strong>Purpose (What):</strong> Notifies approvers that users have been assigned training that requires approval.</li>
+                <li><strong>Recipient (Who):</strong> Approvers with subordinates who have assigned training to be approved.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>ACTION REQUIRED: Training for TRAINEE.FIRST.NAME TRAINEE.LAST.NAME Requires Approval</code></p>
+            <div class="email-body">
+Dear <code>APPROVER.FIRST.NAME</code> <code>APPROVER.LAST.NAME</code>:<br><br>
+<code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code> has been assigned the following training item which requires your approval:<br>
+<code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Please use the following link to approve/deny the training listed above:<br>
+<code>APPROVAL.LINK</code><br><br>
+If you have any questions or concerns, please contact your learning organization.<br><br>
+Regards,<br>
+Learning Management System (LMS) Team<br>
+Fairview Health Services<br>
+701 25th Avenue South | Suite 500 | Minneapolis 55454<br>
+LMS@fairview.org | mhealthfairview.org<br>
+LMS Support | 612.365.0420 (M-Th 7 am – 5 pm, Fri 7 am – 3:30 pm)
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>3. Approve Training Request – Confirmation</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Approve Training Request – Training request approvers (Copy Student)</li>
+                <li><strong>Purpose (What):</strong> Confirms that a training request has been approved.</li>
+                <li><strong>Recipient (Who):</strong> Users with approved training requests.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>CONFIRMATION: Training Request for TITLE has been Approved</code></p>
+            <div class="email-body">
+Dear <code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code>:<br><br>
+Your request for <code>TITLE</code> has been approved.<br><br>
+Regards,<br>
+Learning Management System (LMS) Team<br>
+Fairview Health Services<br>
+701 25th Avenue South | Suite 500 | Minneapolis 55454<br>
+LMS@fairview.org | mhealthfairview.org<br>
+LMS Support | 612.365.0420 (M-Th 7 am – 5 pm, Fri 7 am – 3:30 pm)
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>4. Training Removed from Transcript</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> External Training Removed</li>
+                <li><strong>Purpose (What):</strong> Notifies users that an external training has been removed from their transcript.</li>
+                <li><strong>Recipient (Who):</strong> Users who had training removed from their transcript.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>TRAINING REMOVED: TITLE has been Removed from Your Transcript</code></p>
+            <div class="email-body">
+There are several reasons why training could have been removed:<br>
+<ul>
+    <li>You or your Manager submitted a request to have it removed.</li>
+    <li>It was dynamically assigned to you based on a set of criteria that you no longer meet.</li>
+    <li>It was incorrectly assigned to you.</li>
+</ul>
+If you have any questions or concerns, please contact your learning organization.<br><br>
+Regards,<br>
+Learning Management System (LMS) Team<br>
+Fairview Health Services<br>
+701 25th Avenue South | Suite 500 | Minneapolis 55454<br>
+LMS@fairview.org | mhealthfairview.org<br>
+LMS Support | 612.365.0420 (M-Th 7 am – 5 pm, Fri 7 am – 3:30 pm)
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>5. Assign ILT (Instructor-Led Training) Session</h2>
+            <p>This event triggers two different emails based on the recipient:</p>
+
+            <h3>5.1. Assign ILT Session – Student</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Assign ILT Session – Student</li>
+                <li><strong>Purpose (What):</strong> Notice of assignment for an ILT session.</li>
+                <li><strong>Recipient (Who):</strong> Learners assigned to an ILT session.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>ACTION REQUIRED: TITLE has been Assigned to your Profile</code></p>
+            <div class="email-body">
+Dear <code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code>:<br><br>
+The following training has been assigned to your profile:<br>
+<code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br>
+Due date (if applicable): <code>DUE.DATE</code><br><br>
+You can view your assigned training using the transcript page link below:<br>
+<code>TRANSCRIPT.LINK</code><br><br>
+If you have any questions or concerns, please contact your manager or your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+
+            <h3 style="margin-top:25px;">5.2. Assign ILT Session – Next Approver (Approval Pending)</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Assign ILT Session – Next approver if training request is pending</li>
+                <li><strong>Purpose (What):</strong> Notifies approvers that a subordinate has been assigned an ILT session that requires approval.</li>
+                <li><strong>Recipient (Who):</strong> Approvers.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>ACTION REQUIRED: Training for TRAINEE.FIRST.NAME TRAINEE.LAST.NAME Requires Approval</code></p>
+            <div class="email-body">
+Dear <code>APPROVER.FIRST.NAME</code> <code>APPROVER.LAST.NAME</code>:<br><br>
+<code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code> has been assigned the following training item which requires your approval:<br>
+<code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Please use the following link to approve/deny the training listed above:<br>
+<code>APPROVAL.LINK</code><br><br>
+If you have any questions or concerns, please contact your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>6. Request ILT Session – Approval Needed</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Request ILT training</li>
+                <li><strong>Purpose (What):</strong> Sends an approval notice to approvers for a requested ILT session.</li>
+                <li><strong>Recipient (Who):</strong> Approvers.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>ACTION REQUIRED: Training for TRAINEE.FIRST.NAME TRAINEE.LAST.NAME Requires Approval</code></p>
+            <div class="email-body">
+Dear <code>APPROVER.FIRST.NAME</code> <code>APPROVER.LAST.NAME</code>,<br><br>
+<code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code> has been assigned the following training item which requires your approval:<br><br>
+Title: <code>TITLE</code><br>
+Start Time: <code>SESSION.START.TIME</code><br>
+End Time: <code>SESSION.END.TIME</code><br>
+Location: <code>SESSION.LOCATION</code><br>
+Training Hours: <code>DURATION</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br><br>
+Please use the following link to approve/deny the training listed above:<br>
+<code>APPROVAL.LINK</code><br><br>
+If you have any questions or concerns, please contact your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>7. ILT Session Registration Confirmation</h2>
+            <p>This event triggers two different emails:</p>
+
+            <h3>7.1. ILT Register – Learner Confirmation</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> ILT Register</li>
+                <li><strong>Purpose (What):</strong> ILT registration confirmation for sessions.</li>
+                <li><strong>Recipient (Who):</strong> For learner enrolled.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>REGISTRATION CONFIRMATION: TITLE (SESSION.START.DATE @ SESSION.START.TIME)</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>:<br><br>
+You have been registered in the following event:<br>
+<code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Session Details:<br>
+Location: <code>SESSION.LOCATION</code><br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Special Instructions:<br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS</code><br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS.CONTINUED</code><br><br>
+Teams Link (if virtual): <code>CUSTOM.TEAMS.LINK</code><br>
+Dial In: <code>CUSTOM.TEAMS.DIAL.IN</code><br>
+ID: <code>CUSTOM.TEAMS.ID</code><br>
+​<br>
+If unable to attend please click on the link below to withdraw: <code>WITHDRAW.SESSION.LINK</code><br><br>
+If you have any questions or concerns, please contact your manager or your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+
+            <h3 style="margin-top:25px;">7.2. ILT Register – Manager Notification</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> ILT Register</li>
+                <li><strong>Purpose (What):</strong> ILT registration confirmation for sessions (manager's copy).</li>
+                <li><strong>Recipient (Who):</strong> For manager of learner enrolled.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>Class Registration - manager's copy</code></p>
+            <div class="email-body">
+Dear <code>MANAGER.FIRST.NAME</code> <code>MANAGER.LAST.NAME</code>:<br><br>
+Your direct report - <code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code> - has registered for the following class:<br>
+<code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Session Details:<br>
+Location: <code>SESSION.LOCATION</code><br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Special Instructions:<br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS</code><br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>8. Waitlist Request Confirmation</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Waitlist Request</li>
+                <li><strong>Purpose (What):</strong> Provides ILT waitlist details to the learner.</li>
+                <li><strong>Recipient (Who):</strong> Learners that have been waitlisted.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>WAITLIST CONFIRMATION: TITLE (SESSION.START.DATE @ SESSION.START.TIME)</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>:<br><br>
+You have been waitlisted for the following session:<br>
+<code>TITLE</code><br><br>
+Session Details:<br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+If a seat becomes available, you will be notified.<br>
+If no seat becomes available, the course will remain on your transcript with a status of Waitlist Expired and you can either select a new session to attend or remove the course via <code>TRANSCRIPT.LINK</code><br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>9. Cancel Registration / Withdrawal Notification</h2>
+            <p>This event triggers two different emails:</p>
+
+            <h3>9.1. Cancel Registration (without withdrawal penalty) – Student Notification</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Cancel Registration (without withdrawal penalty) - Students</li>
+                <li><strong>Purpose (What):</strong> Confirms to the student that they have been withdrawn from a session.</li>
+                <li><strong>Recipient (Who):</strong> Learners that have been withdrawn from a session.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>CANCELLATION REQUEST: TITLE (SESSION.START.DATE @ SESSION.START.TIME)</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>:<br><br>
+You have been withdrawn from the following training item:<br>
+<code>TITLE</code><br><br>
+Session Details:<br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Be sure to remove the class from your calendar and, if necessary, inform your manager.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+
+            <h3 style="margin-top:25px;">9.2. Withdrawal – Manager Notification</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Withdrawal</li>
+                <li><strong>Purpose (What):</strong> Notifies managers that their direct report has withdrawn from a session.</li>
+                <li><strong>Recipient (Who):</strong> Managers of withdrawn users.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>Cancel Registration - Manager Copy</code></p>
+            <div class="email-body">
+Dear <code>MANAGER.FIRST.NAME</code> <code>MANAGER.LAST.NAME</code>:<br><br>
+<code>TRAINEE.FIRST.NAME</code> <code>TRAINEE.LAST.NAME</code> from the <code>TRAINEE.DIVISION</code> division in the <code>TRAINEE.POSITION</code> position has withdrawn from the following training item:<br>
+Title: <code>TITLE</code><br>
+Training Type: <code>TRAINING.TYPE</code><br>
+Session Start Date: <code>SESSION.START.DATE</code><br>
+Session Start Time: <code>SESSION.START.TIME</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br>
+Training Credits: <code>CREDITS</code><br>
+Request date: <code>ACTION.DATE</code><br>
+Price: <code>PRICE</code><br>
+Vendor's Name: <code>VENDOR.NAME</code><br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>10. ILT Session Becomes Available</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> ILT Session Available for Interested Users</li>
+                <li><strong>Purpose (What):</strong> Notifies users who have expressed interest that a session has become available.</li>
+                <li><strong>Recipient (Who):</strong> Interest tracking users.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>TITLE Session Available in Cornerstone</code></p>
+            <div class="email-body">
+The following session is now available for enrollment.<br>
+Training Title: <code>TITLE</code><br>
+Start Date: <code>SESSION.START.DATE</code> <code>SESSION.START.TIME</code><br>
+Location: <code>SESSION.LOCATION</code><br>
+Session Duration: <code>DURATION</code><br>
+Currently Enrolled: <code>CURRENT.REGISTRATION</code><br>
+Maximum Registration: <code>MAX.REGISTRATION</code><br>
+Session or Online Class Number: <code>TRAINING NUMBER</code><br>
+Description: <code>TRAINING.DESCRIPTION</code><br><br>
+You can log into Cornerstone using this link and search for this session to request it: <code>https://fairviewhealth.csod.com/samldefault.aspx?ouid=12286</code><br>
+To stop receiving these emails for this Event, go to the Interests and Waitlists page and remove it: <code>https://fairviewhealth.csod.com/samldefault.aspx?ouid=12286&amp;returnUrl=/LMS/ILT/MyWaitlistsAndInterests.aspx?tab_page_id=-131060</code>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>11. Session Changed Notification</h2>
+            <p>This event triggers two different emails:</p>
+
+            <h3>11.1. Session Changed – Registered Students</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Session Changed – Registered Students</li>
+                <li><strong>Purpose (What):</strong> Informs registered users about changes to session details.</li>
+                <li><strong>Recipient (Who):</strong> Registered users.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>SESSION CHANGED: TITLE (SESSION.START.DATE @ SESSION.START.TIME)</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code>:<br><br>
+The session you are registered in has changed to the following:<br>
+<code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Session Details:<br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Special Instructions:<br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS</code><br><br>
+Teams Link (if virtual): <code>CUSTOM.TEAMS.LINK</code><br>
+Dial In: <code>CUSTOM.TEAMS.DIAL.IN</code><br>
+ID: <code>CUSTOM.TEAMS.ID</code><br><br>
+If unable to attend please click on the link below to withdraw:<br>
+<code>WITHDRAW.SESSION.LINK</code><br><br>
+If you have any questions or concerns, please contact your manager or your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+
+            <h3 style="margin-top:25px;">11.2. Session Changed – Session Instructors</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Session Changed – Session Instructors</li>
+                <li><strong>Purpose (What):</strong> Informs session instructors about changes to session details or their assignment to the session.</li>
+                <li><strong>Recipient (Who):</strong> Session instructor.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>SESSION CHANGED: TITLE (SESSION.START.DATE @ SESSION.START.TIME)</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code>:<br><br>
+You have either been added/removed as an instructor, or the date/time has changed, for the following session(s):<br>
+<code>TITLE</code><br>
+Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Session Details:<br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Presenter Link (if applicable): <code>INSTRUCTOR.LAUNCH.SESSION.LINK</code><br>
+<code>CUSTOM.CUSTOM.PRESENTER.LINK</code><br><br>
+If you have any questions or concerns, please contact your manager or your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>12. Session Start Date Reminder</h2>
+            <p>This event triggers emails at different intervals before the session starts:</p>
+
+            <h3>12.1. Session Start Date - 7 days prior</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Session Start Date - 7 days</li>
+                <li><strong>Purpose (What):</strong> Session reminder sent 7 days before the start date.</li>
+                <li><strong>Recipient (Who):</strong> Registered users.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>SESSION REMINDER: TITLE (SESSION.START.DATE @ SESSION.START.TIME)</code></p>
+            <div class="email-body">
+You are registered in the following event that starts on <code>SESSION.START.DATE</code><br>
+​<br>
+<code>TITLE</code><br>
+​Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Session Details:<br>
+Location: <code>SESSION.LOCATION</code><br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Special Instructions:<br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS</code><br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS.CONTINUED</code><br><br>
+Teams Link (if virtual): <code>CUSTOM.TEAMS.LINK</code><br>
+Dial In: <code>CUSTOM.TEAMS.DIAL.IN</code><br>
+ID: <code>CUSTOM.TEAMS.ID</code><br><br>
+If unable to attend please click on the link below to withdraw:<br>
+<code>WITHDRAW.SESSION.LINK</code><br><br>
+If you have any questions or concerns, please contact your manager or your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+
+            <h3 style="margin-top:25px;">12.2. Session Start Date - 2 days prior</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Session Start Date - 2 days</li>
+                <li><strong>Purpose (What):</strong> Session reminder sent 2 days before the start date.</li>
+                <li><strong>Recipient (Who):</strong> Registered users.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>SESSION REMINDER: TITLE (SESSION.START.DATE @ SESSION.START.TIME)</code></p>
+            <div class="email-body">
+You are registered in the following event that starts on <code>SESSION.START.DATE</code><br><br>
+<code>TITLE</code><br>
+​Class Description: <code>TRAINING.DESCRIPTION</code><br>
+Training Hours: <code>DURATION</code><br><br>
+Session Details:<br>
+Location: <code>SESSION.LOCATION</code><br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Special Instructions:<br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS</code><br>
+<code>CUSTOM.SPECIAL.INSTRUCTIONS.CONTINUED</code><br><br>
+Teams Link (if virtual): <code>CUSTOM.TEAMS.LINK</code><br>
+Dial In: <code>CUSTOM.TEAMS.DIAL.IN</code><br>
+ID: <code>CUSTOM.TEAMS.ID</code><br><br>
+If unable to attend please click on the link below to withdraw:<br>
+<code>WITHDRAW.SESSION.LINK</code><br><br>
+If you have any questions or concerns, please contact your manager or your learning organization.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>13. Session End Date Passed Reminder</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Session End Date</li>
+                <li><strong>Purpose (What):</strong> Reminder that a session's end date has passed (likely for instructors/admins to complete roster).</li>
+                <li><strong>Recipient (Who):</strong> Registered users (or potentially instructors/administrators responsible for roster completion).</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>SESSION REMINDER: TITLE (SESSION.END.DATE)</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>:<br><br>
+This email is being sent to you as a reminder that a session end date has passed for the following event:<br>
+<code>TITLE</code><br>
+Please complete the roster as soon as you are able!<br><br>
+Session Details:<br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>14. ILT Session - No Show Notification to Manager</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> No Show Notification</li>
+                <li><strong>Purpose (What):</strong> Informs a manager when their direct report was a no-show for an ILT session.</li>
+                <li><strong>Recipient (Who):</strong> No-Show student's manager.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>ILT Session - No Show</code></p>
+            <div class="email-body">
+Hi <code>RECIPIENT.FIRST.NAME</code>,<br><br>
+For your awareness, your direct reports listed below were No Show's for the following class.<br>
+<ul>
+    <li>A reminder email was sent one week prior with course information.</li>
+    <li>Please update MyTime as appropriate.</li>
+</ul>
+Questions? Contact <code>SESSION.CONTACT.EMAIL</code><br><br>
+Staff: <code>SUBORDINATE.NOSHOW.STUDENTS</code><br>
+Training Title: <code>TITLE</code><br>
+Session or Online Class Number: <code>TRAINING NUMBER</code><br>
+Training Type: <code>TRAINING TYPE</code><br>
+Description: <code>TRAINING.DESCRIPTION</code><br>
+Start Date: <code>SESSION.START.DATE</code> <code>SESSION.START.TIME</code><br>
+Session Duration: <code>DURATION</code>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>15. Cancel Session Notification</h2>
+            <p>This event triggers three different emails depending on the recipient:</p>
+
+            <h3>15.1. Cancel Session – Registered Users</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Cancel Session</li>
+                <li><strong>Purpose (What):</strong> Notifies registered users that a session has been cancelled.</li>
+                <li><strong>Recipient (Who):</strong> Registered users.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>CANCELLATION: TITLE (SESSION.START.DATE @ SESSION.START.TIME) has been Cancelled</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>:<br><br>
+The following session has been canceled:<br>
+<code>TITLE</code><br>
+Reason: <code>COMMENT</code><br><br>
+Session Details:<br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Typical reasons for cancellation include employee cancellation, low enrollment, a conflict in the instructor’s schedule, or other unforeseen circumstances.<br><br>
+Be sure to remove the class from your calendar and, if necessary, inform your manager.<br>
+​Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+
+            <h3 style="margin-top:25px;">15.2. Cancel Session – Managers</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Cancel Session</li>
+                <li><strong>Purpose (What):</strong> Notifies managers that a session their direct reports were enrolled in has been cancelled.</li>
+                <li><strong>Recipient (Who):</strong> Managers.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>Cancel Session</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>:<br><br>
+One or more of your direct reports were enrolled for a session that has been cancelled:<br>
+<code>SUBORDINATE.CANCELLED.STUDENTS</code><br><br>
+Session Title: <code>TITLE</code><br>
+Reason: <code>REASON.CANCEL.SESSION</code><br><br>
+Session Details:<br>
+Start Date: <code>SESSION.START.DATE</code><br>
+Start Time: <code>SESSION.START.TIME</code><br><br>
+Typical reasons for cancellation include employee cancellation, low enrollment, a conflict in the instructor’s schedule, or other unforeseen circumstances.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+
+            <h3 style="margin-top:25px;">15.3. Cancel Session – Session Instructors</h3>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Cancel Session - Session Instructors</li>
+                <li><strong>Purpose (What):</strong> Notifies instructors that a session they were scheduled to teach has been cancelled.</li>
+                <li><strong>Recipient (Who):</strong> Instructor.</li>
+            </ul>
+            <h4>Email Template:</h4>
+            <p class="email-subject">Subject: <code>CANCELLATION: TITLE (SESSION.START.DATE @ SESSION.START.TIME) has been Cancelled</code></p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>:<br><br>
+The following session has been canceled:<br>
+<code>TITLE</code><br>
+Reason: <code>COMMENT</code><br><br>
+Session Details:<br>
+Start date: <code>SESSION.START.DATE</code><br>
+Start time: <code>SESSION.START.TIME</code><br>
+End date: <code>SESSION.END.DATE</code><br>
+End time: <code>SESSION.END.TIME</code><br><br>
+Typical reasons for cancellation include employee cancellation, low enrollment, a conflict in the instructor’s schedule, or other unforeseen circumstances.<br><br>
+Be sure to remove the class from your calendar and, if necessary, inform your manager.<br><br>
+Regards,<br>
+FAIRVIEW LMS TEAM
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>16. Forgot Password</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Cornerstone LMS Password Reset</li>
+                <li><strong>Purpose (What):</strong> Provides a link to reset a forgotten password.</li>
+                <li><strong>Recipient (Who):</strong> Internal/external users.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>Forget Password ONLY ADMINS SEE THIS</code></p>
+            <p class="note">(Note: The actual subject line visible to users is likely more user-friendly, e.g., "Password Reset Request")</p>
+            <div class="email-body">
+Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>,<br><br>
+We received a request from you to reset your password to the Cornerstone portal. You may reset your password by clicking the following link: <code>PASSWORD.RESET.URL</code><br><br>
+Please be aware that this URL link is valid for 48 hours. After the 48-hour validity period, clicking this link will navigate you to a page on which you must enter your login name to generate and email a new link. You may also select the "Forgot Password?" link from the portal login page at any time to generate a new password reset URL.
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>17. Forget Username</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> Forget Username</li>
+                <li><strong>Purpose (What):</strong> Provides the user with their forgotten username.</li>
+                <li><strong>Recipient (Who):</strong> Internal/external users.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>Cornerstone LMS Username</code></p>
+            <p class="note">(Note: The original specifies "HTML in design section". The content below reflects that structure.)</p>
+            <div class="email-body">
+<p><span style="font-size: 10pt;">Dear <code>RECIPIENT.FIRST.NAME</code> <code>RECIPIENT.LAST.NAME</code>,</span><br></p><p><br>We received a request from you regarding your username. Your username is:</p><p><strong><code>RECIPIENT.USERNAME</code></strong></p>
+            </div>
+            <div class="note" style="margin-top:10px;">Plain text equivalent for understanding:
+                <pre style="font-size:0.9em; margin-top:5px;">Dear RECIPIENT.FIRST.NAME RECIPIENT.LAST.NAME,
+
+We received a request from you regarding your username. Your username is:
+RECIPIENT.USERNAME</pre>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-section">
+            <h2>18. Certification Period Overdue Notification (GICH)</h2>
+            <ul class="details-list">
+                <li><strong>Email (Internal Name):</strong> x days prior - GICH - learner</li>
+                <li><strong>Purpose (What):</strong> Notifies GICH certification holders that their certification is nearing its outdate date.</li>
+                <li><strong>Recipient (Who):</strong> Certification holders nearing overdue status.</li>
+            </ul>
+            <h3>Email Template:</h3>
+            <p class="email-subject">Subject: <code>CERTIFICATION.TITLE Outdating on CERTIFICATION.DUE.DATE - Notify us if you are no longer required to maintain this class</code></p>
+            <div class="email-body">
+Hello <code>CERTIFICATION.USER.FIRST.NAME</code> <code>CERTIFICATION.USER.LAST.NAME</code>,<br><br>
+This is an automated courtesy notification email that your <code>CERTIFICATION.TITLE</code> is outdating on <code>CERTIFICATION.DUE.DATE</code>.<br><br>
+The Fairview policy "Compliance with Requirements for Employment" states that life support classes outdate at the end of the month.<br><br>
+If <code>CERTIFICATION.TITLE</code> is not required for your role, please ask your manager to contact DEPT-GICH-STAFF-EDUCATION@fairview.org to remove you from the LMS reports.<br><br>
+Managers, before contacting DEPT-GICH-STAFF-EDUCATION@fairview.org, please verify that <code>CERTIFICATION.USER.FIRST.NAME</code> <code>CERTIFICATION.USER.LAST.NAME</code> (<code>RECIPIENT.USERNAME</code>) does not have a dual position that requires <code>CERTIFICATION.TITLE</code>. View the GICH Life Support Calendar and register for available classes by either contacting your scheduling/staffing office or by contacting Staff Education.<br><br>
+This email may be disregarded if you have recently taken this class onsite or an outside location. You must provide Human Resources with a copy of the certification card.
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

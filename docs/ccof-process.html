@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ccof-process</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#off-site-ered-completion-process">Off-Site ERED Completion Process</a>
+<ul>
+<li><a href="#scope">1. Scope</a></li>
+<li><a href="#actors--roles">2. Actors & Roles</a></li>
+<li><a href="#workflow-diagram">3. Workflow Diagram</a></li>
+<li><a href="#step-by-step">4. Step-by-Step</a></li>
+<li><a href="#automation-components">5. Automation Components</a></li>
+<li><a href="#change-log">6. Change Log</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="off-site-ered-completion-process">Off-Site ERED Completion Process</h1>
+<p><strong>Purpose</strong><br>
+Credit staff for ERED classes taken outside Fairview and keep certifications current.</p>
+<hr>
+<h2 id="scope">1. Scope</h2>
+<ul>
+<li>Employees: All Fairview staff taking ERED courses externally</li>
+<li>Systems:
+<ul>
+<li>ERED Class Form</li>
+<li>CCOF app</li>
+<li>SharePoint Lists</li>
+<li>Power Automate Flows</li>
+<li>SQL staging DB</li>
+<li>EDGE Import</li>
+<li>Cornerstone LMS</li>
+</ul>
+</li>
+</ul>
+<h2 id="actors--roles">2. Actors &amp; Roles</h2>
+
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Responsibilities</th>
+<th>Links/Refs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Employee</td>
+<td>Submit completion via ERED Class Form</td>
+<td><a href="https://mnfhs.sharepoint.com/:l:/s/LMSTeam/FKm7BHThqKRKmGmfO5CSrssB1u2Xrzu4x0nFNwqfasiDIQ?nav=ZjhhMTI1NGUtZmY5ZS00NTc0LWI1N2EtMzBmZGNjMjFkZWI1">External Class Entry Form</a></td>
+</tr>
+<tr>
+<td>ERED Staff</td>
+<td>Enter completions in CCOF and Approve Employee Entries</td>
+<td><a href="https://apps.powerapps.com/play/e/default-c69834d0-4147-4777-891d-a7dcdee2d566/a/c13820ad-877d-4b2c-a101-064ea00b3ff1?tenantId=c69834d0-4147-4777-891d-a7dcdee2d566&amp;hint=044d3555-f193-4c44-80e2-1411060e5b0b&amp;sourcetime=1749050068754&amp;source=portal">CCOF App</a></td>
+</tr>
+<tr>
+<td>HR Rep</td>
+<td>Enter completions in CCOF</td>
+<td><a href="https://apps.powerapps.com/play/e/default-c69834d0-4147-4777-891d-a7dcdee2d566/a/c13820ad-877d-4b2c-a101-064ea00b3ff1?tenantId=c69834d0-4147-4777-891d-a7dcdee2d566&amp;hint=044d3555-f193-4c44-80e2-1411060e5b0b&amp;sourcetime=1749050068754&amp;source=portal">CCOF App</a></td>
+</tr>
+<tr>
+<td>LMS Admin</td>
+<td>Monitor system</td>
+<td></td>
+</tr>
+</tbody>
+</table><h2 id="workflow-diagram">3. Workflow Diagram</h2>
+<pre class=" language-mermaid"><svg id="mermaid-svg-d3SdNZkquxil6b2H" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="966.9375" style="max-width: 565.765625px;" viewBox="0 0 565.765625 966.9375"><style>#mermaid-svg-d3SdNZkquxil6b2H{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#000000;}#mermaid-svg-d3SdNZkquxil6b2H .error-icon{fill:#552222;}#mermaid-svg-d3SdNZkquxil6b2H .error-text{fill:#552222;stroke:#552222;}#mermaid-svg-d3SdNZkquxil6b2H .edge-thickness-normal{stroke-width:2px;}#mermaid-svg-d3SdNZkquxil6b2H .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg-d3SdNZkquxil6b2H .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg-d3SdNZkquxil6b2H .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg-d3SdNZkquxil6b2H .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg-d3SdNZkquxil6b2H .marker{fill:#666;stroke:#666;}#mermaid-svg-d3SdNZkquxil6b2H .marker.cross{stroke:#666;}#mermaid-svg-d3SdNZkquxil6b2H svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg-d3SdNZkquxil6b2H .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#000000;}#mermaid-svg-d3SdNZkquxil6b2H .cluster-label text{fill:#333;}#mermaid-svg-d3SdNZkquxil6b2H .cluster-label span{color:#333;}#mermaid-svg-d3SdNZkquxil6b2H .label text,#mermaid-svg-d3SdNZkquxil6b2H span{fill:#000000;color:#000000;}#mermaid-svg-d3SdNZkquxil6b2H .node rect,#mermaid-svg-d3SdNZkquxil6b2H .node circle,#mermaid-svg-d3SdNZkquxil6b2H .node ellipse,#mermaid-svg-d3SdNZkquxil6b2H .node polygon,#mermaid-svg-d3SdNZkquxil6b2H .node path{fill:#eee;stroke:#999;stroke-width:1px;}#mermaid-svg-d3SdNZkquxil6b2H .node .label{text-align:center;}#mermaid-svg-d3SdNZkquxil6b2H .node.clickable{cursor:pointer;}#mermaid-svg-d3SdNZkquxil6b2H .arrowheadPath{fill:#333333;}#mermaid-svg-d3SdNZkquxil6b2H .edgePath .path{stroke:#666;stroke-width:1.5px;}#mermaid-svg-d3SdNZkquxil6b2H .flowchart-link{stroke:#666;fill:none;}#mermaid-svg-d3SdNZkquxil6b2H .edgeLabel{background-color:white;text-align:center;}#mermaid-svg-d3SdNZkquxil6b2H .edgeLabel rect{opacity:0.5;background-color:white;fill:white;}#mermaid-svg-d3SdNZkquxil6b2H .cluster rect{fill:hsl(210,66.6666666667%,95%);stroke:#26a;stroke-width:1px;}#mermaid-svg-d3SdNZkquxil6b2H .cluster text{fill:#333;}#mermaid-svg-d3SdNZkquxil6b2H .cluster span{color:#333;}#mermaid-svg-d3SdNZkquxil6b2H div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(-160,0%,93.3333333333%);border:1px solid #26a;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg-d3SdNZkquxil6b2H:root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}#mermaid-svg-d3SdNZkquxil6b2H flowchart-v2{fill:apa;}</style><g transform="translate(0, 0)"><marker id="flowchart-pointEnd" class="marker flowchart" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="flowchart-pointStart" class="marker flowchart" viewBox="0 0 10 10" refX="0" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="flowchart-circleEnd" class="marker flowchart" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="flowchart-circleStart" class="marker flowchart" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="flowchart-crossEnd" class="marker cross flowchart" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="flowchart-crossStart" class="marker cross flowchart" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M477.7578125,76.4375L477.7578125,80.60416666666667C477.7578125,84.77083333333333,477.7578125,93.10416666666667,477.7578125,101.4375C477.7578125,109.77083333333333,477.7578125,118.10416666666667,477.7578125,122.27083333333333L477.7578125,126.4375" id="L-A-B" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-A LE-B" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M86.7421875,194.875L86.7421875,201.26822916666666C86.7421875,207.66145833333334,86.7421875,220.44791666666666,113.73567708333333,234.66833878852503C140.72916666666666,248.88876091038344,194.71614583333334,264.5431468207669,221.70963541666666,272.3703397759586L248.703125,280.1975327311503" id="L-D-C" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-D LE-C" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M290.96875,194.875L290.96875,201.26822916666666C290.96875,207.66145833333334,290.96875,220.44791666666666,290.96875,233.234375C290.96875,246.02083333333334,290.96875,258.8072916666667,290.96875,265.2005208333333L290.96875,271.59375" id="L-F-C" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-F LE-C" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M477.7578125,194.875L477.7578125,201.26822916666666C477.7578125,207.66145833333334,477.7578125,220.44791666666666,453.6705729166667,234.47765409556374C429.5833333333333,248.50739152446081,381.4088541666667,263.78040804892163,357.3216145833333,271.416916311152L333.234375,279.0534245733824" id="L-B-C" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-B LE-C" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M290.96875,313.3125L290.96875,319.7057291666667C290.96875,326.0989583333333,290.96875,338.8854166666667,290.96875,351.671875C290.96875,364.4583333333333,290.96875,377.2447916666667,290.96875,383.6380208333333L290.96875,390.03125" id="L-C-E" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-C LE-E" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M290.96875,458.46875L290.96875,467.0885416666667C290.96875,475.7083333333333,290.96875,492.9479166666667,290.96875,510.1875C290.96875,527.4270833333334,290.96875,544.6666666666666,290.96875,553.2864583333334L290.96875,561.90625" id="L-E-G" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-E LE-G" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M290.96875,603.625L290.96875,607.7916666666666C290.96875,611.9583333333334,290.96875,620.2916666666666,290.96875,628.625C290.96875,636.9583333333334,290.96875,645.2916666666666,290.96875,649.4583333333334L290.96875,653.625" id="L-G-H" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-G LE-H" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M290.96875,722.0625L290.96875,728.4557291666666C290.96875,734.8489583333334,290.96875,747.6354166666666,290.96875,760.421875C290.96875,773.2083333333334,290.96875,785.9947916666666,290.96875,792.3880208333334L290.96875,798.78125" id="L-H-I" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-H LE-I" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path><path d="M290.96875,840.5L290.96875,844.6666666666666C290.96875,848.8333333333334,290.96875,857.1666666666666,290.96875,865.5C290.96875,873.8333333333334,290.96875,882.1666666666666,290.96875,886.3333333333334L290.96875,890.5" id="L-I-J" class=" edge-thickness-normal edge-pattern-solid flowchart-link LS-I LE-J" style="fill:none;" marker-end="url(#flowchart-pointEnd)"></path></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(477.7578125, 233.234375)"><g class="label" transform="translate(-80.0078125, -13.359375)"><foreignObject width="160.015625" height="26.71875"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel">Approved in CCOF App</span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(290.96875, 351.671875)"><g class="label" transform="translate(-62.6640625, -13.359375)"><foreignObject width="125.328125" height="26.71875"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel">Submit / Approve</span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(290.96875, 510.1875)"><g class="label" transform="translate(-35.8984375, -26.71875)"><foreignObject width="71.796875" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel">PA Flow:<br>SQL Insert</span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(290.96875, 760.421875)"><g class="label" transform="translate(-61.265625, -13.359375)"><foreignObject width="122.53125" height="26.71875"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel">New completions</span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default default" id="flowchart-A-568" transform="translate(477.7578125, 42.21875)"><rect class="basic label-container" style="" rx="0" ry="0" x="-66.8046875" y="-34.21875" width="133.609375" height="68.4375"></rect><g class="label" style="" transform="translate(-59.3046875, -26.71875)"><foreignObject width="118.609375" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">ERED External<br>Certificate Form</span></div></foreignObject></g></g><g class="node default default" id="flowchart-B-569" transform="translate(477.7578125, 160.65625)"><rect class="basic label-container" style="" rx="0" ry="0" x="-61.3046875" y="-34.21875" width="122.609375" height="68.4375"></rect><g class="label" style="" transform="translate(-53.8046875, -26.71875)"><foreignObject width="107.609375" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">ERED External<br>Certificate List</span></div></foreignObject></g></g><g class="node default default" id="flowchart-D-570" transform="translate(86.7421875, 160.65625)"><rect class="basic label-container" style="" rx="0" ry="0" x="-78.7421875" y="-34.21875" width="157.484375" height="68.4375"></rect><g class="label" style="" transform="translate(-71.2421875, -26.71875)"><foreignObject width="142.484375" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">CCOF_OntrackItems<br>SharePoint List</span></div></foreignObject></g></g><g class="node default default" id="flowchart-C-571" transform="translate(290.96875, 292.453125)"><rect class="basic label-container" style="" rx="0" ry="0" x="-42.265625" y="-20.859375" width="84.53125" height="41.71875"></rect><g class="label" style="" transform="translate(-34.765625, -13.359375)"><foreignObject width="69.53125" height="26.71875"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">CCOF App</span></div></foreignObject></g></g><g class="node default default" id="flowchart-F-572" transform="translate(290.96875, 160.65625)"><rect class="basic label-container" style="" rx="0" ry="0" x="-75.484375" y="-34.21875" width="150.96875" height="68.4375"></rect><g class="label" style="" transform="translate(-67.984375, -26.71875)"><foreignObject width="135.96875" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">PA Flow:<br>CCOF App Learners</span></div></foreignObject></g></g><g class="node default default" id="flowchart-E-577" transform="translate(290.96875, 424.25)"><rect class="basic label-container" style="" rx="0" ry="0" x="-60.75" y="-34.21875" width="121.5" height="68.4375"></rect><g class="label" style="" transform="translate(-53.25, -26.71875)"><foreignObject width="106.5" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">CCOF<br>SharePoint List</span></div></foreignObject></g></g><g class="node default default" id="flowchart-G-579" transform="translate(290.96875, 582.765625)"><rect class="basic label-container" style="" rx="0" ry="0" x="-60.671875" y="-20.859375" width="121.34375" height="41.71875"></rect><g class="label" style="" transform="translate(-53.171875, -13.359375)"><foreignObject width="106.34375" height="26.71875"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">SQL Staging DB</span></div></foreignObject></g></g><g class="node default default" id="flowchart-H-581" transform="translate(290.96875, 687.84375)"><rect class="basic label-container" style="" rx="0" ry="0" x="-84.40625" y="-34.21875" width="168.8125" height="68.4375"></rect><g class="label" style="" transform="translate(-76.90625, -26.71875)"><foreignObject width="153.8125" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">Daily Validation<br>(against CSOD tables)</span></div></foreignObject></g></g><g class="node default default" id="flowchart-I-583" transform="translate(290.96875, 819.640625)"><rect class="basic label-container" style="" rx="0" ry="0" x="-52.6953125" y="-20.859375" width="105.390625" height="41.71875"></rect><g class="label" style="" transform="translate(-45.1953125, -13.359375)"><foreignObject width="90.390625" height="26.71875"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">EDGE Import</span></div></foreignObject></g></g><g class="node default default" id="flowchart-J-585" transform="translate(290.96875, 924.71875)"><rect class="basic label-container" style="" rx="0" ry="0" x="-55.96875" y="-34.21875" width="111.9375" height="68.4375"></rect><g class="label" style="" transform="translate(-48.46875, -26.71875)"><foreignObject width="96.9375" height="53.4375"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="nodeLabel">Cornerstone<br>Certifications</span></div></foreignObject></g></g></g></g></g></svg></pre>
+<h2 id="step-by-step">4. Step-by-Step</h2>
+<ol>
+<li>
+<p>Submission</p>
+<ul>
+<li><strong>Form:</strong> User completes <em>ERED Class Form</em> and ERED approves entry</li>
+<li><strong>App:</strong> HR/ERED enters record in <em>CCOF</em></li>
+</ul>
+</li>
+<li>
+<p><strong>Validation &amp; Staging</strong><br>
+<code>sproc_LogOntrackCompletionsValidation</code> checks userid, certification item, and completion/scheduled dates against cornerstone tables.</p>
+</li>
+<li>
+<p><strong>EDGE Import</strong></p>
+<ul>
+<li>Schedule: Daily @ 04:00 PM CST</li>
+<li>Feed: <code>BLS_Material</code>, <code>CCOF Groups</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Cornerstone Processing</strong></p>
+<ul>
+<li>Dynamic Certification Assignment to <code>ccof_*</code> Groups</li>
+</ul>
+</li>
+</ol>
+<h2 id="automation-components">5. Automation Components</h2>
+<h3 id="sql-stored-procedures">SQL Stored Procedures</h3>
+
+<table>
+<thead>
+<tr>
+<th>Sproc</th>
+<th>Purpose</th>
+<th>Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sproc_LogOntrackCompletionsValidation</code></td>
+<td>Updates validation date and validation status in <code>log_ontrackcompletions</code> SQL table</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/cc7b5fcd-467a-4b76-8de5-704f774edabf/details">ccof_RunReport_WaitingForValidation</a></td>
+</tr>
+<tr>
+<td><code>sproc_RunReport_OntrackCompletionsWaitingForValidation</code></td>
+<td>Runs report of active, unvalidated entries</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/cc7b5fcd-467a-4b76-8de5-704f774edabf/details">ccof_RunReport_WaitingForValidation</a></td>
+</tr>
+<tr>
+<td><code>sproc_SharePointList_UpdateCCOFValidation</code></td>
+<td>Updates validation status and learner active status in <a href="https://mnfhs.sharepoint.com/sites/LMSTeam/Lists/powerapp_CCOF/AllItems.aspx">CCOF sharepoint list</a></td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/cc7b5fcd-467a-4b76-8de5-704f774edabf/details">ccof_RunReport_WaitingForValidation</a></td>
+</tr>
+<tr>
+<td><code>sproc_RunReport_CCOFEdgeImport</code></td>
+<td>Runs data to add learners to groups for dynamic certification assignment and material transcript Edge Imports</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/a016dcf0-b4ee-41e4-b90a-f8886e553db7/details">ccof_EdgeImport</a></td>
+</tr>
+<tr>
+<td><code>sproc_SendNotifications_NewCCOFCardSubmitted</code></td>
+<td>Field checks, dupes</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/e1f2d902-e1d3-40be-8da9-0735ffeece0d/details">sproc_SendNotifications_NewCCOFCardSubmitted</a></td>
+</tr>
+</tbody>
+</table><h3 id="power-automate-flows">Power Automate Flows</h3>
+
+<table>
+<thead>
+<tr>
+<th>Flow</th>
+<th>Runs When</th>
+<th>Action</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ccof_RunReport_AppLearners</code></td>
+<td>Daily @ 2:59 AM</td>
+<td>Save CCOFAllLearners.txt json file with learners to <a href="https://mnfhs.sharepoint.com/sites/LearningManagementSystem/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FLearningManagementSystem%2FShared%20Documents%2FPowerApp%20Files&amp;viewid=c06de46c%2D501e%2D42d5%2D918c%2Db7d27e461ab8">LearningManagementSystem/Shared Documents/PowerApp Files/CCOFAllLearners.txt</a></td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/23de6a53-079f-443f-b7fa-32fb782aeadb/details?v3=false">ccof_RunReport_AppLearners</a></td>
+</tr>
+<tr>
+<td><code>ccof_powerapps_GetLearners</code></td>
+<td>On load of the PowerApp</td>
+<td>Load CCOFAllLearners.txt JSON into collection</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/14a3fd70-97ef-490a-ba4a-915a43225d2a/details">ccof_powerapps_GetLearners</a></td>
+</tr>
+<tr>
+<td><code>ccof_powerapps_New</code></td>
+<td>On new item in <a href="https://mnfhs.sharepoint.com/sites/LMSTeam/Lists/powerapp_CCOF/AllItems.aspx">CCOF sharepoint list</a></td>
+<td>Inserts item into <code>log_ontrackcompletions</code> SQL table</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/764f24be-ce90-41dd-b435-beafc234ba4c/details">ccof_powerapps_New</a></td>
+</tr>
+<tr>
+<td><code>ccof_RunReport_WaitingForValidation</code></td>
+<td>Daily @ 7:00 AM</td>
+<td>Runs <code>sproc_LogOntrackCompletionsValidation</code> to validate items in <code>log_ontrackcompletions</code> SQL table, the runs <code>sproc_RunReport_OntrackCompletionsWaitingForValidation</code> and saves as csv in scripts/output, then runs <code>sproc_SharePointList_UpdateCCOFValidation</code> to update validation details and active status in the <a href="https://mnfhs.sharepoint.com/sites/LMSTeam/Lists/powerapp_CCOF/AllItems.aspx">CCOF sharepoint list</a></td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/cc7b5fcd-467a-4b76-8de5-704f774edabf/details">ccof_RunReport_WaitingForValidation</a></td>
+</tr>
+<tr>
+<td><code>ccof_EdgeImport</code></td>
+<td>Daily @ 4:00 PM</td>
+<td>Runs <code>sproc_RunReport_CCOFEdgeImport</code> and publishes Group and Material Transcript files to CSOD FTP server</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/a016dcf0-b4ee-41e4-b90a-f8886e553db7/details">ccof_EdgeImport</a></td>
+</tr>
+<tr>
+<td><code>ccof_powerapps_DeleteEntry</code></td>
+<td>When an item is deleted in <a href="https://mnfhs.sharepoint.com/sites/LMSTeam/Lists/powerapp_CCOF/AllItems.aspx">CCOF sharepoint list</a></td>
+<td>Deletes corresponding item in <code>log_ontrackcompletions</code> SQL table</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/88727091-3e4f-4655-97a8-7f4c7aef98cc/details">ccof_powerapps_DeleteEntry</a></td>
+</tr>
+<tr>
+<td><code>ccof_SendNotifications_NewCardSubmitted</code></td>
+<td>Daily @ 9:05 AM</td>
+<td>Runs <code>sproc_SendNotifications_NewCCOFCardSubmitted</code> and sends survey via email to staff who submitted external card</td>
+<td><a href="https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/e1f2d902-e1d3-40be-8da9-0735ffeece0d/details">sproc_SendNotifications_NewCCOFCardSubmitted</a></td>
+</tr>
+</tbody>
+</table><h2 id="change-log">6. Change Log</h2>
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Change</th>
+<th>Author</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025-06-04</td>
+<td>Initial doc</td>
+<td>Alex Richardson</td>
+</tr>
+</tbody>
+</table>
+    </div>
+  </div>
+</body>
+
+</html>

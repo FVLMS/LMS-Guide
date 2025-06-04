@@ -48,7 +48,7 @@ flowchart TD
 ```
 ## 4. Step-by-Step
 
-1. **Submission  
+1. Submission  
    - **Form:** User completes *ERED Class Form* and ERED approves entry
    - **App:** HR/ERED enters record in *CCOF*
 
@@ -83,12 +83,7 @@ flowchart TD
 | `ccof_powerapps_DeleteEntry` | When an item is deleted in [CCOF sharepoint list](https://mnfhs.sharepoint.com/sites/LMSTeam/Lists/powerapp_CCOF/AllItems.aspx) | Deletes corresponding item in `log_ontrackcompletions` SQL table | [ccof_powerapps_DeleteEntry](https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/88727091-3e4f-4655-97a8-7f4c7aef98cc/details) |
 | `ccof_SendNotifications_NewCardSubmitted` | Daily @ 9:05 AM | Runs `sproc_SendNotifications_NewCCOFCardSubmitted` and sends survey via email to staff who submitted external card | [sproc_SendNotifications_NewCCOFCardSubmitted](https://make.powerautomate.com/environments/Default-c69834d0-4147-4777-891d-a7dcdee2d566/flows/shared/e1f2d902-e1d3-40be-8da9-0735ffeece0d/details) |
 
-### EDGE Import Config
-- **Template:** `ERED_Completions.xml`  
-- **Frequency:** Daily 02:00 CST  
-- **Expected volume:** ≤ 200 rows/day
-
-## 5. Change Log
+## 6. Change Log
 | Date | Change | Author |
 |------|--------|--------|
 | 2025-06-04 | Initial doc | Alex Richardson|

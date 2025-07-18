@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Helpdesk Metadata</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 1rem; }
+        label { display: block; margin-top: 0.5rem; }
+        input, select, textarea { width: 100%; padding: 0.25rem; margin-top: 0.25rem; }
+        input[readonly] { background: #f3f3f3; }
+        button { margin-top: 1rem; padding: 0.5rem 1rem; }
+    </style>
+</head>
+<body>
+    <h2>Helpdesk Metadata</h2>
+    <form id="metaForm">
+        <label>Conversation ID<input id="conversationId" type="text" readonly /></label>
+        <label>Task ID<input id="taskId" type="text"/></label>
+
+        <label>Task Title<input id="taskTitle" type="text"/></label>
+
+        <label>Opened Date<input id="openedDate" type="date"/></label>
+        <label>Opened By<input id="openedBy" type="email"/></label>
+
+        <label>User Type
+            <select id="userType">
+                <option value="">--select--</option>
+                <option>User</option>
+                <option>Manager</option>
+                <option>Proxy</option>
+                <option>Educator</option>
+                <option>SME</option>
+            </select>
+        </label>
+
+        <label>Service Line
+            <select id="serviceLine">
+                <option value="">--select--</option>
+                <option>Nursing</option>
+                <option>GICH</option>
+                <option>Range</option>
+                <option>Clinics</option>
+                <option>Pharmacy</option>
+                <option>Lab</option>
+                <option>Rev Cycle</option>
+                <option>Rehab</option>
+                <option>Imaging</option>
+                <option>Facilities</option>
+                <option>Security</option>
+                <option>Other</option>
+            </select>
+        </label>
+
+        <label>Assigned To
+            <select id="assignedTo">
+                <option value="">--select--</option>
+                <option>Alex</option>
+                <option>Jacob</option>
+                <option>Jayda</option>
+                <option>John</option>
+                <option>Michelle</option>
+                <option>Victoria</option>
+            </select>
+        </label>
+
+        <label>Effort Estimate (min)<input id="effortEst" type="number" step="1" min="0"/></label>
+        <label>Effort Actual (min)<input id="effortAct" type="number" step="1" min="0"/></label>
+
+        <label>Status
+            <select id="status">
+                <option value="">--select--</option>
+                <option>working</option>
+                <option>in progress</option>
+                <option>done</option>
+            </select>
+        </label>
+
+        <label>Closed Date<input id="closedDate" type="date"/></label>
+        <label>Notes<textarea id="notes"></textarea></label>
+
+        <label>Ticket Type
+            <select id="ticketType">
+                <option value="">--select--</option>
+                <option>incident</option>
+                <option>request</option>
+            </select>
+        </label>
+
+        <label>Ticket Category
+            <select id="ticketCategory">
+                <option value="">--select User Type First--</option>
+            </select>
+        </label>
+
+        <label>Resolution
+            <select id="resolution">
+                <option value="">--select--</option>
+                <option>knowledge</option>
+                <option>configuration</option>
+                <option>bug fix</option>
+                <option>mistake fix</option>
+                <option>manual work</option>
+                <option>not resolved</option>
+            </select>
+        </label>
+
+        <button type="button" id="saveBtn">Save</button>
+        <span id="statusMsg"></span>
+    </form>
+
+    <script src="script.js"></script>
+</body>
+</html>

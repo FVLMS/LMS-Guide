@@ -10,17 +10,61 @@ Office.onReady(() => {
 
 function initForm() {
     const item = Office.context.mailbox.item;
-    const convId = item.conversationId || "";    
+    // Use the current item's conversation ID as a default for Conversation ID and Task ID.
+    // These will be overwritten when loading existing metadata.
+    const convId = item.conversationId || "";
     document.getElementById("conversationId").value = convId;
-    document.getElementById("taskId").value = convId; // default, may be overridden by loaded data
+    document.getElementById("taskId").value = convId;
 
     // Setup dynamic category options
     document.getElementById("userType").addEventListener("change", populateCategoryOptions);
-    populateCategoryOptions(); // init with default
+    populateCategoryOptions(); // initialize category select with default options
 
-    // Load existing metadata
+    // Load existing metadata from the item's custom properties
     loadMetadata();
+
+    // Bind click handler to save button
     document.getElementById("saveBtn").addEventListener("click", saveMetadata);
+
+    // If the user pins the task pane, respond to selection changes by reloading
+    // the metadata for the newly-selected item. This allows the pane to stay
+    // open across messages and update its fields accordingly.
+    if (Office.context.mailbox && Office.context.mailbox.addHandlerAsync) {
+        Office.context.mailbox.addHandlerAsync(Office.EventType.ItemChanged, () => {
+            // Update conversation ID defaults and reload saved metadata
+            const item = Office.context.mailbox.item;
+            const convId = item.conversationId || "";
+            document.getElementById("conversationId").value = convId;
+            document.getElementById("taskId").value = convId;
+            // Reset form before loading new data
+            clearForm();
+            populateCategoryOptions();
+            loadMetadata();
+        });
+    }
+}
+
+// Clear all form fields to default values before loading new metadata.
+function clearForm() {
+    const ids = ["conversationId","taskId","taskTitle","openedDate","openedBy","userType",
+                 "serviceLine","assignedTo","effortEst","effortAct","status","closedDate",
+                 "notes","ticketType","ticketCategory","resolution"];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        switch (el.tagName.toLowerCase()) {
+            case "select":
+                el.selectedIndex = 0;
+                break;
+            case "textarea":
+                el.value = "";
+                break;
+            default:
+                el.value = "";
+        }
+    });
+    // Status message reset
+    setStatus("");
 }
 
 function setStatus(msg) {
@@ -65,11 +109,29 @@ function loadMetadata() {
         if (json) {
             try {
                 const data = JSON.parse(json);
+                // Preserve the ticketCategory value because populating category
+                // options will clear existing selections.
+                const savedCategory = data.ticketCategory;
+                // Set simple properties first (except userType and ticketCategory)
                 for (const [id, value] of Object.entries(data)) {
+                    if (id === "userType" || id === "ticketCategory") continue;
                     const el = document.getElementById(id);
                     if (el) el.value = value;
                 }
-                populateCategoryOptions(); // ensure categories reflect stored userType
+                // Set the User Type and populate category options based on it
+                if (data.userType) {
+                    const userTypeEl = document.getElementById("userType");
+                    userTypeEl.value = data.userType;
+                    populateCategoryOptions();
+                } else {
+                    populateCategoryOptions();
+                }
+                // Now set the ticketCategory after options are populated
+                if (savedCategory) {
+                    const catEl = document.getElementById("ticketCategory");
+                    catEl.value = savedCategory;
+                }
+                // Set the userType value and populate other selects afterwards
                 setStatus("Loaded");
             } catch (e) {
                 console.error(e);

@@ -225,13 +225,31 @@ function* dateRange(start, end) {
 function isoDow(jsDate) { const d = jsDate.getDay(); return d === 0 ? 7 : d; }
 function toYMD(jsDate) { const y = jsDate.getFullYear(); const m = String(jsDate.getMonth()+1).padStart(2,'0'); const d = String(jsDate.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
 function parseYMDLocal(ymd) { const [y, m, d] = ymd.split('-').map(Number); return new Date(y, m - 1, d); }
+function fmtMDY(ymd) { if (!ymd) return ''; const [y,m,d] = String(ymd).split('-'); if (!y||!m||!d) return String(ymd); return `${m}/${d}/${y}`; }
 function isOverlapError(e) { const msg = (e && (e.message || e.toString())) || ''; const code = e && e.code; return (code === '23P01' || /session_locations_no_overlap/i.test(msg) || /exclusion constraint/i.test(msg)); }
 function pad2(n) { return String(n).padStart(2,'0'); }
 function dowLabel(n) { return ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'][n] || String(n); }
 function getTimeFromSelect(hourEl, minEl) { const h = hourEl?.value; const m = minEl?.value; if (!h || !m) return ''; return `${pad2(h)}:${pad2(m)}`; }
 
+function fmtHHMM(val) {
+  const s = String(val ?? '');
+  const m = s.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return s;
+  return `${m[1].padStart(2,'0')}:${m[2]}`;
+}
+
 function populateHourSelect(sel) { if (!sel) return; sel.innerHTML = '<option value="">HH</option>'; for (let h=0; h<24; h++) { const opt = document.createElement('option'); opt.value = pad2(h); opt.textContent = pad2(h); sel.appendChild(opt);} }
-function populateMinuteSelect(sel) { if (!sel) return; sel.innerHTML = '<option value="">MM</option>'; for (const m of [0,15,30,45]) { const opt = document.createElement('option'); opt.value = pad2(m); opt.textContent = pad2(m); sel.appendChild(opt);} }
+function populateMinuteSelect(sel) {
+  if (!sel) return;
+  sel.innerHTML = '';
+  for (const m of [0, 15, 30, 45]) {
+    const opt = document.createElement('option');
+    opt.value = pad2(m);
+    opt.textContent = pad2(m);
+    if (m === 0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
 
 function generateOccurrences(startDateStr, endDateStr, days, recurrence, monthlyWeek = 1) {
   const start = parseYMDLocal(startDateStr);
@@ -411,7 +429,13 @@ async function onAddSeries(ev) {
   }
 }
 
-function initTimeSelects() { [el.startHour, el.endHour, el.singleStartHour, el.singleEndHour].forEach(populateHourSelect); [el.startMin, el.endMin, el.singleStartMin, el.singleEndMin].forEach(populateMinuteSelect); }
+function initTimeSelects() {
+  [el.startHour, el.endHour, el.singleStartHour, el.singleEndHour].forEach(populateHourSelect);
+  [el.startMin, el.endMin, el.singleStartMin, el.singleEndMin].forEach(sel => {
+    populateMinuteSelect(sel);
+    if (sel && !sel.value) sel.value = '00';
+  });
+}
 
 async function refreshTable(page = 0, pageSize = 50) {
   if (!sb || !el.table) return;
@@ -473,10 +497,12 @@ function renderTable(rows) {
       const locNames = (r.location_ids || []).map(id => lookup.locations.get(id) || id).join(', ');
       const isEditing = state.editingId === r.id;
       if (!isEditing) {
+        const startDisp = fmtHHMM(r.start_time);
+        const endDisp = fmtHHMM(r.end_time);
         return `<tr data-session-id="${r.id}" data-series-id="${r.series_id}" data-class-id="${r.class_id}" data-instructor-id="${r.instructor_id}">
-          <td>${r.date}</td>
-          <td>${r.start_time}</td>
-          <td>${r.end_time}</td>
+          <td><div>${fmtMDY(r.date)}</div><div class="time-compact">${startDisp}–${endDisp}</div></td>
+          <td>${startDisp}</td>
+          <td>${endDisp}</td>
           <td>${r.week_number}</td>
           <td>${dowLabel(r.day_of_week)}</td>
           <td>${className}</td>

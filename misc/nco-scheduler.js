@@ -987,6 +987,13 @@ async function onTableClick(ev) {
 (function initWhenReady() {
   const bootstrap = async () => {
     try {
+      // Account for host page headers: allow host to set window.CSOD_HOST_HEADER_OFFSET (in px)
+      try {
+        const off = Number(window.CSOD_HOST_HEADER_OFFSET || 0);
+        if (!Number.isNaN(off) && typeof document?.documentElement?.style?.setProperty === 'function') {
+          document.documentElement.style.setProperty('--host-offset', off + 'px');
+        }
+      } catch {}
       initTimeSelects();
       await loadLists();
       await refreshTable();

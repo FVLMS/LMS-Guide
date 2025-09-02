@@ -1,14 +1,19 @@
-// External module for nco-scheduler logic.
-// This file mirrors src/app.js so it can be hosted separately (e.g., GitHub Pages).
-// It expects window.SUPABASE_URL and window.SUPABASE_KEY to be defined by the host page.
+// CSOD-friendly build: classic script (no ESM exports)
+// Requirements on host page:
+//  - Define window.SUPABASE_URL and window.SUPABASE_KEY before this script
+//  - Load Supabase UMD: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+//  - Include the HTML markup (see src/index.html body) before this script or place this script at bottom of the page
 
-// Minimal client wiring and form handler
+// Minimal client wiring and form handler (classic)
 const url = window.SUPABASE_URL;
 const key = window.SUPABASE_KEY;
 if (!url || !key) {
-  console.warn("Missing SUPABASE_URL or SUPABASE_KEY. Define them before loading nco-scheduler.js.");
+  console.warn("Missing SUPABASE_URL or SUPABASE_KEY. Define them before loading nco-scheduler.umd.js.");
 }
-export const sb = window.supabase.createClient(url, key);
+const sb = window.supabase && url && key ? window.supabase.createClient(url, key) : null;
+if (!sb) {
+  console.warn('Supabase client not initialized. Ensure supabase-js UMD is loaded and config is set.');
+}
 
 // In-memory lookup maps for rendering names
 const lookup = {
@@ -59,14 +64,12 @@ const el = {
 };
 
 function ensureHistoryElements() {
-  // If an existing drawer is in the DOM, wire it up and return
   const existing = document.getElementById('historyDrawer');
   if (existing && (!el.historyDrawer || !document.body.contains(el.historyDrawer))) {
     el.historyDrawer = existing;
     el.historyList = existing.querySelector('#historyList');
     el.historyClose = existing.querySelector('#historyClose');
     el.historyExport = existing.querySelector('#historyExport');
-    // Ensure overlay exists
     let overlay = document.getElementById('historyOverlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -83,7 +86,6 @@ function ensureHistoryElements() {
   }
 
   if (el.historyDrawer && document.body.contains(el.historyDrawer)) return;
-  // Create a transparent overlay behind the drawer to catch outside clicks
   let overlay = document.getElementById('historyOverlay');
   if (!overlay) {
     overlay = document.createElement('div');
@@ -96,7 +98,16 @@ function ensureHistoryElements() {
   wrapper.id = 'historyDrawer';
   wrapper.className = 'drawer';
   wrapper.innerHTML = `
-    <div class=\"drawer-content\">\n      <div class=\"drawer-header\">\n        <h3>Series History</h3>\n        <button type=\"button\" id=\"historyClose\" aria-label=\"Close\">×</button>\n      </div>\n      <div id=\"historyList\" class=\"history-list\"></div>\n      <div class=\"actions\">\n        <button type=\"button\" id=\"historyExport\">Export History CSV</button>\n      </div>\n    </div>`;
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <h3>Series History</h3>
+        <button type="button" id="historyClose" aria-label="Close">×</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+      <div class="actions">
+        <button type="button" id="historyExport">Export History CSV</button>
+      </div>
+    </div>`;
   document.body.appendChild(wrapper);
   el.historyDrawer = wrapper;
   el.historyOverlay = overlay;
@@ -105,48 +116,39 @@ function ensureHistoryElements() {
   el.historyExport = wrapper.querySelector('#historyExport');
   el.historyClose?.addEventListener('click', () => closeHistory());
   el.historyExport?.addEventListener('click', () => exportHistoryCSV());
-  // clicking overlay closes
   overlay.addEventListener('click', () => closeHistory());
 }
 
 function toast(msg, type = 'info') {
+  if (!el.toast) return;
   el.toast.textContent = msg;
   el.toast.className = `toast ${type}`;
-  // Force color to ensure it overrides base #toast rule in all browsers
-  if (type === 'error') {
-    el.toast.style.color = 'var(--err)';
-  } else if (type === 'success') {
-    el.toast.style.color = 'var(--ok)';
-  } else {
-    el.toast.style.color = 'var(--muted)';
-  }
+  if (type === 'error') el.toast.style.color = 'var(--err)';
+  else if (type === 'success') el.toast.style.color = 'var(--ok)';
+  else el.toast.style.color = 'var(--muted)';
 }
 
 async function loadLists() {
+  if (!sb) return;
   const [classes, instructors, locations] = await Promise.all([
     sb.from('classes').select('id,name').eq('status','active').order('name'),
     sb.from('instructors').select('id,name').eq('status','active').order('name'),
     sb.from('locations').select('id,name').eq('status','active').order('name'),
   ]);
-
-  for (const { data, error } of [classes, instructors, locations]) {
-    if (error) throw error;
-  }
-  // refresh lookup maps
+  for (const { error } of [classes, instructors, locations]) { if (error) throw error; }
   lookup.classes = new Map((classes.data || []).map(r => [r.id, r.name]));
   lookup.instructors = new Map((instructors.data || []).map(r => [r.id, r.name]));
   lookup.locations = new Map((locations.data || []).map(r => [r.id, r.name]));
-  populateSelect(el.classSelect, classes.data);
-  populateSelect(el.instructorSelect, instructors.data);
-  populateSelect(el.locationSelect, locations.data, true);
-
-  // populate filter dropdowns with "All"
-  populateSelectWithAll(el.filterClass, classes.data);
-  populateSelectWithAll(el.filterInstructor, instructors.data);
-  populateSelectWithAll(el.filterLocation, locations.data);
+  populateSelect(el.classSelect, classes.data || []);
+  populateSelect(el.instructorSelect, instructors.data || []);
+  populateSelect(el.locationSelect, locations.data || [], true);
+  populateSelectWithAll(el.filterClass, classes.data || []);
+  populateSelectWithAll(el.filterInstructor, instructors.data || []);
+  populateSelectWithAll(el.filterLocation, locations.data || []);
 }
 
 async function loadInstructors(selectIdToKeep = null) {
+  if (!sb) return;
   const { data, error } = await sb
     .from('instructors')
     .select('id,name')
@@ -154,13 +156,12 @@ async function loadInstructors(selectIdToKeep = null) {
     .order('name');
   if (error) throw error;
   lookup.instructors = new Map((data || []).map(r => [r.id, r.name]));
-  populateSelect(el.instructorSelect, data);
-  if (selectIdToKeep) {
-    el.instructorSelect.value = selectIdToKeep;
-  }
+  populateSelect(el.instructorSelect, data || []);
+  if (selectIdToKeep && el.instructorSelect) el.instructorSelect.value = selectIdToKeep;
 }
 
-function populateSelect(select, rows, multiple = false) {
+function populateSelect(select, rows) {
+  if (!select) return;
   select.innerHTML = '';
   for (const r of rows) {
     const opt = document.createElement('option');
@@ -191,299 +192,204 @@ function parseSelectedDays() {
 
 function* dateRange(start, end) {
   const d = new Date(start.getTime());
-  while (d <= end) {
-    yield new Date(d.getTime());
-    d.setDate(d.getDate() + 1);
-  }
+  while (d <= end) { yield new Date(d.getTime()); d.setDate(d.getDate() + 1); }
 }
 
-function isoDow(jsDate) {
-  const d = jsDate.getDay(); // 0=Sun..6=Sat
-  return d === 0 ? 7 : d;
-}
-
-function toYMD(jsDate) {
-  const y = jsDate.getFullYear();
-  const m = String(jsDate.getMonth()+1).padStart(2,'0');
-  const d = String(jsDate.getDate()).padStart(2,'0');
-  return `${y}-${m}-${d}`;
-}
-
-function parseYMDLocal(ymd) {
-  // Parse "YYYY-MM-DD" into a local Date (midnight local time), avoiding UTC shifts
-  const [y, m, d] = ymd.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function isOverlapError(e) {
-  const msg = (e && (e.message || e.toString())) || '';
-  const code = e && e.code;
-  return (
-    code === '23P01' ||
-    /session_locations_no_overlap/i.test(msg) ||
-    /exclusion constraint/i.test(msg)
-  );
-}
-
+function isoDow(jsDate) { const d = jsDate.getDay(); return d === 0 ? 7 : d; }
+function toYMD(jsDate) { const y = jsDate.getFullYear(); const m = String(jsDate.getMonth()+1).padStart(2,'0'); const d = String(jsDate.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+function parseYMDLocal(ymd) { const [y, m, d] = ymd.split('-').map(Number); return new Date(y, m - 1, d); }
+function isOverlapError(e) { const msg = (e && (e.message || e.toString())) || ''; const code = e && e.code; return (code === '23P01' || /session_locations_no_overlap/i.test(msg) || /exclusion constraint/i.test(msg)); }
 function pad2(n) { return String(n).padStart(2,'0'); }
+function dowLabel(n) { return ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'][n] || String(n); }
+function getTimeFromSelect(hourEl, minEl) { const h = hourEl?.value; const m = minEl?.value; if (!h || !m) return ''; return `${pad2(h)}:${pad2(m)}`; }
 
-function dowLabel(n) {
-  // 1=Mon..7=Sun
-  return ['','Mon','Tue','Wed','Thu','Fri','Sat','Sun'][n] || String(n);
-}
+function populateHourSelect(sel) { if (!sel) return; sel.innerHTML = '<option value="">HH</option>'; for (let h=0; h<24; h++) { const opt = document.createElement('option'); opt.value = pad2(h); opt.textContent = pad2(h); sel.appendChild(opt);} }
+function populateMinuteSelect(sel) { if (!sel) return; sel.innerHTML = '<option value="">MM</option>'; for (const m of [0,15,30,45]) { const opt = document.createElement('option'); opt.value = pad2(m); opt.textContent = pad2(m); sel.appendChild(opt);} }
 
-function getTimeFromSelect(hourEl, minEl) {
-  const h = hourEl?.value;
-  const m = minEl?.value;
-  if (!h || !m) return '';
-  return `${pad2(h)}:${pad2(m)}`;
-}
-
-function populateHourSelect(sel) {
-  if (!sel) return;
-  sel.innerHTML = '<option value="">HH</option>';
-  for (let h=0; h<24; h++) {
-    const opt = document.createElement('option');
-    opt.value = pad2(h);
-    opt.textContent = pad2(h);
-    sel.appendChild(opt);
-  }
-}
-
-function populateMinSelect(sel) {
-  if (!sel) return;
-  sel.innerHTML = '<option value="">MM</option>';
-  for (const m of [0, 15, 30, 45]) {
-    const opt = document.createElement('option');
-    opt.value = pad2(m);
-    opt.textContent = pad2(m);
-    sel.appendChild(opt);
-  }
-}
-
-function initTimeSelects() {
-  [el.startHour, el.singleStartHour, el.singleEndHour, el.endHour].forEach(populateHourSelect);
-  [el.startMin, el.singleStartMin, el.singleEndMin, el.endMin].forEach(populateMinSelect);
-}
-
-async function addInstructorFlow() {
-  const name = prompt('New instructor name');
-  if (!name) return;
-  const { data, error } = await sb.from('instructors').insert({ name, status: 'active' }).select('id').single();
-  if (error) { toast(`Failed to add instructor: ${error.message}`, 'error'); return; }
-  await loadInstructors(data.id);
-}
-
-function generateOccurrences(startDate, endDate, days, recurrence, monthlyWeek) {
-  const s = parseYMDLocal(startDate), e = parseYMDLocal(endDate);
+function generateOccurrences(startDateStr, endDateStr, days, recurrence, monthlyWeek = 1) {
+  const start = parseYMDLocal(startDateStr);
+  const end = parseYMDLocal(endDateStr);
+  const min2026 = parseYMDLocal('2026-01-01');
+  const max2026 = parseYMDLocal('2026-12-31');
+  if (start < min2026 || end > max2026) { throw new Error('Dates must be within 2026.'); }
+  const stepWeeks = recurrence === 'biweekly' ? 2 : 1;
   const out = [];
   if (recurrence === 'monthly') {
-    // For monthly recurrence, use specified week-of-month for each selected day.
-    // monthlyWeek: '1'..'4' indicates nth week of the month.
-    const nth = parseInt(monthlyWeek, 10) || 1;
-    const months = new Set();
-    for (const d of dateRange(s, e)) {
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      if (months.has(key)) continue;
-      months.add(key);
-      for (const day of days) {
-        const firstOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
-        // Find first occurrence of desired day in the month
-        let firstDow = isoDow(firstOfMonth);
-        let diff = day - firstDow;
-        if (diff < 0) diff += 7;
-        const target = new Date(firstOfMonth);
-        target.setDate(1 + diff + (nth - 1) * 7);
-        if (target >= s && target <= e && isoDow(target) === day && target.getMonth() === d.getMonth()) {
-          out.push(toYMD(target));
-        }
+    const sY = start.getFullYear(); const sM = start.getMonth();
+    const eY = end.getFullYear();   const eM = end.getMonth();
+    let y = sY, m = sM;
+    while (y < eY || (y === eY && m <= eM)) {
+      for (const dow of days) {
+        const d = nthWeekdayOfMonth(y, m, dow, monthlyWeek);
+        if (d && d >= start && d <= end) out.push(toYMD(d));
       }
+      m += 1; if (m > 11) { m = 0; y += 1; }
     }
-    return Array.from(new Set(out)).sort();
-  }
-
-  let step = 1;
-  if (recurrence === 'biweekly') step = 2;
-  for (const d of dateRange(s, e)) {
-    if (days.includes(isoDow(d))) {
+  } else {
+    for (const d of dateRange(start, end)) {
+      const dow = isoDow(d);
+      if (!days.includes(dow)) continue;
+      if (stepWeeks === 2) {
+        const diffDays = Math.floor((d - start) / 86400000);
+        if (Math.floor(diffDays / 7) % 2 !== 0) continue;
+      }
       out.push(toYMD(d));
     }
-  }
-  if (step === 2) {
-    // Filter to every other week based on ISO week number parity
-    return out.filter((ymd, idx) => {
-      const dt = parseYMDLocal(ymd);
-      const onejan = new Date(dt.getFullYear(), 0, 1);
-      const week = Math.ceil((((dt - onejan) / 86400000) + onejan.getDay() + 1) / 7);
-      return week % 2 === 0; // keep even weeks
-    });
   }
   return out;
 }
 
+function nthWeekdayOfMonth(year, monthIdx0, isoWeekday, n) {
+  const first = new Date(Date.UTC(year, monthIdx0, 1));
+  const firstIso = first.getUTCDay() === 0 ? 7 : first.getUTCDay();
+  let day = 1 + ((isoWeekday - firstIso + 7) % 7) + 7 * (n - 1);
+  const d = new Date(Date.UTC(year, monthIdx0, day));
+  if (d.getUTCMonth() !== monthIdx0) return null;
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
 async function createSeries(class_id, instructor_id, start_date, end_date, recurrence, days) {
-  const { data, error } = await sb.from('class_series').insert({
-    class_id, instructor_id, start_date, end_date, recurrence, days
-  }).select('id').single();
+  if (!sb) throw new Error('Supabase client not ready');
+  const recurrenceJson = { freq: recurrence, days };
+  const { data, error } = await sb
+    .from('series')
+    .insert({ class_id, instructor_id, start_date, end_date, recurrence: recurrenceJson })
+    .select('id')
+    .single();
   if (error) throw error;
   return data.id;
 }
 
-async function insertSessionRPC(series_id, class_id, instructor_id, date, start_time, end_time, location_ids) {
-  // RPC encapsulates location overlap logic in the DB
-  const { error } = await sb.rpc('insert_session_with_locations', {
+async function insertSessionRPC(series_id, class_id, instructor_id, dateStr, startTimeStr, endTimeStr, locationIds) {
+  if (!sb) throw new Error('Supabase client not ready');
+  const { data, error } = await sb.rpc('insert_session_with_locations', {
     p_series_id: series_id,
     p_class_id: class_id,
     p_instructor_id: instructor_id,
-    p_date: date,
-    p_start_time: start_time,
-    p_end_time: end_time,
-    p_location_ids: location_ids,
+    p_date: dateStr,
+    p_start: startTimeStr,
+    p_end: endTimeStr,
+    p_location_ids: locationIds,
   });
   if (error) throw error;
+  return data;
 }
 
-async function deleteSession(id) {
-  const { error } = await sb.from('sessions').delete().eq('id', id);
+async function deleteSession(sessionId) {
+  if (!sb) throw new Error('Supabase client not ready');
+  const { error } = await sb.from('sessions').delete().eq('id', sessionId);
   if (error) throw error;
 }
 
-async function deleteSeries(series_id) {
-  const { error } = await sb.from('class_series').delete().eq('id', series_id);
-  if (error) throw error;
-}
-
-function parseLocationMulti(selectEl) {
-  return Array.from(selectEl.selectedOptions).map(opt => opt.value);
-}
-
-function htmlEscape(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-}
-
-function csvEscape(s) {
-  const str = String(s ?? '');
-  if (/[",\n]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
-  return str;
+async function deleteSeries(seriesId) {
+  if (!sb) throw new Error('Supabase client not ready');
+  let resp = await sb.from('sessions').delete().eq('series_id', seriesId);
+  if (resp.error) throw resp.error;
+  resp = await sb.from('series').delete().eq('id', seriesId);
+  if (resp.error) throw resp.error;
 }
 
 async function onAddSingle() {
   try {
-    const class_id = el.classSelect.value;
-    const instructor_id = el.instructorSelect.value;
-    const location_ids = parseLocationMulti(el.locationSelect);
-    const date = el.singleDate.value;
-    const start_time = getTimeFromSelect(el.singleStartHour, el.singleStartMin);
-    const end_time = getTimeFromSelect(el.singleEndHour, el.singleEndMin);
-    if (!class_id || !instructor_id || !location_ids.length || !date || !start_time || !end_time) {
-      toast('Provide class, instructor, date, time, and locations.', 'error');
-      return;
-    }
-    if (end_time <= start_time) { toast('End time must be after start time.', 'error'); return; }
-    const series_id = await createSeries(class_id, instructor_id, date, date, 'once', []);
-    await insertSessionRPC(series_id, class_id, instructor_id, date, start_time, end_time, location_ids);
-    toast('Added session.', 'success');
+    const class_id = el.classSelect?.value;
+    const instructor_id = el.instructorSelect?.value;
+    const dateStr = el.singleDate?.value;
+    const startTimeStr = getTimeFromSelect(el.singleStartHour, el.singleStartMin);
+    const endTimeStr = getTimeFromSelect(el.singleEndHour, el.singleEndMin);
+    const locationIds = Array.from(el.locationSelect?.selectedOptions || []).map(o => o.value);
+    if (!class_id || !instructor_id || !dateStr || !startTimeStr || !endTimeStr || !locationIds.length) { toast('Fill all fields and select locations.', 'error'); return; }
+    if (parseYMDLocal(dateStr) < parseYMDLocal('2026-01-01') || parseYMDLocal(dateStr) > parseYMDLocal('2026-12-31')) { toast('Date must be within 2026.', 'error'); return; }
+    if (endTimeStr <= startTimeStr) { toast('End time must be after start time.', 'error'); return; }
+    const series_id = await createSeries(class_id, instructor_id, dateStr, dateStr, 'weekly', [isoDow(parseYMDLocal(dateStr))]);
+    await insertSessionRPC(series_id, class_id, instructor_id, dateStr, startTimeStr, endTimeStr, locationIds);
+    toast('Class added.', 'success');
     await refreshTable();
   } catch (e) {
     console.error(e);
-    if (isOverlapError(e)) {
-      toast('Error: There is a session booked in one of these classrooms during this time', 'error');
-    } else {
-      toast(`Error: ${e.message}`, 'error');
-    }
+    if (isOverlapError(e)) toast('Error: There is a session booked in one of these classrooms during this time', 'error');
+    else toast(`Add failed: ${e.message}`, 'error');
   }
 }
 
 async function onAddSeries(ev) {
   ev?.preventDefault?.();
   try {
-    const class_id = el.classSelect.value;
-    const instructor_id = el.instructorSelect.value;
-    const location_ids = parseLocationMulti(el.locationSelect);
-    const start_date = el.startDate.value;
-    const end_date = el.endDate.value;
-    const start_time = getTimeFromSelect(el.startHour, el.startMin);
-    const end_time = getTimeFromSelect(el.endHour, el.endMin);
-    const recurrence = el.recurrence.value;
+    const class_id = el.classSelect?.value;
+    const instructor_id = el.instructorSelect?.value;
+    const start_date = el.startDate?.value;
+    const end_date = el.endDate?.value;
+    const startTimeStr = getTimeFromSelect(el.startHour, el.startMin);
+    const endTimeStr = getTimeFromSelect(el.endHour, el.endMin);
+    const locationIds = Array.from(el.locationSelect?.selectedOptions || []).map(o => o.value);
+    const recurrence = el.recurrence?.value || 'weekly';
+    const monthlyWeek = parseInt(el.monthlyWeek?.value || '1', 10);
     const days = parseSelectedDays();
-    const monthlyWeek = el.monthlyWeek.value;
-    if (!class_id || !instructor_id || !location_ids.length || !start_date || !end_date) { toast('Provide all fields.', 'error'); return; }
-    if (end_date < start_date) { toast('End date must be on/after start date.', 'error'); return; }
-    if (!start_time || !end_time || end_time <= start_time) { toast('End time must be after start time.', 'error'); return; }
-    if ((recurrence === 'weekly' || recurrence === 'biweekly' || recurrence === 'monthly') && days.length === 0) { toast('Select at least one day for recurring schedules.', 'error'); return; }
+    if (!class_id || !instructor_id || !start_date || !end_date || !startTimeStr || !endTimeStr || !days.length || !locationIds.length) { toast('Fill all fields and select at least one day and location.', 'error'); return; }
+    if (parseYMDLocal(start_date) < parseYMDLocal('2026-01-01') || parseYMDLocal(end_date) > parseYMDLocal('2026-12-31')) { toast('Dates must be within 2026.', 'error'); return; }
+    if (endTimeStr <= startTimeStr) { toast('End time must be after start time.', 'error'); return; }
 
     const series_id = await createSeries(class_id, instructor_id, start_date, end_date, recurrence, days);
     const dates = generateOccurrences(start_date, end_date, days, recurrence, monthlyWeek);
-    let created = 0, blocked = 0;
-    let overlapNotified = false;
-    for (const dateStr of dates) {
+    for (const d of dates) {
       try {
-        await insertSessionRPC(series_id, class_id, instructor_id, dateStr, start_time, end_time, location_ids);
-        created++;
+        await insertSessionRPC(series_id, class_id, instructor_id, d, startTimeStr, endTimeStr, locationIds);
       } catch (e) {
-        blocked++;
-        if (!overlapNotified && isOverlapError(e)) {
-          toast('Error: There is a session booked in one of these classrooms during this time', 'error');
-          overlapNotified = true;
-        }
+        if (isOverlapError(e)) { toast(`Overlap on ${d}. Skipping.`, 'error'); } else { throw e; }
       }
     }
-    if (!overlapNotified) toast(`Added ${created} session(s). Blocked ${blocked}.`, 'success');
+    toast('Series added.', 'success');
     await refreshTable();
   } catch (e) {
     console.error(e);
     if (isOverlapError(e)) toast('Error: There is a session booked in one of these classrooms during this time', 'error');
-    else toast(`Error: ${e.message}`, 'error');
+    else toast(`Add failed: ${e.message}`, 'error');
   }
 }
 
+function initTimeSelects() { [el.startHour, el.endHour, el.singleStartHour, el.singleEndHour].forEach(populateHourSelect); [el.startMin, el.endMin, el.singleStartMin, el.singleEndMin].forEach(populateMinuteSelect); }
+
 async function refreshTable(page = 0, pageSize = 50) {
+  if (!sb || !el.table) return;
   const from = page * pageSize;
   const to = from + pageSize - 1;
-  let q = sb.from('v_sessions').select('*', { count: 'exact' });
-  // apply filters
+  let q = sb.from('v_sessions').select('*');
   if (state.filters.class_id) q = q.eq('class_id', state.filters.class_id);
   if (state.filters.instructor_id) q = q.eq('instructor_id', state.filters.instructor_id);
   if (state.filters.location_id) q = q.contains('location_ids', [state.filters.location_id]);
   if (state.filters.from) q = q.gte('date', state.filters.from);
   if (state.filters.to) q = q.lte('date', state.filters.to);
-
-  // sorting
   const serverSortable = new Set(['date','start_time','end_time','week_number','day_of_week']);
   if (serverSortable.has(state.sort.col)) {
     q = q.order(state.sort.col, { ascending: state.sort.dir === 'asc' });
-    if (state.sort.col !== 'date') {
-      q = q.order('date', { ascending: true });
-    }
+    if (state.sort.col !== 'date') q = q.order('date', { ascending: true });
   } else {
-    // default order for stable client-side sorting
     q = q.order('date', { ascending: true }).order('start_time', { ascending: true });
   }
-
   q = q.range(from, to);
   const { data, error } = await q;
   if (error) { console.error(error); return; }
-
   let rows = data || [];
   if (!serverSortable.has(state.sort.col)) {
     const dir = state.sort.dir === 'asc' ? 1 : -1;
-    if (state.sort.col === 'class') {
-      rows = rows.sort((a,b) => ((lookup.classes.get(a.class_id)||'').localeCompare(lookup.classes.get(b.class_id)||'')) * dir);
-    } else if (state.sort.col === 'instructor') {
-      rows = rows.sort((a,b) => ((lookup.instructors.get(a.instructor_id)||'').localeCompare(lookup.instructors.get(b.instructor_id)||'')) * dir);
-    } else if (state.sort.col === 'locations') {
-      rows = rows.sort((a,b) => {
-        const an = (a.location_ids||[]).map(id => lookup.locations.get(id)||'').join(', ');
-        const bn = (b.location_ids||[]).map(id => lookup.locations.get(id)||'').join(', ');
-        return an.localeCompare(bn) * dir;
-      });
-    }
+    if (state.sort.col === 'class') rows.sort((a,b)=>((lookup.classes.get(a.class_id)||'').localeCompare(lookup.classes.get(b.class_id)||''))*dir);
+    else if (state.sort.col === 'instructor') rows.sort((a,b)=>((lookup.instructors.get(a.instructor_id)||'').localeCompare(lookup.instructors.get(b.instructor_id)||''))*dir);
+    else if (state.sort.col === 'locations') rows.sort((a,b)=>{
+      const an=(a.location_ids||[]).map(id=>lookup.locations.get(id)||'').join(', ');
+      const bn=(b.location_ids||[]).map(id=>lookup.locations.get(id)||'').join(', ');
+      return an.localeCompare(bn)*dir;
+    });
   }
-
   renderTable(rows);
 }
 
+function headerCell(col, label) {
+  const active = state.sort.col === col;
+  const arrow = active ? (state.sort.dir === 'asc' ? '▲' : '▼') : '';
+  return `<th class="sortable" data-sort="${col}">${label}<span class="sort-ind">${arrow}</span></th>`;
+}
+
 function renderTable(rows) {
+  if (!el.table) return;
   const html = [
     '<table><thead><tr>',
     headerCell('date','Date'),
@@ -519,7 +425,6 @@ function renderTable(rows) {
           </td>
         </tr>`;
       } else {
-        // Build inline editors
         const startHH = String(r.start_time).slice(0,2);
         const startMM = String(r.start_time).slice(3,5);
         const endHH = String(r.end_time).slice(0,2);
@@ -530,12 +435,10 @@ function renderTable(rows) {
         const endHourSel = `<select class="edit-end-hour">${hourOpts.replace('data-end-selected','selected')}</select>`;
         const startMinSel = `<select class="edit-start-min">${minOpts.replace(`value="${startMM}"`,`value="${startMM}" selected`)}</select>`;
         const endMinSel = `<select class="edit-end-min">${minOpts.replace(`value="${endMM}"`,`value="${endMM}" selected`)}</select>`;
-        // Instructor select
         const instrOpts = Array.from(lookup.instructors, ([id,name])=>({id,name}))
           .sort((a,b)=>a.name.localeCompare(b.name))
           .map(o=>`<option value="${o.id}" ${o.id===r.instructor_id?'selected':''}>${o.name}</option>`).join('');
         const instrSel = `<select class="edit-instructor">${instrOpts}</select>`;
-        // Locations multi-select
         const locOpts = Array.from(lookup.locations, ([id,name])=>({id,name}))
           .sort((a,b)=>a.name.localeCompare(b.name))
           .map(o=>`<option value="${o.id}" ${ (r.location_ids||[]).includes(o.id)?'selected':''}>${o.name}</option>`).join('');
@@ -559,22 +462,18 @@ function renderTable(rows) {
     '</tbody></table>'
   ].join('');
   el.table.innerHTML = html;
-  // attach sort listeners
   el.table.querySelectorAll('th.sortable').forEach(th => {
     th.addEventListener('click', () => {
       const col = th.getAttribute('data-sort');
-      if (state.sort.col === col) {
-        state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
-      } else {
-        state.sort.col = col; state.sort.dir = 'asc';
-      }
+      if (state.sort.col === col) state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
+      else { state.sort.col = col; state.sort.dir = 'asc'; }
       refreshTable();
     });
   });
 }
 
 async function getCurrentRows() {
-  // Re-run the current query without changing pagination
+  if (!sb) return [];
   let q = sb.from('v_sessions').select('*');
   if (state.filters.class_id) q = q.eq('class_id', state.filters.class_id);
   if (state.filters.instructor_id) q = q.eq('instructor_id', state.filters.instructor_id);
@@ -589,8 +488,7 @@ async function getCurrentRows() {
     q = q.order('date', { ascending: true }).order('start_time', { ascending: true });
   }
   const { data, error } = await q.range(0, 49);
-  if (error) { console.error(error); return [];
-  }
+  if (error) { console.error(error); return []; }
   let rows = data || [];
   if (!serverSortable.has(state.sort.col)) {
     const dir = state.sort.dir === 'asc' ? 1 : -1;
@@ -605,178 +503,100 @@ async function getCurrentRows() {
   return rows;
 }
 
-function headerCell(col, label) {
-  const active = state.sort.col === col;
-  const arrow = active ? (state.sort.dir === 'asc' ? '▲' : '▼') : '';
-  return `<th class="sortable" data-sort="${col}">${label}<span class="sort-ind">${arrow}</span></th>`;
+async function saveEditSession(tr) {
+  try {
+    const sessionId = tr?.getAttribute('data-session-id');
+    const date = tr?.querySelector('.edit-date')?.value;
+    const sh = tr?.querySelector('.edit-start-hour')?.value;
+    const sm = tr?.querySelector('.edit-start-min')?.value;
+    const eh = tr?.querySelector('.edit-end-hour')?.value;
+    const em = tr?.querySelector('.edit-end-min')?.value;
+    const start = `${sh}:${sm}`;
+    const end = `${eh}:${em}`;
+    const locSel = tr?.querySelector('.edit-locations');
+    const locIds = Array.from(locSel?.selectedOptions || []).map(o=>o.value);
+    if (!locIds.length) { toast('Select at least one location.', 'error'); return; }
+    if (!date || !sh || !sm || !eh || !em) { toast('Provide date and times.', 'error'); return; }
+    if (parseYMDLocal(date) < parseYMDLocal('2026-01-01') || parseYMDLocal(date) > parseYMDLocal('2026-12-31')) { toast('Date must be within 2026.', 'error'); return; }
+    if (end <= start) { toast('End time must be after start time.', 'error'); return; }
+    const { data: _d, error: rpcError } = await sb.rpc('update_session_with_locations', {
+      p_session_id: sessionId,
+      p_date: date,
+      p_start: start,
+      p_end: end,
+      p_location_ids: locIds,
+    });
+    if (rpcError) {
+      if (isOverlapError(rpcError)) toast('Error: There is a session booked in one of these classrooms during this time', 'error');
+      else toast(`Save failed: ${rpcError.message}`, 'error');
+      return;
+    }
+    state.editingId = null;
+    toast('Session updated.', 'success');
+    await refreshTable();
+  } catch (e) {
+    console.error(e);
+    if (isOverlapError(e)) toast('Error: There is a session booked in one of these classrooms during this time', 'error');
+    else toast(`Save failed: ${e.message}`, 'error');
+  }
 }
 
 async function exportCSV() {
   try {
-    // Fetch in batches to avoid Postgres row limits for huge exports
-    let page = 0, pageSize = 1000;
-    let all = [];
+    const batch = 1000; let offset = 0; let all = [];
     while (true) {
-      const from = page * pageSize;
-      const to = from + pageSize - 1;
       let q = sb.from('v_sessions').select('*');
       if (state.filters.class_id) q = q.eq('class_id', state.filters.class_id);
       if (state.filters.instructor_id) q = q.eq('instructor_id', state.filters.instructor_id);
       if (state.filters.location_id) q = q.contains('location_ids', [state.filters.location_id]);
       if (state.filters.from) q = q.gte('date', state.filters.from);
       if (state.filters.to) q = q.lte('date', state.filters.to);
-      q = q.order('date', { ascending: true }).order('start_time', { ascending: true }).range(from, to);
+      const serverSortable = new Set(['date','start_time','end_time']);
+      if (serverSortable.has(state.sort.col)) {
+        q = q.order(state.sort.col, { ascending: state.sort.dir === 'asc' });
+        if (state.sort.col !== 'date') q = q.order('date', { ascending: true });
+      } else {
+        q = q.order('date', { ascending: true }).order('start_time', { ascending: true });
+      }
+      q = q.range(offset, offset + batch - 1);
       const { data, error } = await q;
       if (error) throw error;
       const rows = data || [];
       all = all.concat(rows);
-      if (rows.length < pageSize) break;
-      page++;
+      if (rows.length < batch) break;
+      offset += batch;
+      if (offset >= 50000) break;
     }
-    const header = ['Date','Start','End','Week #','Day','Class','Instructor','Locations'];
-    const lines = [header];
+    const serverSortable = new Set(['date','start_time','end_time']);
+    if (!serverSortable.has(state.sort.col)) {
+      const dir = state.sort.dir === 'asc' ? 1 : -1;
+      if (state.sort.col === 'class') all.sort((a,b)=>((lookup.classes.get(a.class_id)||'').localeCompare(lookup.classes.get(b.class_id)||''))*dir);
+      else if (state.sort.col === 'instructor') all.sort((a,b)=>((lookup.instructors.get(a.instructor_id)||'').localeCompare(lookup.instructors.get(b.instructor_id)||''))*dir);
+    }
+    const header = ['Date','Start','End','Class','Instructor','Locations'];
+    const lines = [header.map(csvEscape).join(',')];
     for (const r of all) {
       const className = lookup.classes.get(r.class_id) || r.class_id;
       const instructorName = lookup.instructors.get(r.instructor_id) || r.instructor_id;
-      const locNames = (r.location_ids || []).map(id => lookup.locations.get(id) || id).join(', ');
-      lines.push([r.date, r.start_time, r.end_time, r.week_number, dowLabel(r.day_of_week), className, instructorName, locNames]);
+      const locNames = (r.location_ids || []).map(id => lookup.locations.get(id) || id).join('; ');
+      const start = String(r.start_time).slice(0,5);
+      const end = String(r.end_time).slice(0,5);
+      lines.push([r.date, start, end, className, instructorName, locNames].map(csvEscape).join(','));
     }
-    const csv = lines.map(r => r.map(csvEscape).join(',')).join('\n');
+    const csv = lines.join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'sessions_export.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    console.error(e);
-    toast(`Export failed: ${e.message}`, 'error');
-  }
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  } catch (e) { console.error(e); toast(`Export failed: ${e.message}`, 'error'); }
 }
 
-function collectEditedRow(tr) {
-  const id = tr.getAttribute('data-session-id');
-  const date = tr.querySelector('.edit-date')?.value;
-  const sh = tr.querySelector('.edit-start-hour')?.value;
-  const sm = tr.querySelector('.edit-start-min')?.value;
-  const eh = tr.querySelector('.edit-end-hour')?.value;
-  const em = tr.querySelector('.edit-end-min')?.value;
-  const instructor_id = tr.querySelector('.edit-instructor')?.value;
-  const location_ids = Array.from(tr.querySelector('.edit-locations')?.selectedOptions || []).map(o=>o.value);
-  const start_time = (sh && sm) ? `${sh}:${sm}` : '';
-  const end_time = (eh && em) ? `${eh}:${em}` : '';
-  return { id, date, start_time, end_time, instructor_id, location_ids };
-}
-
-async function saveEditSession(tr) {
-  const row = collectEditedRow(tr);
-  if (!row.date || !row.start_time || !row.end_time || !row.instructor_id) {
-    toast('Fill all fields.', 'error');
-    return;
-  }
-  if (row.end_time <= row.start_time) { toast('End time must be after start time.', 'error'); return; }
-  try {
-    const { error } = await sb.rpc('update_session_with_locations', {
-      p_session_id: row.id,
-      p_date: row.date,
-      p_start_time: row.start_time,
-      p_end_time: row.end_time,
-      p_instructor_id: row.instructor_id,
-      p_location_ids: row.location_ids,
-    });
-    if (error) throw error;
-    state.editingId = null;
-    toast('Updated.', 'success');
-    await refreshTable();
-  } catch (e) {
-    console.error(e);
-    if (isOverlapError(e)) toast('Error: There is a session booked in one of these classrooms during this time', 'error');
-    else toast(`Update failed: ${e.message}`, 'error');
-  }
-}
-
-async function onTableClick(ev) {
-  const btn = ev.target.closest('button[data-action]');
-  if (!btn) return;
-  const action = btn.getAttribute('data-action');
-  const tr = btn.closest('tr');
-  const sessionId = btn.getAttribute('data-session-id');
-  const seriesId = btn.getAttribute('data-series-id');
-  if (action === 'delete' && sessionId) {
-    if (!confirm('Delete this session?')) return;
-    try { await deleteSession(sessionId); toast('Deleted.', 'success'); await refreshTable(); } catch (e) { console.error(e); toast(`Delete failed: ${e.message}`, 'error'); }
-  } else if (action === 'delete-series' && seriesId) {
-    if (!confirm('Delete the entire series?')) return;
-    try { await deleteSeries(seriesId); toast('Series deleted.', 'success'); await refreshTable(); } catch (e) { console.error(e); toast(`Delete failed: ${e.message}`, 'error'); }
-  } else if (action === 'edit') {
-    state.editingId = sessionId;
-    await refreshTable();
-  } else if (action === 'cancel-edit') {
-    state.editingId = null;
-    await refreshTable();
-  } else if (action === 'save-edit') {
-    await saveEditSession(tr);
-  } else if (action === 'history' && seriesId) {
-    await openHistory(seriesId);
-  }
-}
-
-function updateMonthlyVisibility() {
-  if (!el.monthlyWeekWrap) return;
-  const rec = el.recurrence?.value;
-  el.monthlyWeekWrap.style.display = rec === 'monthly' ? '' : 'none';
-}
-
-(async function init() {
-  try {
-    initTimeSelects();
-    await loadLists();
-    await refreshTable();
-
-    el.addInstructorBtn?.addEventListener('click', addInstructorFlow);
-    el.addSingleBtn?.addEventListener('click', onAddSingle);
-    el.form?.addEventListener('submit', onAddSeries);
-    el.table?.addEventListener('click', onTableClick);
-    el.recurrence?.addEventListener('change', updateMonthlyVisibility);
-    updateMonthlyVisibility();
-
-    // Filters
-    el.filterClass?.addEventListener('change', () => { state.filters.class_id = el.filterClass.value || ''; refreshTable(); });
-    el.filterInstructor?.addEventListener('change', () => { state.filters.instructor_id = el.filterInstructor.value || ''; refreshTable(); });
-    el.filterLocation?.addEventListener('change', () => { state.filters.location_id = el.filterLocation.value || ''; refreshTable(); });
-    el.filterFrom?.addEventListener('change', () => { state.filters.from = el.filterFrom.value || ''; refreshTable(); });
-    el.filterTo?.addEventListener('change', () => { state.filters.to = el.filterTo.value || ''; refreshTable(); });
-    el.clearFilters?.addEventListener('click', () => {
-      state.filters = { class_id: '', instructor_id: '', location_id: '', from: '', to: '' };
-      if (el.filterClass) el.filterClass.value = '';
-      if (el.filterInstructor) el.filterInstructor.value = '';
-      if (el.filterLocation) el.filterLocation.value = '';
-      if (el.filterFrom) el.filterFrom.value = '';
-      if (el.filterTo) el.filterTo.value = '';
-      refreshTable();
-    });
-
-    el.exportCsvBtn?.addEventListener('click', exportCSV);
-    el.historyClose?.addEventListener('click', () => closeHistory());
-    el.historyExport?.addEventListener('click', () => exportHistoryCSV());
-    // Close on Escape
-    document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape') closeHistory();
-    });
-
-    // Global history control (top-line series only)
-    el.viewSeriesSummaries?.addEventListener('click', () => openSeriesSummaries());
-  } catch (e) {
-    console.error(e);
-    toast(`Init error: ${e.message}`, 'error');
-  }
-})();
+function csvEscape(s) { s = String(s ?? ''); if (/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"'; return s; }
+function htmlEscape(s) { const t = document.createElement('textarea'); t.textContent = String(s ?? ''); return t.innerHTML; }
 
 async function openHistory(seriesId) {
-  // Open immediately with a loading placeholder
   ensureHistoryElements();
   if (el.historyDrawer) {
     el.historyList.innerHTML = '<div class="history-item">Loading…</div>';
@@ -818,22 +638,19 @@ function renderHistory(seriesId, rows) {
 }
 
 function closeHistory() {
-  if (el.historyDrawer) {
-    el.historyDrawer.hidden = true;
-    el.historyDrawer.style.display = 'none';
-  }
+  if (el.historyDrawer) { el.historyDrawer.hidden = true; el.historyDrawer.style.display = 'none'; }
   if (el.historyOverlay) el.historyOverlay.hidden = true;
 }
 
 async function exportHistoryCSV() {
   try {
-    let csv = '';
-    const mode = el.historyDrawer?.dataset.mode || 'series-history';
+    let csv;
+    const mode = el.historyDrawer?.dataset.mode || '';
     if (mode === 'series-table') {
       const rows = JSON.parse(el.historyDrawer?.dataset.tableLines || '[]');
       const header = ['Class','Instructor','Locations','Recurrence','Start Time','End Time','Start Date','End Date'];
       const lines = [header];
-      for (const r of rows) lines.push([r.className, r.instructorName, r.locNames, r.recurrenceText, r.startTime, r.endTime, r.startDate, r.endDate]);
+      for (const r of rows) lines.push([r.className,r.instructorName,r.locNames,r.recurrenceText,r.startTime,r.endTime,r.startDate,r.endDate]);
       csv = lines.map(r => r.map(csvEscape).join(',')).join('\n');
     } else {
       const transformed = JSON.parse(el.historyDrawer?.dataset.lines || '[]');
@@ -844,102 +661,253 @@ async function exportHistoryCSV() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `history_export.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    console.error(e);
-    toast(`Export failed: ${e.message}`, 'error');
-  }
+    a.href = url; a.download = 'history_export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  } catch (e) { console.error(e); toast(`Export failed: ${e.message}`, 'error'); }
 }
 
 function transformHistory(seriesId, rows) {
   const out = [];
   const byKind = { sessions: [], series: [] };
-  for (const r of rows) {
-    (byKind[r.kind] || (byKind[r.kind] = [])).push(r);
-  }
-  // First line: series creation with parameters
+  for (const r of rows) { (byKind[r.kind] || (byKind[r.kind] = [])).push(r); }
   const seriesCreate = (byKind.series || []).find(r => r.action === 'create');
   if (seriesCreate) {
     const md = seriesCreate.metadata || {};
     const days = (md.recurrence && md.recurrence.days) || [];
     const freq = (md.recurrence && md.recurrence.freq) || 'weekly';
     const dayNames = days.map(d => dowLabel(parseInt(d,10))).join(', ');
-    // attempt to infer time range from any session create
     const anySessionCreate = (byKind.sessions || []).find(r => r.action === 'create');
     const start = anySessionCreate ? String(anySessionCreate.metadata?.start_time || '').slice(0,5) : '';
     const end = anySessionCreate ? String(anySessionCreate.metadata?.end_time || '').slice(0,5) : '';
     const className = lookup.classes.get(md.class_id) || 'Class';
     const range = md.start_date && md.end_date ? `${md.start_date} to ${md.end_date}` : '';
-    const recurrenceText = freq === 'monthly' ? `Monthly (${md?.recurrence?.nth || '1st'} week on ${dayNames})` : `${freq === 'biweekly' ? 'Every 2 weeks' : 'Weekly'} on ${dayNames}`;
-    out.push({ when: seriesCreate.happened_at, summary: `${className} ${range} — ${recurrenceText}` });
+    const freqText = freq === 'biweekly' ? 'every 2 weeks' : (freq === 'monthly' ? 'monthly' : 'weekly');
+    const daysText = dayNames ? ` on ${dayNames}` : '';
+    out.push({ when: seriesCreate.happened_at, summary: `${className} recurs ${freqText}${daysText} from ${range}${start && end ? ` at ${start}–${end}` : ''}`.trim() });
   }
-  // List creates and deletes
-  for (const r of (byKind.sessions || [])) {
-    if (r.action === 'create') {
-      const md = r.metadata || {};
-      const start = String(md.start_time || '').slice(0,5);
-      const end = String(md.end_time || '').slice(0,5);
-      out.push({ when: r.happened_at, summary: `Session created for ${r.date} ${start}-${end}` });
-    } else if (r.action === 'delete') {
-      out.push({ when: r.happened_at, summary: `Session deleted for ${r.date}` });
+  const changes = (byKind.sessions || []).filter(r => r.action !== 'create').sort((a,b) => new Date(a.happened_at) - new Date(b.happened_at));
+  for (const r of changes) {
+    if (r.action === 'delete') {
+      const d = r.metadata?.date || '';
+      out.push({ when: r.happened_at, summary: `${d} class deleted` });
     } else if (r.action === 'update') {
-      out.push({ when: r.happened_at, summary: `Session updated for ${r.date}` });
+      const from = r.metadata?.from || {}; const to = r.metadata?.to || {};
+      const dFrom = from.date || ''; const dTo = to.date || '';
+      const tFrom = `${String(from.start_time||'').slice(0,5)}–${String(from.end_time||'').slice(0,5)}`;
+      const tTo = `${String(to.start_time||'').slice(0,5)}–${String(to.end_time||'').slice(0,5)}`;
+      if (dFrom && dTo && dFrom !== dTo) {
+        out.push({ when: r.happened_at, summary: tFrom !== tTo ? `${dFrom} rescheduled to ${dTo} and time changed to ${tTo}` : `${dFrom} rescheduled to ${dTo}` });
+      } else if (tFrom !== tTo && dFrom) {
+        out.push({ when: r.happened_at, summary: `${dFrom} time changed from ${tFrom} to ${tTo}` });
+      }
     }
   }
-  return out.sort((a,b) => String(b.when||'').localeCompare(String(a.when||'')));
+  const locLogs = (byKind.session_locations || []).sort((a,b)=> new Date(a.happened_at) - new Date(b.happened_at));
+  for (const r of locLogs) {
+    const d = r.metadata?.date || '';
+    const locId = r.metadata?.location_id;
+    const locName = lookup.locations.get(locId) || 'location';
+    if (r.action === 'create') out.push({ when: r.happened_at, summary: `${d} location added: ${locName}` });
+    else if (r.action === 'delete') out.push({ when: r.happened_at, summary: `${d} location removed: ${locName}` });
+  }
+  const seriesUpdates = (byKind.series || []).filter(r => r.action === 'update');
+  for (const r of seriesUpdates) {
+    const from = r.metadata?.from || {}; const to = r.metadata?.to || {};
+    if (from.instructor_id && to.instructor_id && from.instructor_id !== to.instructor_id) {
+      const name = lookup.instructors.get(to.instructor_id) || 'instructor';
+      out.push({ when: r.happened_at, summary: `Instructor changed to ${name}` });
+    }
+    if (from.class_id && to.class_id && from.class_id !== to.class_id) {
+      const name = lookup.classes.get(to.class_id) || 'class';
+      out.push({ when: r.happened_at, summary: `Class changed to ${name}` });
+    }
+  }
+  return out;
 }
 
+function updateMonthlyVisibility() { if (!el.monthlyWeekWrap) return; const rec = el.recurrence?.value; el.monthlyWeekWrap.style.display = rec === 'monthly' ? '' : 'none'; }
+
+async function onTableClick(ev) {
+  const btn = ev.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  const tr = btn.closest('tr');
+  const sessionId = btn.getAttribute('data-session-id');
+  const seriesId = btn.getAttribute('data-series-id');
+  if (action === 'delete' && sessionId) {
+    if (!confirm('Delete this session?')) return;
+    try { await deleteSession(sessionId); toast('Deleted.', 'success'); await refreshTable(); } catch (e) { console.error(e); toast(`Delete failed: ${e.message}`, 'error'); }
+  } else if (action === 'delete-series' && seriesId) {
+    if (!confirm('Delete the entire series?')) return;
+    try { await deleteSeries(seriesId); toast('Series deleted.', 'success'); await refreshTable(); } catch (e) { console.error(e); toast(`Delete failed: ${e.message}`, 'error'); }
+  } else if (action === 'edit') {
+    state.editingId = sessionId; await refreshTable();
+  } else if (action === 'cancel-edit') {
+    state.editingId = null; await refreshTable();
+  } else if (action === 'save-edit') {
+    await saveEditSession(tr);
+  } else if (action === 'history' && seriesId) {
+    await openHistory(seriesId);
+  }
+}
+
+(function initWhenReady() {
+  const bootstrap = async () => {
+    try {
+      initTimeSelects();
+      await loadLists();
+      await refreshTable();
+      el.addInstructorBtn?.addEventListener('click', addInstructorFlow);
+      el.addSingleBtn?.addEventListener('click', onAddSingle);
+      el.form?.addEventListener('submit', onAddSeries);
+      el.table?.addEventListener('click', onTableClick);
+      el.recurrence?.addEventListener('change', updateMonthlyVisibility);
+      updateMonthlyVisibility();
+      el.filterClass?.addEventListener('change', () => { state.filters.class_id = el.filterClass.value || ''; refreshTable(); });
+      el.filterInstructor?.addEventListener('change', () => { state.filters.instructor_id = el.filterInstructor.value || ''; refreshTable(); });
+      el.filterLocation?.addEventListener('change', () => { state.filters.location_id = el.filterLocation.value || ''; refreshTable(); });
+      el.filterFrom?.addEventListener('change', () => { state.filters.from = el.filterFrom.value || ''; refreshTable(); });
+      el.filterTo?.addEventListener('change', () => { state.filters.to = el.filterTo.value || ''; refreshTable(); });
+      el.clearFilters?.addEventListener('click', () => {
+        state.filters = { class_id: '', instructor_id: '', location_id: '', from: '', to: '' };
+        if (el.filterClass) el.filterClass.value = '';
+        if (el.filterInstructor) el.filterInstructor.value = '';
+        if (el.filterLocation) el.filterLocation.value = '';
+        if (el.filterFrom) el.filterFrom.value = '';
+        if (el.filterTo) el.filterTo.value = '';
+        refreshTable();
+      });
+      el.exportCsvBtn?.addEventListener('click', exportCSV);
+      el.historyClose?.addEventListener('click', () => closeHistory());
+      el.historyExport?.addEventListener('click', () => exportHistoryCSV());
+      document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeHistory(); });
+      el.viewSeriesSummaries?.addEventListener('click', () => openSeriesSummaries());
+    } catch (e) {
+      console.error(e);
+      toast(`Init error: ${e.message}`, 'error');
+    }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrap);
+  else bootstrap();
+})();
+
+// Minimal add-instructor flow used by both app builds
+async function addInstructorFlow() {
+  const name = prompt('Instructor name');
+  if (!name) return;
+  const { data, error } = await sb.from('instructors').insert({ name, status: 'active' }).select('id').single();
+  if (error) { console.error(error); toast(`Failed to add instructor: ${error.message}`, 'error'); return; }
+  await loadInstructors(data.id);
+  toast('Instructor added.', 'success');
+}
+
+// Show a slideout table summarizing scheduled series respecting current filters
 async function openSeriesSummaries() {
   try {
-    // Pull distinct series with basic metadata
-    const { data, error } = await sb
-      .from('class_series')
-      .select('id,class_id,instructor_id,start_date,end_date,recurrence,days')
-      .order('start_date', { ascending: true })
-      .limit(5000);
-    if (error) throw error;
-    const rows = data || [];
     ensureHistoryElements();
-    if (!el.historyDrawer) return;
-    el.historyDrawer.hidden = false;
-    el.historyDrawer.dataset.mode = 'series-table';
-    const out = [];
-    const header = ['Class','Instructor','Locations','Recurrence','Start Time','End Time','Start Date','End Date'];
-    // We do not actually have per-series fixed times or locations here; leave blank unless inferred elsewhere.
-    for (const r of rows) {
-      const className = lookup.classes.get(r.class_id) || r.class_id;
-      const instructorName = lookup.instructors.get(r.instructor_id) || r.instructor_id;
-      const dayNames = (r.days||[]).map(d => dowLabel(parseInt(d,10))).join(', ');
-      const recurrenceText = r.recurrence === 'monthly' ? `Monthly on ${dayNames}` : (r.recurrence === 'biweekly' ? `Every 2 weeks on ${dayNames}` : `Weekly on ${dayNames}`);
-      out.push({
-        className,
-        instructorName,
-        locNames: '',
-        recurrenceText,
-        startTime: '',
-        endTime: '',
-        startDate: r.start_date,
-        endDate: r.end_date,
-      });
+    if (!sb) { toast('Not connected.', 'error'); return; }
+
+    // Fetch all sessions matching current filters (batch to be safe)
+    const all = [];
+    const batch = 1000; let offset = 0;
+    while (true) {
+      let q = sb.from('v_sessions').select('series_id,class_id,instructor_id,date,start_time,end_time,location_ids');
+      if (state.filters.class_id) q = q.eq('class_id', state.filters.class_id);
+      if (state.filters.instructor_id) q = q.eq('instructor_id', state.filters.instructor_id);
+      if (state.filters.location_id) q = q.contains('location_ids', [state.filters.location_id]);
+      if (state.filters.from) q = q.gte('date', state.filters.from);
+      if (state.filters.to) q = q.lte('date', state.filters.to);
+      const { data, error } = await q.order('date', { ascending: true }).range(offset, offset + batch - 1);
+      if (error) throw error;
+      const rows = data || [];
+      all.push(...rows);
+      if (rows.length < batch) break;
+      offset += batch;
+      if (offset >= 50000) break;
     }
-    el.historyDrawer.dataset.tableLines = JSON.stringify(out);
+
+    // Group by series_id
+    const bySeries = new Map();
+    for (const r of all) {
+      if (!r.series_id) continue;
+      let g = bySeries.get(r.series_id);
+      if (!g) { g = []; bySeries.set(r.series_id, g); }
+      g.push(r);
+    }
+    if (bySeries.size === 0) {
+      if (el.historyList) el.historyList.innerHTML = '<div class="history-item">No scheduled series match the current filters.</div>';
+      if (el.historyDrawer) {
+        el.historyDrawer.dataset.mode = 'series-table';
+        el.historyDrawer.dataset.tableLines = '[]';
+        el.historyDrawer.hidden = false;
+        el.historyDrawer.style.display = 'block';
+      }
+      if (el.historyOverlay) el.historyOverlay.hidden = false;
+      return;
+    }
+
+    // Fetch recurrence and bounds from series table for the involved series ids
+    const seriesIds = Array.from(bySeries.keys());
+    const { data: seriesRows, error: seriesErr } = await sb
+      .from('series')
+      .select('id, class_id, instructor_id, start_date, end_date, recurrence')
+      .in('id', seriesIds);
+    if (seriesErr) throw seriesErr;
+    const seriesMap = new Map((seriesRows || []).map(r => [r.id, r]));
+
+    // Build summary rows
+    const lines = [];
+    for (const [sid, sess] of bySeries.entries()) {
+      const sr = seriesMap.get(sid) || {};
+      // Sort sessions by date to pick representative times/locations
+      sess.sort((a,b) => String(a.date).localeCompare(String(b.date)));
+      const first = sess[0];
+      const className = lookup.classes.get(first?.class_id || sr.class_id) || (first?.class_id || sr.class_id || '');
+      const instructorName = lookup.instructors.get(first?.instructor_id || sr.instructor_id) || (first?.instructor_id || sr.instructor_id || '');
+      const locNames = (first?.location_ids || []).map(id => lookup.locations.get(id) || id).join('; ');
+      const startTime = String(first?.start_time || '').slice(0,5) || '';
+      const endTime = String(first?.end_time || '').slice(0,5) || '';
+      const startDate = sr.start_date || (sess[0]?.date || '');
+      const endDate = sr.end_date || (sess[sess.length - 1]?.date || '');
+      // Recurrence text from series.recurrence JSON
+      let recurrenceText = '';
+      try {
+        const rec = sr.recurrence || {};
+        const freq = rec.freq || 'weekly';
+        const days = (rec.days || []).map(d => dowLabel(parseInt(d,10))).join(', ');
+        recurrenceText = (freq === 'biweekly' ? 'every 2 weeks' : (freq === 'monthly' ? 'monthly' : 'weekly')) + (days ? ` on ${days}` : '');
+      } catch (_) {}
+      lines.push({ seriesId: sid, className, instructorName, locNames, recurrenceText, startTime, endTime, startDate, endDate });
+    }
+
+    // Render table into drawer
     const tableHtml = [
       '<table><thead><tr>',
-      '<th>Class</th>','<th>Instructor</th>','<th>Locations</th>','<th>Recurrence</th>','<th>Start Time</th>','<th>End Time</th>','<th>Start Date</th>','<th>End Date</th>',
+      '<th>Class</th><th>Instructor</th><th>Locations</th><th>Recurrence</th><th>Start Time</th><th>End Time</th><th>Start Date</th><th>End Date</th>',
       '</tr></thead><tbody>',
-      ...out.map(r => `<tr><td>${htmlEscape(r.className)}</td><td>${htmlEscape(r.instructorName)}</td><td>${htmlEscape(r.locNames)}</td><td>${htmlEscape(r.recurrenceText)}</td><td>${htmlEscape(r.startTime)}</td><td>${htmlEscape(r.endTime)}</td><td>${htmlEscape(r.startDate)}</td><td>${htmlEscape(r.endDate)}</td></tr>`),
+      ...lines.map(r => `<tr>
+        <td>${htmlEscape(r.className)}</td>
+        <td>${htmlEscape(r.instructorName)}</td>
+        <td>${htmlEscape(r.locNames)}</td>
+        <td>${htmlEscape(r.recurrenceText)}</td>
+        <td>${htmlEscape(r.startTime)}</td>
+        <td>${htmlEscape(r.endTime)}</td>
+        <td>${htmlEscape(r.startDate)}</td>
+        <td>${htmlEscape(r.endDate)}</td>
+      </tr>`),
       '</tbody></table>'
     ].join('');
-    el.historyList.innerHTML = tableHtml;
+
+    if (el.historyList) el.historyList.innerHTML = tableHtml;
+    if (el.historyDrawer) {
+      el.historyDrawer.dataset.mode = 'series-table';
+      el.historyDrawer.dataset.tableLines = JSON.stringify(lines);
+      el.historyDrawer.hidden = false;
+      el.historyDrawer.removeAttribute('hidden');
+      el.historyDrawer.style.display = 'block';
+    }
     if (el.historyOverlay) el.historyOverlay.hidden = false;
   } catch (e) {
     console.error(e);
     toast(`Failed to load series summaries: ${e.message}`, 'error');
   }
 }
-

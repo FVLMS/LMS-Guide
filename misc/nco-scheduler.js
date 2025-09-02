@@ -8,27 +8,7 @@ const key = window.SUPABASE_KEY;
 if (!url || !key) {
   console.warn("Missing SUPABASE_URL or SUPABASE_KEY. Define them before loading nco-scheduler.js.");
 }
-let sb; // created in init once Supabase SDK is confirmed loaded
-const loadedData = { classes: [], instructors: [], locations: [] };
-let observerStarted = false;
-const listenerFlags = {
-  addInstructor: false,
-  addSingle: false,
-  form: false,
-  table: false,
-  recurrence: false,
-  filterClass: false,
-  filterInstructor: false,
-  filterLocation: false,
-  filterFrom: false,
-  filterTo: false,
-  clearFilters: false,
-  exportCsv: false,
-  historyClose: false,
-  historyExport: false,
-  viewSeries: false,
-  keydown: false,
-};
+export const sb = window.supabase.createClient(url, key);
 
 // In-memory lookup maps for rendering names
 const lookup = {
@@ -44,40 +24,39 @@ const state = {
   editingId: null,
 };
 
-const el = {};
-function wireDom() {
-  el.classSelect = document.getElementById('classSelect');
-  el.instructorSelect = document.getElementById('instructorSelect');
-  el.addInstructorBtn = document.getElementById('addInstructorBtn');
-  el.locationSelect = document.getElementById('locationSelect');
-  el.addSingleBtn = document.getElementById('addSingleBtn');
-  el.singleDate = document.getElementById('singleDate');
-  el.singleStartHour = document.getElementById('singleStartHour');
-  el.singleStartMin = document.getElementById('singleStartMin');
-  el.singleEndHour = document.getElementById('singleEndHour');
-  el.singleEndMin = document.getElementById('singleEndMin');
-  el.startHour = document.getElementById('startHour');
-  el.startMin = document.getElementById('startMin');
-  el.endHour = document.getElementById('endHour');
-  el.endMin = document.getElementById('endMin');
-  el.startDate = document.getElementById('startDate');
-  el.endDate = document.getElementById('endDate');
-  el.recurrence = document.getElementById('recurrence');
-  el.monthlyWeek = document.getElementById('monthlyWeek');
-  el.monthlyWeekWrap = document.getElementById('monthlyWeekWrap');
-  el.form = document.getElementById('schedule-form');
-  el.toast = document.getElementById('toast');
-  el.table = document.getElementById('table');
+const el = {
+  classSelect: document.getElementById('classSelect'),
+  instructorSelect: document.getElementById('instructorSelect'),
+  addInstructorBtn: document.getElementById('addInstructorBtn'),
+  locationSelect: document.getElementById('locationSelect'),
+  addSingleBtn: document.getElementById('addSingleBtn'),
+  singleDate: document.getElementById('singleDate'),
+  singleStartHour: document.getElementById('singleStartHour'),
+  singleStartMin: document.getElementById('singleStartMin'),
+  singleEndHour: document.getElementById('singleEndHour'),
+  singleEndMin: document.getElementById('singleEndMin'),
+  startHour: document.getElementById('startHour'),
+  startMin: document.getElementById('startMin'),
+  endHour: document.getElementById('endHour'),
+  endMin: document.getElementById('endMin'),
+  startDate: document.getElementById('startDate'),
+  endDate: document.getElementById('endDate'),
+  recurrence: document.getElementById('recurrence'),
+  monthlyWeek: document.getElementById('monthlyWeek'),
+  monthlyWeekWrap: document.getElementById('monthlyWeekWrap'),
+  form: document.getElementById('schedule-form'),
+  toast: document.getElementById('toast'),
+  table: document.getElementById('table'),
   // filters UI (separate area)
-  el.filterClass = document.getElementById('filterClass');
-  el.filterInstructor = document.getElementById('filterInstructor');
-  el.filterLocation = document.getElementById('filterLocation');
-  el.filterFrom = document.getElementById('filterFrom');
-  el.filterTo = document.getElementById('filterTo');
-  el.clearFilters = document.getElementById('clearFilters');
-  el.exportCsvBtn = document.getElementById('exportCsv');
-  el.viewSeriesSummaries = document.getElementById('viewSeriesSummaries');
-}
+  filterClass: document.getElementById('filterClass'),
+  filterInstructor: document.getElementById('filterInstructor'),
+  filterLocation: document.getElementById('filterLocation'),
+  filterFrom: document.getElementById('filterFrom'),
+  filterTo: document.getElementById('filterTo'),
+  clearFilters: document.getElementById('clearFilters'),
+  exportCsvBtn: document.getElementById('exportCsv'),
+  viewSeriesSummaries: document.getElementById('viewSeriesSummaries'),
+};
 
 function ensureHistoryElements() {
   // If an existing drawer is in the DOM, wire it up and return
@@ -131,7 +110,6 @@ function ensureHistoryElements() {
 }
 
 function toast(msg, type = 'info') {
-  if (!el.toast) { console[type === 'error' ? 'error' : 'log'](msg); return; }
   el.toast.textContent = msg;
   el.toast.className = `toast ${type}`;
   // Force color to ensure it overrides base #toast rule in all browsers
@@ -158,10 +136,14 @@ async function loadLists() {
   lookup.classes = new Map((classes.data || []).map(r => [r.id, r.name]));
   lookup.instructors = new Map((instructors.data || []).map(r => [r.id, r.name]));
   lookup.locations = new Map((locations.data || []).map(r => [r.id, r.name]));
-  loadedData.classes = classes.data || [];
-  loadedData.instructors = instructors.data || [];
-  loadedData.locations = locations.data || [];
-  maybePopulateUI();
+  populateSelect(el.classSelect, classes.data);
+  populateSelect(el.instructorSelect, instructors.data);
+  populateSelect(el.locationSelect, locations.data, true);
+
+  // populate filter dropdowns with "All"
+  populateSelectWithAll(el.filterClass, classes.data);
+  populateSelectWithAll(el.filterInstructor, instructors.data);
+  populateSelectWithAll(el.filterLocation, locations.data);
 }
 
 async function loadInstructors(selectIdToKeep = null) {
@@ -179,7 +161,6 @@ async function loadInstructors(selectIdToKeep = null) {
 }
 
 function populateSelect(select, rows, multiple = false) {
-  if (!select) return;
   select.innerHTML = '';
   for (const r of rows) {
     const opt = document.createElement('option');
@@ -283,57 +264,6 @@ function populateMinSelect(sel) {
 function initTimeSelects() {
   [el.startHour, el.singleStartHour, el.singleEndHour, el.endHour].forEach(populateHourSelect);
   [el.startMin, el.singleStartMin, el.singleEndMin, el.endMin].forEach(populateMinSelect);
-}
-
-function maybePopulateUI() {
-  // Populate selects if their DOM nodes exist
-  if (el.classSelect && loadedData.classes.length) populateSelect(el.classSelect, loadedData.classes);
-  if (el.instructorSelect && loadedData.instructors.length) populateSelect(el.instructorSelect, loadedData.instructors);
-  if (el.locationSelect && loadedData.locations.length) populateSelect(el.locationSelect, loadedData.locations, true);
-  if (el.filterClass && loadedData.classes.length) populateSelectWithAll(el.filterClass, loadedData.classes);
-  if (el.filterInstructor && loadedData.instructors.length) populateSelectWithAll(el.filterInstructor, loadedData.instructors);
-  if (el.filterLocation && loadedData.locations.length) populateSelectWithAll(el.filterLocation, loadedData.locations);
-}
-
-function attachListenersIfPresent() {
-  if (el.addInstructorBtn && !listenerFlags.addInstructor) { el.addInstructorBtn.addEventListener('click', addInstructorFlow); listenerFlags.addInstructor = true; }
-  if (el.addSingleBtn && !listenerFlags.addSingle) { el.addSingleBtn.addEventListener('click', onAddSingle); listenerFlags.addSingle = true; }
-  if (el.form && !listenerFlags.form) { el.form.addEventListener('submit', onAddSeries); listenerFlags.form = true; }
-  if (el.table && !listenerFlags.table) { el.table.addEventListener('click', onTableClick); listenerFlags.table = true; }
-  if (el.recurrence && !listenerFlags.recurrence) { el.recurrence.addEventListener('change', updateMonthlyVisibility); listenerFlags.recurrence = true; }
-  if (el.filterClass && !listenerFlags.filterClass) { el.filterClass.addEventListener('change', () => { state.filters.class_id = el.filterClass.value || ''; refreshTable(); }); listenerFlags.filterClass = true; }
-  if (el.filterInstructor && !listenerFlags.filterInstructor) { el.filterInstructor.addEventListener('change', () => { state.filters.instructor_id = el.filterInstructor.value || ''; refreshTable(); }); listenerFlags.filterInstructor = true; }
-  if (el.filterLocation && !listenerFlags.filterLocation) { el.filterLocation.addEventListener('change', () => { state.filters.location_id = el.filterLocation.value || ''; refreshTable(); }); listenerFlags.filterLocation = true; }
-  if (el.filterFrom && !listenerFlags.filterFrom) { el.filterFrom.addEventListener('change', () => { state.filters.from = el.filterFrom.value || ''; refreshTable(); }); listenerFlags.filterFrom = true; }
-  if (el.filterTo && !listenerFlags.filterTo) { el.filterTo.addEventListener('change', () => { state.filters.to = el.filterTo.value || ''; refreshTable(); }); listenerFlags.filterTo = true; }
-  if (el.clearFilters && !listenerFlags.clearFilters) { el.clearFilters.addEventListener('click', () => {
-    state.filters = { class_id: '', instructor_id: '', location_id: '', from: '', to: '' };
-    if (el.filterClass) el.filterClass.value = '';
-    if (el.filterInstructor) el.filterInstructor.value = '';
-    if (el.filterLocation) el.filterLocation.value = '';
-    if (el.filterFrom) el.filterFrom.value = '';
-    if (el.filterTo) el.filterTo.value = '';
-    refreshTable();
-  }); listenerFlags.clearFilters = true; }
-  if (el.exportCsvBtn && !listenerFlags.exportCsv) { el.exportCsvBtn.addEventListener('click', exportCSV); listenerFlags.exportCsv = true; }
-  if (el.historyClose && !listenerFlags.historyClose) { el.historyClose.addEventListener('click', () => closeHistory()); listenerFlags.historyClose = true; }
-  if (el.historyExport && !listenerFlags.historyExport) { el.historyExport.addEventListener('click', () => exportHistoryCSV()); listenerFlags.historyExport = true; }
-  if (!listenerFlags.keydown) { document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeHistory(); }); listenerFlags.keydown = true; }
-  if (el.viewSeriesSummaries && !listenerFlags.viewSeries) { el.viewSeriesSummaries.addEventListener('click', () => openSeriesSummaries()); listenerFlags.viewSeries = true; }
-}
-
-function startDomObserver() {
-  if (observerStarted) return;
-  observerStarted = true;
-  const obs = new MutationObserver(() => {
-    wireDom();
-    initTimeSelects();
-    maybePopulateUI();
-    attachListenersIfPresent();
-    // If table exists and we have a client, render
-    if (el.table && sb) refreshTable();
-  });
-  obs.observe(document.body, { childList: true, subtree: true });
 }
 
 async function addInstructorFlow() {
@@ -800,34 +730,50 @@ function updateMonthlyVisibility() {
   el.monthlyWeekWrap.style.display = rec === 'monthly' ? '' : 'none';
 }
 
-async function init() {
+(async function init() {
   try {
-    if (!window.supabase) {
-      toast('Supabase SDK not loaded. Check CSP or CDN.', 'error');
-      console.error('Supabase SDK not available on window.');
-      return;
-    }
-    sb = window.supabase.createClient(url, key);
-    wireDom();
     initTimeSelects();
-    startDomObserver();
-    await loadLists(); // populates once data returns; observer will handle late DOM
-    // If DOM already present, attempt initial render
-    maybePopulateUI();
-    attachListenersIfPresent();
+    await loadLists();
+    await refreshTable();
+
+    el.addInstructorBtn?.addEventListener('click', addInstructorFlow);
+    el.addSingleBtn?.addEventListener('click', onAddSingle);
+    el.form?.addEventListener('submit', onAddSeries);
+    el.table?.addEventListener('click', onTableClick);
+    el.recurrence?.addEventListener('change', updateMonthlyVisibility);
     updateMonthlyVisibility();
-    if (el.table) await refreshTable();
+
+    // Filters
+    el.filterClass?.addEventListener('change', () => { state.filters.class_id = el.filterClass.value || ''; refreshTable(); });
+    el.filterInstructor?.addEventListener('change', () => { state.filters.instructor_id = el.filterInstructor.value || ''; refreshTable(); });
+    el.filterLocation?.addEventListener('change', () => { state.filters.location_id = el.filterLocation.value || ''; refreshTable(); });
+    el.filterFrom?.addEventListener('change', () => { state.filters.from = el.filterFrom.value || ''; refreshTable(); });
+    el.filterTo?.addEventListener('change', () => { state.filters.to = el.filterTo.value || ''; refreshTable(); });
+    el.clearFilters?.addEventListener('click', () => {
+      state.filters = { class_id: '', instructor_id: '', location_id: '', from: '', to: '' };
+      if (el.filterClass) el.filterClass.value = '';
+      if (el.filterInstructor) el.filterInstructor.value = '';
+      if (el.filterLocation) el.filterLocation.value = '';
+      if (el.filterFrom) el.filterFrom.value = '';
+      if (el.filterTo) el.filterTo.value = '';
+      refreshTable();
+    });
+
+    el.exportCsvBtn?.addEventListener('click', exportCSV);
+    el.historyClose?.addEventListener('click', () => closeHistory());
+    el.historyExport?.addEventListener('click', () => exportHistoryCSV());
+    // Close on Escape
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') closeHistory();
+    });
+
+    // Global history control (top-line series only)
+    el.viewSeriesSummaries?.addEventListener('click', () => openSeriesSummaries());
   } catch (e) {
     console.error(e);
     toast(`Init error: ${e.message}`, 'error');
   }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init, { once: true });
-} else {
-  init();
-}
+})();
 
 async function openHistory(seriesId) {
   // Open immediately with a loading placeholder
@@ -996,3 +942,4 @@ async function openSeriesSummaries() {
     toast(`Failed to load series summaries: ${e.message}`, 'error');
   }
 }
+

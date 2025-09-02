@@ -1013,13 +1013,22 @@ async function onTableClick(ev) {
 (function initWhenReady() {
   const bootstrap = async () => {
     try {
-      // Account for host page headers: allow host to set window.CSOD_HOST_HEADER_OFFSET (in px)
-      try {
-        const off = Number(window.CSOD_HOST_HEADER_OFFSET || 0);
-        if (!Number.isNaN(off) && typeof document?.documentElement?.style?.setProperty === 'function') {
-          document.documentElement.style.setProperty('--host-offset', off + 'px');
+      // Account for host page headers: use explicit offset if provided, otherwise infer from layout
+      const applyOffset = () => {
+        let off = 0;
+        if (typeof window.CSOD_HOST_HEADER_OFFSET !== 'undefined') {
+          const n = Number(window.CSOD_HOST_HEADER_OFFSET);
+          if (!Number.isNaN(n) && n >= 0) off = n;
+        } else {
+          const mainEl = document.querySelector('main') || document.body;
+          const r = mainEl?.getBoundingClientRect?.();
+          if (r && r.top > 0 && r.top < 200) off = Math.round(r.top);
         }
-      } catch {}
+        if (!off) off = 60; // default for CSOD header
+        document.documentElement.style.setProperty('--host-offset', off + 'px');
+      };
+      applyOffset();
+      window.addEventListener('resize', applyOffset, { passive: true });
       initTimeSelects();
       await loadLists();
       await refreshTable();

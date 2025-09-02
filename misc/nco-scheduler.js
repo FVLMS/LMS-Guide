@@ -27,6 +27,9 @@ const state = {
   sort: { col: 'date', dir: 'asc' },
   filters: { class_id: '', instructor_id: '', from: '', to: '' },
   editingId: null,
+  view: 'table',
+  cal: { year: 2026, month: 0 }, // month: 0-11
+  submitting: false,
 };
 
 const el = {
@@ -35,6 +38,7 @@ const el = {
   addInstructorBtn: document.getElementById('addInstructorBtn'),
   locationSelect: document.getElementById('locationSelect'),
   addSingleBtn: document.getElementById('addSingleBtn'),
+  addSeriesBtn: document.getElementById('addSeriesBtn'),
   singleDate: document.getElementById('singleDate'),
   singleStartHour: document.getElementById('singleStartHour'),
   singleStartMin: document.getElementById('singleStartMin'),
@@ -52,6 +56,14 @@ const el = {
   form: document.getElementById('schedule-form'),
   toast: document.getElementById('toast'),
   table: document.getElementById('table'),
+  calendar: document.getElementById('calendar'),
+  viewTableBtn: document.getElementById('viewTable'),
+  viewCalendarBtn: document.getElementById('viewCalendar'),
+  // tabs
+  tabSingleBtn: document.getElementById('tabSingle'),
+  tabSeriesBtn: document.getElementById('tabSeries'),
+  tabSinglePanel: document.getElementById('panel-single'),
+  tabSeriesPanel: document.getElementById('panel-series'),
   // filters UI (separate area)
   filterClass: document.getElementById('filterClass'),
   filterInstructor: document.getElementById('filterInstructor'),
@@ -61,6 +73,10 @@ const el = {
   clearFilters: document.getElementById('clearFilters'),
   exportCsvBtn: document.getElementById('exportCsv'),
   viewSeriesSummaries: document.getElementById('viewSeriesSummaries'),
+  manageBlackouts: document.getElementById('manageBlackouts'),
+  skipBlockedWeeks: document.getElementById('skipBlockedWeeks'),
+  historySortChange: document.getElementById('historySortChange'),
+  historySortSession: document.getElementById('historySortSession'),
 };
 
 function ensureHistoryElements() {
@@ -70,6 +86,8 @@ function ensureHistoryElements() {
     el.historyList = existing.querySelector('#historyList');
     el.historyClose = existing.querySelector('#historyClose');
     el.historyExport = existing.querySelector('#historyExport');
+    el.historySortChange = existing.querySelector('#historySortChange');
+    el.historySortSession = existing.querySelector('#historySortSession');
     let overlay = document.getElementById('historyOverlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -81,6 +99,8 @@ function ensureHistoryElements() {
     el.historyOverlay = overlay;
     el.historyClose?.addEventListener('click', () => closeHistory());
     el.historyExport?.addEventListener('click', () => exportHistoryCSV());
+    el.historySortChange?.addEventListener('click', () => setHistorySort('change'));
+    el.historySortSession?.addEventListener('click', () => setHistorySort('session'));
     overlay.addEventListener('click', () => closeHistory());
     return;
   }
@@ -105,6 +125,9 @@ function ensureHistoryElements() {
       </div>
       <div id="historyList" class="history-list"></div>
       <div class="actions">
+        <span>Sort by:</span>
+        <button type="button" id="historySortChange" class="btn-toggle" aria-pressed="true">Change</button>
+        <button type="button" id="historySortSession" class="btn-toggle" aria-pressed="false">Session</button>
         <button type="button" id="historyExport">Export History CSV</button>
       </div>
     </div>`;
@@ -114,8 +137,12 @@ function ensureHistoryElements() {
   el.historyList = wrapper.querySelector('#historyList');
   el.historyClose = wrapper.querySelector('#historyClose');
   el.historyExport = wrapper.querySelector('#historyExport');
+  el.historySortChange = wrapper.querySelector('#historySortChange');
+  el.historySortSession = wrapper.querySelector('#historySortSession');
   el.historyClose?.addEventListener('click', () => closeHistory());
   el.historyExport?.addEventListener('click', () => exportHistoryCSV());
+  el.historySortChange?.addEventListener('click', () => setHistorySort('change'));
+  el.historySortSession?.addEventListener('click', () => setHistorySort('session'));
   overlay.addEventListener('click', () => closeHistory());
 }
 
@@ -248,6 +275,16 @@ function nthWeekdayOfMonth(year, monthIdx0, isoWeekday, n) {
   return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 }
 
+function isoWeekYearAndNumber(jsDate) {
+  const d = new Date(Date.UTC(jsDate.getFullYear(), jsDate.getMonth(), jsDate.getDate()));
+  const dayNum = d.getUTCDay() || 7; // Mon=1..Sun=7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const isoYear = d.getUTCFullYear();
+  const yearStart = new Date(Date.UTC(isoYear,0,1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return { year: isoYear, week };
+}
+
 async function createSeries(class_id, instructor_id, start_date, end_date, recurrence, days) {
   if (!sb) throw new Error('Supabase client not ready');
   const recurrenceJson = { freq: recurrence, days };
@@ -290,6 +327,10 @@ async function deleteSeries(seriesId) {
 }
 
 async function onAddSingle() {
+  if (state.submitting) return;
+  state.submitting = true;
+  if (el.addSingleBtn) { el.addSingleBtn.disabled = true; el.addSingleBtn.textContent = 'Adding…'; }
+  toast('Adding entries…');
   try {
     const class_id = el.classSelect?.value;
     const instructor_id = el.instructorSelect?.value;
@@ -303,16 +344,23 @@ async function onAddSingle() {
     const series_id = await createSeries(class_id, instructor_id, dateStr, dateStr, 'weekly', [isoDow(parseYMDLocal(dateStr))]);
     await insertSessionRPC(series_id, class_id, instructor_id, dateStr, startTimeStr, endTimeStr, locationIds);
     toast('Class added.', 'success');
-    await refreshTable();
+    await refreshCurrentView();
   } catch (e) {
     console.error(e);
     if (isOverlapError(e)) toast('Error: There is a session booked in one of these classrooms during this time', 'error');
     else toast(`Add failed: ${e.message}`, 'error');
+  } finally {
+    state.submitting = false;
+    if (el.addSingleBtn) { el.addSingleBtn.disabled = false; el.addSingleBtn.textContent = 'Add Single'; }
   }
 }
 
 async function onAddSeries(ev) {
   ev?.preventDefault?.();
+  if (state.submitting) return;
+  state.submitting = true;
+  if (el.addSeriesBtn) { el.addSeriesBtn.disabled = true; el.addSeriesBtn.textContent = 'Adding…'; }
+  toast('Adding entries…');
   try {
     const class_id = el.classSelect?.value;
     const instructor_id = el.instructorSelect?.value;
@@ -329,7 +377,21 @@ async function onAddSeries(ev) {
     if (endTimeStr <= startTimeStr) { toast('End time must be after start time.', 'error'); return; }
 
     const series_id = await createSeries(class_id, instructor_id, start_date, end_date, recurrence, days);
-    const dates = generateOccurrences(start_date, end_date, days, recurrence, monthlyWeek);
+    let dates = generateOccurrences(start_date, end_date, days, recurrence, monthlyWeek);
+    if (el.skipBlockedWeeks?.checked) {
+      const y = parseYMDLocal(start_date).getFullYear();
+      const { data: blocks, error: bErr } = await sb
+        .from('blackout_weeks')
+        .select('year, week_number')
+        .eq('year', y);
+      if (bErr) throw bErr;
+      const blocked = new Set((blocks || []).map(b => b.week_number));
+      dates = dates.filter(dStr => {
+        const d = parseYMDLocal(dStr);
+        const { year: wy, week } = isoWeekYearAndNumber(d);
+        return !(wy === y && blocked.has(week));
+      });
+    }
     for (const d of dates) {
       try {
         await insertSessionRPC(series_id, class_id, instructor_id, d, startTimeStr, endTimeStr, locationIds);
@@ -338,11 +400,14 @@ async function onAddSeries(ev) {
       }
     }
     toast('Series added.', 'success');
-    await refreshTable();
+    await refreshCurrentView();
   } catch (e) {
     console.error(e);
     if (isOverlapError(e)) toast('Error: There is a session booked in one of these classrooms during this time', 'error');
     else toast(`Add failed: ${e.message}`, 'error');
+  } finally {
+    state.submitting = false;
+    if (el.addSeriesBtn) { el.addSeriesBtn.disabled = false; el.addSeriesBtn.textContent = 'Add Series'; }
   }
 }
 
@@ -419,9 +484,9 @@ function renderTable(rows) {
           <td>${locNames}</td>
           <td>
             <button type="button" data-action="edit" data-session-id="${r.id}">Edit</button>
-            <button type="button" data-action="delete" data-session-id="${r.id}">Delete</button>
             <button type="button" data-action="history" data-series-id="${r.series_id}">History</button>
-            <button type="button" data-action="delete-series" data-series-id="${r.series_id}">Delete Series</button>
+            <button type="button" class="danger" data-action="delete" data-session-id="${r.id}">Delete</button>
+            <button type="button" class="danger" data-action="delete-series" data-series-id="${r.series_id}">Delete Series</button>
           </td>
         </tr>`;
       } else {
@@ -435,10 +500,7 @@ function renderTable(rows) {
         const endHourSel = `<select class="edit-end-hour">${hourOpts.replace('data-end-selected','selected')}</select>`;
         const startMinSel = `<select class="edit-start-min">${minOpts.replace(`value="${startMM}"`,`value="${startMM}" selected`)}</select>`;
         const endMinSel = `<select class="edit-end-min">${minOpts.replace(`value="${endMM}"`,`value="${endMM}" selected`)}</select>`;
-        const instrOpts = Array.from(lookup.instructors, ([id,name])=>({id,name}))
-          .sort((a,b)=>a.name.localeCompare(b.name))
-          .map(o=>`<option value="${o.id}" ${o.id===r.instructor_id?'selected':''}>${o.name}</option>`).join('');
-        const instrSel = `<select class="edit-instructor">${instrOpts}</select>`;
+        const instrDisplay = instructorName;
         const locOpts = Array.from(lookup.locations, ([id,name])=>({id,name}))
           .sort((a,b)=>a.name.localeCompare(b.name))
           .map(o=>`<option value="${o.id}" ${ (r.location_ids||[]).includes(o.id)?'selected':''}>${o.name}</option>`).join('');
@@ -450,7 +512,7 @@ function renderTable(rows) {
           <td>${r.week_number}</td>
           <td>${dowLabel(r.day_of_week)}</td>
           <td>${className}</td>
-          <td>${instrSel}</td>
+          <td>${instrDisplay}</td>
           <td>${locSel}</td>
           <td>
             <button type="button" data-action="save-edit" data-session-id="${r.id}">Save</button>
@@ -519,6 +581,7 @@ async function saveEditSession(tr) {
     if (!date || !sh || !sm || !eh || !em) { toast('Provide date and times.', 'error'); return; }
     if (parseYMDLocal(date) < parseYMDLocal('2026-01-01') || parseYMDLocal(date) > parseYMDLocal('2026-12-31')) { toast('Date must be within 2026.', 'error'); return; }
     if (end <= start) { toast('End time must be after start time.', 'error'); return; }
+
     const { data: _d, error: rpcError } = await sb.rpc('update_session_with_locations', {
       p_session_id: sessionId,
       p_date: date,
@@ -596,14 +659,106 @@ async function exportCSV() {
 function csvEscape(s) { s = String(s ?? ''); if (/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"'; return s; }
 function htmlEscape(s) { const t = document.createElement('textarea'); t.textContent = String(s ?? ''); return t.innerHTML; }
 
+function sortHistoryLines(lines, mode) {
+  const m = mode || 'change';
+  const copy = lines.slice();
+  if (m === 'session') {
+    copy.sort((a,b)=>{
+      const at = a.dateKeyTs ?? 0; const bt = b.dateKeyTs ?? 0;
+      if (at !== bt) return at - bt; // ascending by session date
+      return (b.whenTs ?? 0) - (a.whenTs ?? 0); // then newest change first
+    });
+  } else {
+    copy.sort((a,b)=> (b.whenTs ?? 0) - (a.whenTs ?? 0)); // newest change first
+  }
+  return copy;
+}
+
+function setHistorySort(mode) {
+  if (!el.historyDrawer) return;
+  if ((el.historyDrawer.dataset.mode || '') === 'series-table') return; // ignore in series mode
+  const m = mode === 'session' ? 'session' : 'change';
+  el.historyDrawer.dataset.sort = m;
+  // Update button states
+  el.historySortChange?.setAttribute('aria-pressed', m === 'change' ? 'true' : 'false');
+  el.historySortSession?.setAttribute('aria-pressed', m === 'session' ? 'true' : 'false');
+  // Re-render list from cached transformed lines
+  const raw = el.historyDrawer.dataset.lines || '[]';
+  let lines;
+  try { lines = JSON.parse(raw); } catch { lines = []; }
+  const ordered = sortHistoryLines(lines, m);
+  const items = ordered.map(r => `
+    <div class="history-item">
+      <div>${htmlEscape(r.summary)}</div>
+      <time>${r.when || ''}</time>
+    </div>
+  `).join('');
+  if (el.historyList) el.historyList.innerHTML = items || '<div class="history-item">No history.</div>';
+}
+
+async function renderCalendar() {
+  if (!el.calendar) return;
+  const y = state.cal.year; const m = state.cal.month; // 0-11
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0);
+  // fetch sessions in range with filters
+  let q = sb.from('v_sessions').select('*').gte('date', toYMD(first)).lte('date', toYMD(last));
+  if (state.filters.class_id) q = q.eq('class_id', state.filters.class_id);
+  if (state.filters.instructor_id) q = q.eq('instructor_id', state.filters.instructor_id);
+  if (state.filters.location_id) q = q.contains('location_ids', [state.filters.location_id]);
+  const { data, error } = await q.order('date', { ascending: true }).order('start_time', { ascending: true });
+  if (error) { console.error(error); el.calendar.innerHTML = `<div class="cal-header">Error loading calendar</div>`; return; }
+  const rows = data || [];
+  const byDate = new Map();
+  for (const r of rows) {
+    let arr = byDate.get(r.date); if (!arr) { arr = []; byDate.set(r.date, arr); }
+    arr.push(r);
+  }
+  const monthName = first.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+  const header = `
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button type="button" id="calPrev">◀</button>
+        <div>${monthName}</div>
+        <button type="button" id="calNext">▶</button>
+      </div>
+      <div></div>
+    </div>`;
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const weekdayRow = weekdays.map(w=>`<div class="cal-weekday">${w}</div>`).join('');
+  const cells = [];
+  const startDow = first.getDay(); // 0=Sun
+  for (let i=0;i<startDow;i++) cells.push('<div class="cal-cell" aria-hidden="true"></div>');
+  for (let d=1; d<=last.getDate(); d++) {
+    const date = new Date(y, m, d); const ymd = toYMD(date);
+    const items = (byDate.get(ymd)||[]).map(r=>{
+      const start = String(r.start_time).slice(0,5);
+      const className = lookup.classes.get(r.class_id) || r.class_id;
+      const locNames = (r.location_ids||[]).map(id=>lookup.locations.get(id)||id).join(', ');
+      return `<div class="cal-item">${start} • ${htmlEscape(className)} • ${htmlEscape(locNames)}</div>`;
+    }).join('');
+    cells.push(`<div class="cal-cell"><div class="cal-date">${d}</div><div class="cal-items">${items}</div></div>`);
+  }
+  el.calendar.innerHTML = header + `<div class="cal-grid">${weekdayRow}${cells.join('')}</div>`;
+  el.calendar.querySelector('#calPrev')?.addEventListener('click', () => { if (state.cal.month===0){ state.cal.month=11; state.cal.year--; } else state.cal.month--; renderCalendar(); });
+  el.calendar.querySelector('#calNext')?.addEventListener('click', () => { if (state.cal.month===11){ state.cal.month=0; state.cal.year++; } else state.cal.month++; renderCalendar(); });
+}
+
 async function openHistory(seriesId) {
   ensureHistoryElements();
   if (el.historyDrawer) {
+    const title = el.historyDrawer.querySelector('.drawer-header h3');
+    if (title) title.textContent = 'Series History';
+    if (el.historyExport) el.historyExport.style.display = '';
+    // Show sort controls in history mode
+    if (el.historySortChange) el.historySortChange.style.display = '';
+    if (el.historySortSession) el.historySortSession.style.display = '';
     el.historyList.innerHTML = '<div class="history-item">Loading…</div>';
     el.historyDrawer.hidden = false;
     el.historyDrawer.removeAttribute('hidden');
     el.historyDrawer.style.display = 'block';
     el.historyDrawer.dataset.seriesId = seriesId;
+    el.historyDrawer.dataset.mode = 'history';
     if (el.historyOverlay) el.historyOverlay.hidden = false;
   }
   try {
@@ -625,7 +780,9 @@ async function openHistory(seriesId) {
 function renderHistory(seriesId, rows) {
   if (!el.historyDrawer) return;
   const transformed = transformHistory(seriesId, rows);
-  const items = transformed.map(r => `
+  const sortMode = el.historyDrawer?.dataset.sort || 'change';
+  const ordered = sortHistoryLines(transformed, sortMode);
+  const items = ordered.map(r => `
     <div class="history-item">
       <div>${htmlEscape(r.summary)}</div>
       <time>${r.when || ''}</time>
@@ -635,6 +792,11 @@ function renderHistory(seriesId, rows) {
   el.historyDrawer.hidden = false;
   el.historyDrawer.dataset.seriesId = seriesId;
   el.historyDrawer.dataset.lines = JSON.stringify(transformed);
+  el.historyDrawer.dataset.sort = sortMode;
+  el.historyDrawer.dataset.mode = 'history';
+  // update toggle visual state
+  if (el.historySortChange) el.historySortChange.setAttribute('aria-pressed', sortMode === 'change' ? 'true' : 'false');
+  if (el.historySortSession) el.historySortSession.setAttribute('aria-pressed', sortMode === 'session' ? 'true' : 'false');
 }
 
 function closeHistory() {
@@ -654,8 +816,10 @@ async function exportHistoryCSV() {
       csv = lines.map(r => r.map(csvEscape).join(',')).join('\n');
     } else {
       const transformed = JSON.parse(el.historyDrawer?.dataset.lines || '[]');
+      const sortMode = el.historyDrawer?.dataset.sort || 'change';
+      const ordered = sortHistoryLines(transformed, sortMode);
       const lines = [['When','Summary']];
-      for (const r of transformed) lines.push([r.when || '', r.summary]);
+      for (const r of ordered) lines.push([r.when || '', r.summary]);
       csv = lines.map(r => r.map(csvEscape).join(',')).join('\n');
     }
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -682,49 +846,119 @@ function transformHistory(seriesId, rows) {
     const range = md.start_date && md.end_date ? `${md.start_date} to ${md.end_date}` : '';
     const freqText = freq === 'biweekly' ? 'every 2 weeks' : (freq === 'monthly' ? 'monthly' : 'weekly');
     const daysText = dayNames ? ` on ${dayNames}` : '';
-    out.push({ when: seriesCreate.happened_at, summary: `${className} recurs ${freqText}${daysText} from ${range}${start && end ? ` at ${start}–${end}` : ''}`.trim() });
+    out.push({ when: seriesCreate.happened_at, whenTs: new Date(seriesCreate.happened_at).getTime(), dateKey: md.start_date || '', dateKeyTs: md.start_date ? new Date(md.start_date).getTime() : 0, summary: `${className} recurs ${freqText}${daysText} from ${range}${start && end ? ` at ${start}–${end}` : ''}`.trim() });
   }
   const changes = (byKind.sessions || []).filter(r => r.action !== 'create').sort((a,b) => new Date(a.happened_at) - new Date(b.happened_at));
   for (const r of changes) {
     if (r.action === 'delete') {
       const d = r.metadata?.date || '';
-      out.push({ when: r.happened_at, summary: `${d} class deleted` });
+      out.push({ when: r.happened_at, whenTs: new Date(r.happened_at).getTime(), dateKey: d, dateKeyTs: d ? new Date(d).getTime() : 0, summary: `${d} class deleted` });
     } else if (r.action === 'update') {
       const from = r.metadata?.from || {}; const to = r.metadata?.to || {};
       const dFrom = from.date || ''; const dTo = to.date || '';
       const tFrom = `${String(from.start_time||'').slice(0,5)}–${String(from.end_time||'').slice(0,5)}`;
       const tTo = `${String(to.start_time||'').slice(0,5)}–${String(to.end_time||'').slice(0,5)}`;
       if (dFrom && dTo && dFrom !== dTo) {
-        out.push({ when: r.happened_at, summary: tFrom !== tTo ? `${dFrom} rescheduled to ${dTo} and time changed to ${tTo}` : `${dFrom} rescheduled to ${dTo}` });
+        out.push({ when: r.happened_at, whenTs: new Date(r.happened_at).getTime(), dateKey: dTo || dFrom || '', dateKeyTs: (dTo||dFrom) ? new Date(dTo||dFrom).getTime() : 0, summary: tFrom !== tTo ? `${dFrom} rescheduled to ${dTo} and time changed to ${tTo}` : `${dFrom} rescheduled to ${dTo}` });
       } else if (tFrom !== tTo && dFrom) {
-        out.push({ when: r.happened_at, summary: `${dFrom} time changed from ${tFrom} to ${tTo}` });
+        out.push({ when: r.happened_at, whenTs: new Date(r.happened_at).getTime(), dateKey: dFrom, dateKeyTs: dFrom ? new Date(dFrom).getTime() : 0, summary: `${dFrom} time changed from ${tFrom} to ${tTo}` });
+      }
+      // session-level instructor change (support different key shapes)
+      const fromInstr = from.instructor_id || from.instructor || '';
+      const toInstr = to.instructor_id || to.instructor || '';
+      if (fromInstr && toInstr && fromInstr !== toInstr) {
+        const name = lookup.instructors.get(toInstr) || toInstr || 'instructor';
+        const d = dTo || dFrom || '';
+        out.push({ when: r.happened_at, whenTs: new Date(r.happened_at).getTime(), dateKey: d, dateKeyTs: d ? new Date(d).getTime() : 0, summary: `${d} instructor changed to ${name}` });
       }
     }
   }
+  // session location add/remove events
   const locLogs = (byKind.session_locations || []).sort((a,b)=> new Date(a.happened_at) - new Date(b.happened_at));
+  const seriesCreatedAt = seriesCreate ? new Date(seriesCreate.happened_at) : null;
+  const sessionCreates = (byKind.sessions || []).filter(r => r.action === 'create');
+  const createTimesByDate = new Map();
+  for (const c of sessionCreates) {
+    const d = c.metadata?.date || '';
+    if (!d) continue;
+    const ts = new Date(c.happened_at).getTime();
+    const arr = createTimesByDate.get(d) || [];
+    arr.push(ts);
+    createTimesByDate.set(d, arr);
+  }
+  // Windows around session updates that change date/time/instructor to suppress location churn
+  const changeEvents = (byKind.sessions || [])
+    .filter(r => {
+      if (r.action !== 'update') return false;
+      const from = r.metadata?.from || {}; const to = r.metadata?.to || {};
+      const dateChanged = (from.date || '') && (to.date || '') && from.date !== to.date;
+      const startChanged = String(from.start_time || '') !== String(to.start_time || '');
+      const endChanged = String(from.end_time || '') !== String(to.end_time || '');
+      const instrChanged = (from.instructor_id || from.instructor || '') !== (to.instructor_id || to.instructor || '');
+      return dateChanged || startChanged || endChanged || instrChanged;
+    })
+    .map(r => ({ ts: new Date(r.happened_at).getTime(), dates: [r.metadata?.from?.date, r.metadata?.to?.date].filter(Boolean) }));
   for (const r of locLogs) {
     const d = r.metadata?.date || '';
     const locId = r.metadata?.location_id;
     const locName = lookup.locations.get(locId) || 'location';
-    if (r.action === 'create') out.push({ when: r.happened_at, summary: `${d} location added: ${locName}` });
-    else if (r.action === 'delete') out.push({ when: r.happened_at, summary: `${d} location removed: ${locName}` });
+    const ts = new Date(r.happened_at).getTime();
+    // Ignore initial location 'create' events that occur at series scheduling time.
+    if (r.action === 'create') {
+      let isInitial = false;
+      const windowMs = 10000; // 10s window around session creation
+      const arr = createTimesByDate.get(d) || [];
+      for (const t of arr) { if (Math.abs(ts - t) <= windowMs) { isInitial = true; break; } }
+      if (isInitial) continue;
+      // Also ignore location adds occurring as part of a date/time/instructor change for this date
+      for (const ev of changeEvents) { if (ev.dates.includes(d) && Math.abs(ts - ev.ts) <= windowMs) { isInitial = true; break; } }
+      if (isInitial) continue;
+      out.push({ when: r.happened_at, whenTs: ts, dateKey: d, dateKeyTs: d ? new Date(d).getTime() : 0, summary: `${d} location added: ${locName}` });
+    } else if (r.action === 'delete') {
+      // Ignore deletes that are part of a date/time/instructor change for this date
+      const windowMs = 10000;
+      let isMove = false; for (const ev of changeEvents) { if (ev.dates.includes(d) && Math.abs(ts - ev.ts) <= windowMs) { isMove = true; break; } }
+      if (isMove) continue;
+      out.push({ when: r.happened_at, whenTs: ts, dateKey: d, dateKeyTs: d ? new Date(d).getTime() : 0, summary: `${d} location removed: ${locName}` });
+    }
   }
+  // series-level instructor changes
   const seriesUpdates = (byKind.series || []).filter(r => r.action === 'update');
   for (const r of seriesUpdates) {
     const from = r.metadata?.from || {}; const to = r.metadata?.to || {};
     if (from.instructor_id && to.instructor_id && from.instructor_id !== to.instructor_id) {
       const name = lookup.instructors.get(to.instructor_id) || 'instructor';
-      out.push({ when: r.happened_at, summary: `Instructor changed to ${name}` });
-    }
-    if (from.class_id && to.class_id && from.class_id !== to.class_id) {
-      const name = lookup.classes.get(to.class_id) || 'class';
-      out.push({ when: r.happened_at, summary: `Class changed to ${name}` });
+      out.push({ when: r.happened_at, whenTs: new Date(r.happened_at).getTime(), dateKey: '', dateKeyTs: 0, summary: `Instructor changed to ${name}` });
     }
   }
   return out;
 }
 
 function updateMonthlyVisibility() { if (!el.monthlyWeekWrap) return; const rec = el.recurrence?.value; el.monthlyWeekWrap.style.display = rec === 'monthly' ? '' : 'none'; }
+
+function setActiveTab(tab) {
+  const isSingle = tab === 'single';
+  if (el.tabSinglePanel) el.tabSinglePanel.hidden = !isSingle;
+  if (el.tabSeriesPanel) el.tabSeriesPanel.hidden = isSingle;
+  if (el.tabSingleBtn) el.tabSingleBtn.setAttribute('aria-selected', isSingle ? 'true' : 'false');
+  if (el.tabSeriesBtn) el.tabSeriesBtn.setAttribute('aria-selected', isSingle ? 'false' : 'true');
+  if (!isSingle) updateMonthlyVisibility();
+}
+
+function setView(view) {
+  state.view = view;
+  const isCal = view === 'calendar';
+  if (el.table) el.table.hidden = isCal;
+  if (el.calendar) el.calendar.hidden = !isCal;
+  if (el.viewTableBtn) el.viewTableBtn.setAttribute('aria-pressed', isCal ? 'false' : 'true');
+  if (el.viewCalendarBtn) el.viewCalendarBtn.setAttribute('aria-pressed', isCal ? 'true' : 'false');
+  refreshCurrentView();
+}
+
+function refreshCurrentView() {
+  if (state.view === 'calendar') renderCalendar();
+  else refreshTable();
+}
 
 async function onTableClick(ev) {
   const btn = ev.target.closest('button[data-action]');
@@ -762,11 +996,15 @@ async function onTableClick(ev) {
       el.table?.addEventListener('click', onTableClick);
       el.recurrence?.addEventListener('change', updateMonthlyVisibility);
       updateMonthlyVisibility();
-      el.filterClass?.addEventListener('change', () => { state.filters.class_id = el.filterClass.value || ''; refreshTable(); });
-      el.filterInstructor?.addEventListener('change', () => { state.filters.instructor_id = el.filterInstructor.value || ''; refreshTable(); });
-      el.filterLocation?.addEventListener('change', () => { state.filters.location_id = el.filterLocation.value || ''; refreshTable(); });
-      el.filterFrom?.addEventListener('change', () => { state.filters.from = el.filterFrom.value || ''; refreshTable(); });
-      el.filterTo?.addEventListener('change', () => { state.filters.to = el.filterTo.value || ''; refreshTable(); });
+      // tabs
+      el.tabSingleBtn?.addEventListener('click', () => setActiveTab('single'));
+      el.tabSeriesBtn?.addEventListener('click', () => setActiveTab('series'));
+      setActiveTab('series');
+      el.filterClass?.addEventListener('change', () => { state.filters.class_id = el.filterClass.value || ''; refreshCurrentView(); });
+      el.filterInstructor?.addEventListener('change', () => { state.filters.instructor_id = el.filterInstructor.value || ''; refreshCurrentView(); });
+      el.filterLocation?.addEventListener('change', () => { state.filters.location_id = el.filterLocation.value || ''; refreshCurrentView(); });
+      el.filterFrom?.addEventListener('change', () => { state.filters.from = el.filterFrom.value || ''; refreshCurrentView(); });
+      el.filterTo?.addEventListener('change', () => { state.filters.to = el.filterTo.value || ''; refreshCurrentView(); });
       el.clearFilters?.addEventListener('click', () => {
         state.filters = { class_id: '', instructor_id: '', location_id: '', from: '', to: '' };
         if (el.filterClass) el.filterClass.value = '';
@@ -774,13 +1012,18 @@ async function onTableClick(ev) {
         if (el.filterLocation) el.filterLocation.value = '';
         if (el.filterFrom) el.filterFrom.value = '';
         if (el.filterTo) el.filterTo.value = '';
-        refreshTable();
+        refreshCurrentView();
       });
       el.exportCsvBtn?.addEventListener('click', exportCSV);
       el.historyClose?.addEventListener('click', () => closeHistory());
       el.historyExport?.addEventListener('click', () => exportHistoryCSV());
       document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeHistory(); });
       el.viewSeriesSummaries?.addEventListener('click', () => openSeriesSummaries());
+      el.manageBlackouts?.addEventListener('click', () => openBlackouts());
+      el.viewTableBtn?.addEventListener('click', () => setView('table'));
+      el.viewCalendarBtn?.addEventListener('click', () => setView('calendar'));
+      // Init calendar state
+      const now = new Date(); state.cal = { year: now.getFullYear(), month: now.getMonth() };
     } catch (e) {
       console.error(e);
       toast(`Init error: ${e.message}`, 'error');
@@ -800,11 +1043,86 @@ async function addInstructorFlow() {
   toast('Instructor added.', 'success');
 }
 
+// Blocked weeks management using the existing drawer
+async function openBlackouts() {
+  ensureHistoryElements();
+  if (el.historyDrawer) {
+    const title = el.historyDrawer.querySelector('.drawer-header h3');
+    if (title) title.textContent = 'Blocked Weeks';
+    if (el.historyExport) el.historyExport.style.display = 'none';
+    el.historyList.innerHTML = '<div class="history-item">Loading…</div>';
+    el.historyDrawer.hidden = false;
+    el.historyDrawer.style.display = 'block';
+    if (el.historyOverlay) el.historyOverlay.hidden = false;
+  }
+  const y = 2026; // current app year
+  try {
+    const { data, error } = await sb.from('blackout_weeks').select('*').eq('year', y).order('week_number');
+    if (error) throw error;
+    renderBlackouts(y, data || []);
+  } catch (e) {
+    console.error(e);
+    renderBlackouts(y, []);
+    toast(`Failed to load blocked weeks: ${e.message}`, 'error');
+  }
+}
+
+function renderBlackouts(year, rows) {
+  if (!el.historyDrawer) return;
+  const form = `
+    <div class="row">
+      <label>Add by Date
+        <input type="date" id="blackoutDate" value="${year}-01-01" />
+      </label>
+      <label>Reason
+        <input type="text" id="blackoutReason" placeholder="e.g. Winter break" />
+      </label>
+      <div class="actions"><button type="button" id="blackoutAdd">Add Blocked Week</button></div>
+    </div>`;
+  const list = rows.map(r => `<div class=\"history-item\"><div>Week ${r.week_number} (${r.year}) — ${htmlEscape(r.reason || '')}</div><div><button type=\"button\" data-action=\"blackout-delete\" data-id=\"${r.id}\" class=\"danger\">Delete</button></div></div>`).join('');
+  el.historyList.innerHTML = form + (list || '<div class="history-item">No blocked weeks.</div>');
+  el.historyList.querySelector('#blackoutAdd')?.addEventListener('click', addBlackoutWeek);
+  el.historyList.querySelectorAll('button[data-action="blackout-delete"]').forEach(btn => btn.addEventListener('click', () => deleteBlackoutWeek(btn.getAttribute('data-id'))));
+}
+
+async function addBlackoutWeek() {
+  try {
+    const dateStr = document.getElementById('blackoutDate')?.value;
+    const reason = document.getElementById('blackoutReason')?.value || '';
+    if (!dateStr) { toast('Pick a date in the week to block.', 'error'); return; }
+    const d = parseYMDLocal(dateStr);
+    const { year, week } = isoWeekYearAndNumber(d);
+    if (year !== 2026) { toast('Only 2026 is supported currently.', 'error'); return; }
+    const { error } = await sb.from('blackout_weeks').insert({ year, week_number: week, reason });
+    if (error) throw error;
+    toast('Blocked week added.', 'success');
+    await openBlackouts();
+  } catch (e) { console.error(e); toast(`Failed to add: ${e.message}`, 'error'); }
+}
+
+async function deleteBlackoutWeek(id) {
+  try {
+    if (!confirm('Remove this blocked week?')) return;
+    const { error } = await sb.from('blackout_weeks').delete().eq('id', id);
+    if (error) throw error;
+    toast('Removed.', 'success');
+    await openBlackouts();
+  } catch (e) { console.error(e); toast(`Failed to remove: ${e.message}`, 'error'); }
+}
+
 // Show a slideout table summarizing scheduled series respecting current filters
 async function openSeriesSummaries() {
   try {
     ensureHistoryElements();
     if (!sb) { toast('Not connected.', 'error'); return; }
+    if (el.historyDrawer) {
+      const title = el.historyDrawer.querySelector('.drawer-header h3');
+      if (title) title.textContent = 'Scheduled Series';
+      if (el.historyExport) el.historyExport.style.display = '';
+      // Hide sort controls in series-table mode
+      if (el.historySortChange) el.historySortChange.style.display = 'none';
+      if (el.historySortSession) el.historySortSession.style.display = 'none';
+    }
 
     // Fetch all sessions matching current filters (batch to be safe)
     const all = [];

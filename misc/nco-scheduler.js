@@ -374,7 +374,7 @@ async function onAddSingle() {
 }
 
 async function onAddSeries(ev) {
-  ev?.preventDefault?.();
+  ev?.preventDefault?.(); ev?.stopPropagation?.();
   if (state.submitting) return;
   state.submitting = true;
   if (el.addSeriesBtn) { el.addSeriesBtn.disabled = true; el.addSeriesBtn.textContent = 'Adding…'; }
@@ -1034,7 +1034,8 @@ async function onTableClick(ev) {
       await refreshTable();
       el.addInstructorBtn?.addEventListener('click', addInstructorFlow);
       el.addSingleBtn?.addEventListener('click', onAddSingle);
-      el.form?.addEventListener('submit', onAddSeries);
+      el.form?.addEventListener('submit', (ev) => { ev.preventDefault(); ev.stopPropagation(); onAddSeries(ev); });
+      el.addSeriesBtn?.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); onAddSeries(ev); });
       el.table?.addEventListener('click', onTableClick);
       el.recurrence?.addEventListener('change', updateMonthlyVisibility);
       updateMonthlyVisibility();

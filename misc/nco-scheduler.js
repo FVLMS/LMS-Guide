@@ -35,6 +35,7 @@ const state = {
 const el = {
   classSelect: document.getElementById('classSelect'),
   instructorSelect: document.getElementById('instructorSelect'),
+  addClassBtn: document.getElementById('addClassBtn'),
   addInstructorBtn: document.getElementById('addInstructorBtn'),
   locationSelect: document.getElementById('locationSelect'),
   addSingleBtn: document.getElementById('addSingleBtn'),
@@ -185,6 +186,20 @@ async function loadInstructors(selectIdToKeep = null) {
   lookup.instructors = new Map((data || []).map(r => [r.id, r.name]));
   populateSelect(el.instructorSelect, data || []);
   if (selectIdToKeep && el.instructorSelect) el.instructorSelect.value = selectIdToKeep;
+}
+
+async function loadClasses(selectIdToKeep = null) {
+  if (!sb) return;
+  const { data, error } = await sb
+    .from('classes')
+    .select('id,name')
+    .eq('status','active')
+    .order('name');
+  if (error) throw error;
+  lookup.classes = new Map((data || []).map(r => [r.id, r.name]));
+  populateSelect(el.classSelect, data || []);
+  if (el.filterClass) populateSelectWithAll(el.filterClass, data || []);
+  if (selectIdToKeep && el.classSelect) el.classSelect.value = selectIdToKeep;
 }
 
 function populateSelect(select, rows) {
@@ -1032,6 +1047,7 @@ async function onTableClick(ev) {
       initTimeSelects();
       await loadLists();
       await refreshTable();
+      el.addClassBtn?.addEventListener('click', addClassFlow);
       el.addInstructorBtn?.addEventListener('click', addInstructorFlow);
       el.addSingleBtn?.addEventListener('click', onAddSingle);
       el.form?.addEventListener('submit', (ev) => { ev.preventDefault(); ev.stopPropagation(); onAddSeries(ev); });
@@ -1084,6 +1100,16 @@ async function addInstructorFlow() {
   if (error) { console.error(error); toast(`Failed to add instructor: ${error.message}`, 'error'); return; }
   await loadInstructors(data.id);
   toast('Instructor added.', 'success');
+}
+
+// Minimal add-class flow mirroring instructor add
+async function addClassFlow() {
+  const name = prompt('Class name');
+  if (!name) return;
+  const { data, error } = await sb.from('classes').insert({ name, status: 'active' }).select('id').single();
+  if (error) { console.error(error); toast(`Failed to add class: ${error.message}`, 'error'); return; }
+  await loadClasses(data.id);
+  toast('Class added.', 'success');
 }
 
 // Blocked weeks management using the existing drawer

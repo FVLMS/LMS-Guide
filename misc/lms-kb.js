@@ -18,11 +18,37 @@
   }
   const FLOW_GET_URL = readConfig('KB_FLOW_GET_URL', '/api/flow');
   const FLOW_SAVE_URL = readConfig('KB_FLOW_SAVE_URL', '/api/save');
+  const SHARE_BASE_URL = readConfig('KB_SHARE_BASE_URL', location.origin + location.pathname + location.search);
   const DEBUG_FLOW = true;
   const FIELDS = [
     'ArticleID','Title','Summary','Description','Type','Tags','RelatedArticles','Attachments','AttachmentLinks','Author','LastEditor','CreatedDate','UpdatedDate','ResolvedDate','Workaround','Status','Visibility','VersionNumber','ReviewDate','Audience'
   ];
   const TYPES = ['Bug','Limitation','Advisory','Guide'];
+
+  // Internal users allowlist (First Last). Parsed to normalized keys.
+  const INTERNAL_USER_LIST = [
+    'Alex Richardson',
+    'Michelle Doherty',
+    'Jacob Bezug',
+    'Jayda Hallman',
+    'Victoria Hinman',
+    'John Nelson',
+    'Robert Hoogwerf'
+  ];
+  function normalizePart(s) { return String(s||'').trim().toLowerCase(); }
+  function nameKey(first, last) { return normalizePart(first) + ':' + normalizePart(last); }
+  function parseFullName(full) {
+    const t = String(full||'').trim().replace(/\s+/g, ' ');
+    if (!t) return { first: '', last: '' };
+    const parts = t.split(' ');
+    if (parts.length === 1) return { first: parts[0], last: '' };
+    return { first: parts[0], last: parts[parts.length - 1] };
+  }
+  const INTERNAL_USERS = new Set(INTERNAL_USER_LIST.map(full => {
+    const { first, last } = parseFullName(full);
+    return nameKey(first, last);
+  }));
+  function isInternalUser(first, last) { return INTERNAL_USERS.has(nameKey(first, last)); }
 
   // State
   const state = {
@@ -58,6 +84,7 @@
     exportBtn: $('#exportBtn'),
     newBtn: $('#newBtn'),
     editBtn: $('#editBtn'),
+    copyBtn: $('#copyBtn'),
     details: $('#details'),
     detailsTitle: document.querySelector('#detailsTitle'),
     modal: $('#modal'),
@@ -353,7 +380,7 @@
       <div class="field"><label>Description</label><div>${nl2br(esc(a.Description))}</div></div>
       ${parseAttachmentLinks(a.AttachmentLinks).length ? `<div class="field"><label>Attachments</label><div>${renderAttachmentList(parseAttachmentLinks(a.AttachmentLinks))}</div></div>` : (a.Attachments ? `<div class="field"><label>Attachments</label><div>${renderLinks(a.Attachments)}</div></div>` : '')}
     `;
-    // Edit button visibility in single mode: only show if Internal
+    // Update action buttons visibility for current article
     updateEditButtonVisibility(a);
   }
 
@@ -845,6 +872,21 @@
       if (!a) return showError('Select an article first.');
       openForm(a);
     });
+    if (el.copyBtn) {
+      el.copyBtn.addEventListener('click', async () => {
+        const a = (state.mode === 'single') ? (state.articles[0] || null) : state.articles.find(x => x.ArticleID === state.selectedId);
+        if (!a) return showError('Select an article first.');
+        const url = buildShareUrl(a.ArticleID);
+        try {
+          await copyToClipboard(url);
+          const old = el.copyBtn.textContent;
+          el.copyBtn.textContent = 'Copied!';
+          setTimeout(() => { el.copyBtn.textContent = old; }, 1200);
+        } catch (e) {
+          showError('Failed to copy link');
+        }
+      });
+    }
     el.closeModal.addEventListener('click', closeForm);
     el.modal.addEventListener('click', (e) => { if (e.target === el.modal) closeForm(); });
 
@@ -899,7 +941,7 @@
       state.publicMode = false;
     } else {
       const { first, last } = getNameVars();
-      state.publicMode = (!first && !last);
+      state.publicMode = !(first && last && isInternalUser(first, last));
     }
     applyPublicUI();
     ensureDebugBanner();
@@ -926,8 +968,9 @@
     const { first, last } = getNameVars();
     const id = getUrlId();
     const view = getUrlView();
+    const matched = (first && last) ? isInternalUser(first, last) : false;
     box.innerHTML = `KB Debug — mode: <b>${state.publicMode ? 'public' : 'internal'}</b><br/>`+
-      `FIRSTNAME: ${first || '(blank)'}; LASTNAME: ${last || '(blank)'}<br/>`+
+      `FIRSTNAME: ${first || '(blank)'}; LASTNAME: ${last || '(blank)'}; matched: ${matched}<br/>`+
       `id: ${id || '(none)'}; view: ${view || '(none)'}<br/>`+
       `FLOW_GET_URL: ${FLOW_GET_URL}<br/>`+
       `FLOW_SAVE_URL: ${FLOW_SAVE_URL}`;
@@ -942,6 +985,26 @@
       return;
     }
     loadSingleFromFlow(id);
+  }
+
+  function buildShareUrl(id) {
+    const hash = `id=${encodeURIComponent(id)}&view=single`;
+    return SHARE_BASE_URL + (SHARE_BASE_URL.includes('#') ? '&' : '#') + hash;
+  }
+
+  async function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); } finally { document.body.removeChild(ta); }
   }
 
   function enterListMode() {
@@ -1005,16 +1068,23 @@
   }
 
   function updateEditButtonVisibility(a) {
-    // Hide edit in single mode unless Internal; in list mode, require selection
-    const btn = el.editBtn;
-    if (!btn) return;
-    if (state.mode === 'single') {
-      const show = !!(a && (a.Visibility === 'Internal'));
-      btn.style.display = show ? '' : 'none';
-    } else {
-      const show = !!state.selectedId && !state.publicMode;
-      btn.style.display = show ? '' : 'none';
-      btn.disabled = !show;
+    const edit = el.editBtn;
+    const copy = el.copyBtn;
+    // Edit visibility
+    if (edit) {
+      if (state.mode === 'single') {
+        const show = !!(a && (a.Visibility === 'Internal'));
+        edit.style.display = show ? '' : 'none';
+      } else {
+        const show = !!state.selectedId && !state.publicMode;
+        edit.style.display = show ? '' : 'none';
+        edit.disabled = !show;
+      }
+    }
+    // Copy availability
+    if (copy) {
+      const canCopy = !!(a && a.ArticleID);
+      copy.disabled = !canCopy;
     }
   }
 

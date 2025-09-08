@@ -941,12 +941,18 @@
       });
     }
     if (el.exportBtn) el.exportBtn.addEventListener('click', exportCSV);
-    el.newBtn.addEventListener('click', () => openForm(null));
-    el.editBtn.addEventListener('click', () => {
+    // Harden buttons against host form submits
+    try { el.newBtn.setAttribute('type','button'); } catch {}
+    try { el.editBtn.setAttribute('type','button'); } catch {}
+    try { el.copyBtn && el.copyBtn.setAttribute('type','button'); } catch {}
+    try { el.closeModal && el.closeModal.setAttribute('type','button'); } catch {}
+    el.newBtn.addEventListener('click', (ev) => { try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation && ev.stopImmediatePropagation(); } catch {} openForm(null); }, true);
+    el.editBtn.addEventListener('click', (ev) => {
+      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation && ev.stopImmediatePropagation(); } catch {}
       const a = state.articles.find(x => x.ArticleID === state.selectedId);
       if (!a) return showError('Select an article first.');
       openForm(a);
-    });
+    }, true);
     if (el.copyBtn) {
       el.copyBtn.addEventListener('click', async () => {
         const a = (state.mode === 'single') ? (state.articles[0] || null) : state.articles.find(x => x.ArticleID === state.selectedId);
@@ -962,8 +968,8 @@
         }
       });
     }
-    el.closeModal.addEventListener('click', closeForm);
-    el.modal.addEventListener('click', (e) => { if (e.target === el.modal) closeForm(); });
+    el.closeModal.addEventListener('click', (e) => { try { e.preventDefault(); e.stopPropagation(); } catch {} closeForm(); }, true);
+    el.modal.addEventListener('click', (e) => { if (e.target === el.modal) { try { e.preventDefault(); e.stopPropagation(); } catch {} closeForm(); } }, true);
 
     // Back link
     const back = document.querySelector('#backLink');

@@ -445,9 +445,26 @@
   }
 
   function openForm(existing) {
-    el.modal.style.display = 'flex';
-    el.modal.setAttribute('aria-hidden', 'false');
-    if (el.form) el.form.setAttribute('novalidate', 'novalidate');
+    // Resolve critical elements at call time for host environments (e.g., CSOD) where
+    // scripts may run before the DOM is fully present.
+    el.modal = el.modal || document.getElementById('modal');
+    el.form = document.getElementById('articleForm') || el.form;
+    el.closeModal = el.closeModal || document.getElementById('closeModal');
+    el.existingAtt = document.getElementById('ExistingAttachments') || el.existingAtt;
+    el.newAtt = document.getElementById('NewAttachments') || el.newAtt;
+    el.attachPicker = document.getElementById('AttachPicker') || el.attachPicker;
+
+    if (!el.form) {
+      console.warn('[KB] openForm: form #articleForm not found');
+      showError('Form not available on this page.');
+      return;
+    }
+
+    if (el.modal) {
+      el.modal.style.display = 'flex';
+      el.modal.setAttribute('aria-hidden', 'false');
+    }
+    el.form.setAttribute('novalidate', 'novalidate');
     const isNew = !existing;
     el.formTitle.textContent = isNew ? 'New Article' : `Edit Article #${existing.ArticleID}`;
     if (el.formMeta) {

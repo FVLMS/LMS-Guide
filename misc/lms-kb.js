@@ -21,9 +21,39 @@
   const SHARE_BASE_URL = readConfig('KB_SHARE_BASE_URL', location.origin + location.pathname + location.search);
   const DEBUG_FLOW = true;
   const FIELDS = [
-    'ArticleID','Title','Description','Type','Tags','RelatedArticles','Attachments','AttachmentLinks','Author','LastEditor','CreatedDate','UpdatedDate','ResolvedDate','Workaround','Status','Visibility','VersionNumber','ReviewDate','Audience'
+    'ArticleID','Title','Description','Type','Category','Tags','RelatedArticles','Attachments','AttachmentLinks','Author','LastEditor','CreatedDate','UpdatedDate','ResolvedDate','Workaround','Status','Visibility','VersionNumber','ReviewDate','Audience'
   ];
-  const TYPES = ['Bug','Limitation','Advisory','Guide'];
+  const TYPES = ['Bug','Limitation','Knowledge','Guide'];
+  function normalizeType(t) {
+    const v = String(t || '').trim();
+    if (/^advisory$/i.test(v)) return 'Knowledge';
+    return v || 'Guide';
+  }
+  // Categories source (populated from this JS file)
+  const CATEGORIES = [
+    'Login',
+    'Transcript',
+    'Launch Training',
+    'Dashboard',
+    'Reporting 2.0',
+    'Security',
+    'ILT',
+    'Material',
+    'Online Class',
+    'Curriculum',
+    'Test',
+    'Power Automate',
+    'SQL',
+    'Stored Procedures',
+    'Sharepoint',
+    'Other',
+    'Power Apps',
+    'Custom Pages',
+    'Support Process',
+    'eLearning Development',
+    'SCORM',
+    'iSpring',
+  ];
 
   // Internal users allowlist (First Last). Parsed to normalized keys.
   const INTERNAL_USER_LIST = [
@@ -173,7 +203,8 @@
     a.ArticleID = String(a.ArticleID || '');
     a.VersionNumber = String(a.VersionNumber || '1');
     a.Status = a.Status || 'Draft';
-    a.Type = a.Type || 'Guide';
+    a.Type = normalizeType(a.Type || 'Guide');
+    a.Category = a.Category || '';
     a.Visibility = a.Visibility || 'Internal';
     a.Audience = a.Audience || 'Support';
     return a;
@@ -373,6 +404,7 @@
         ${a.ResolvedDate ? `<div class="field"><label>Resolved</label><div>${fmtDate(a.ResolvedDate)}</div></div>` : ''}
         ${(!state.publicMode && a.ReviewDate) ? `<div class=\"field\"><label>Review</label><div>${fmtDate(a.ReviewDate)}</div></div>` : ''}
         ${!state.publicMode ? `<div class=\"field\"><label>Audience</label><div>${esc(a.Audience)}</div></div>` : ''}
+        ${a.Category ? `<div class=\"field\"><label>Category</label><div>${esc(a.Category)}</div></div>` : ''}
       </div>
       ${a.Tags ? `<div class="field" style="margin-top:8px"><label>Tags</label><div>${esc(a.Tags)}</div></div>` : ''}
       ${a.RelatedArticles ? `<div class="field"><label>Related</label><div>${esc(a.RelatedArticles)}</div></div>` : ''}
@@ -471,10 +503,10 @@
     }
     const patch = existing || {};
     // Fill form fields by name
-    for (const f of ['Title','Description','Type','Tags','Author','Status','Visibility','ResolvedDate','ReviewDate','Workaround','RelatedArticles']) {
+    for (const f of ['Title','Description','Type','Category','Tags','Author','Status','Visibility','ResolvedDate','ReviewDate','Workaround','RelatedArticles']) {
       const input = document.getElementById(f);
       if (!input) continue;
-      if (f === 'Status' || f === 'Visibility' || f === 'Type') input.value = patch[f] || input.value;
+      if (f === 'Status' || f === 'Visibility' || f === 'Type' || f === 'Category') input.value = patch[f] || input.value;
       else input.value = patch[f] || '';
     }
     // Mark required fields as non-native-required to avoid host form validation
@@ -492,6 +524,14 @@
     }
     if (typeInput) typeInput.addEventListener('change', updateWorkaroundVisibility);
     updateWorkaroundVisibility();
+
+    // Populate Category options from JS
+    const catSel = document.getElementById('Category');
+    if (catSel) {
+      const cur = patch.Category || '';
+      catSel.innerHTML = '<option value="">(none)</option>' + CATEGORIES.map(c => `<option>${esc(c)}</option>`).join('');
+      catSel.value = cur && CATEGORIES.includes(cur) ? cur : '';
+    }
 
     // Attachments UI
     const existingLinks = parseAttachmentLinks(existing && existing.AttachmentLinks);
@@ -545,6 +585,7 @@
           Title: get('Title'),
           Description: get('Description'),
           Type: get('Type'),
+          Category: get('Category'),
           Tags: get('Tags'),
           Author: get('Author'),
           Status: get('Status'),
@@ -577,6 +618,7 @@
             Title: formData.Title,
             Description: formData.Description,
             Type: formData.Type || 'Guide',
+            Category: formData.Category || '',
             Status: formData.Status,
             Visibility: formData.Visibility,
             Tags: formData.Tags,
@@ -627,6 +669,7 @@
             Title: formData.Title,
             Description: formData.Description,
             Type: formData.Type || 'Guide',
+            Category: formData.Category || '',
             Tags: formData.Tags,
             RelatedArticles: (relatedIds || []).join(', '),
             Author: formData.Author,
@@ -663,6 +706,7 @@
             Title: formData.Title,
             Description: formData.Description,
             Type: formData.Type || existing.Type || 'Guide',
+            Category: formData.Category || existing.Category || '',
             Status: formData.Status,
             Visibility: formData.Visibility,
             Tags: formData.Tags,
@@ -698,6 +742,7 @@
           mapped.Title = mapped.Title || formData.Title || existing.Title;
           mapped.Description = mapped.Description || formData.Description || existing.Description;
           mapped.Type = mapped.Type || formData.Type || existing.Type;
+          mapped.Category = mapped.Category || formData.Category || existing.Category;
           mapped.Status = mapped.Status || formData.Status || existing.Status;
           mapped.Visibility = mapped.Visibility || formData.Visibility || existing.Visibility;
           mapped.Author = mapped.Author || formData.Author || existing.Author;
@@ -884,6 +929,7 @@
       Title: pick('Title'),
       Description: pick('Description'),
       Type: readChoice(it.ArticleType) || pick('Type') || 'Guide',
+      Category: pick('Category'),
       Tags: pick('Tags'),
       RelatedArticles: related,
       Attachments: attachments,

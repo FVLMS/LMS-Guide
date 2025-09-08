@@ -454,17 +454,16 @@
     el.newAtt = document.getElementById('NewAttachments') || el.newAtt;
     el.attachPicker = document.getElementById('AttachPicker') || el.attachPicker;
 
-    if (!el.form) {
-      console.warn('[KB] openForm: form #articleForm not found');
-      showError('Form not available on this page.');
-      return;
+    const haveForm = !!el.form;
+    if (!haveForm) {
+      console.warn('[KB] openForm: form #articleForm not found (continuing with ID-based fields)');
     }
 
     if (el.modal) {
       el.modal.style.display = 'flex';
       el.modal.setAttribute('aria-hidden', 'false');
     }
-    el.form.setAttribute('novalidate', 'novalidate');
+    if (haveForm) el.form.setAttribute('novalidate', 'novalidate');
     const isNew = !existing;
     el.formTitle.textContent = isNew ? 'New Article' : `Edit Article #${existing.ArticleID}`;
     if (el.formMeta) {
@@ -473,14 +472,20 @@
     const patch = existing || {};
     // Fill form fields by name
     for (const f of ['Title','Description','Type','Tags','Author','Status','Visibility','ResolvedDate','ReviewDate','Workaround','RelatedArticles']) {
-      const input = el.form.querySelector('#'+f);
+      const input = document.getElementById(f);
       if (!input) continue;
       if (f === 'Status' || f === 'Visibility' || f === 'Type') input.value = patch[f] || input.value;
       else input.value = patch[f] || '';
     }
+    // Mark required fields as non-native-required to avoid host form validation
+    ['Title','Description'].forEach(id => {
+      const n = document.getElementById(id);
+      if (n) n.removeAttribute('required');
+    });
+
     // Show/hide Workaround field depending on Type
-    const typeInput = el.form.querySelector('#Type');
-    const workField = el.form.querySelector('#WorkaroundField');
+    const typeInput = document.getElementById('Type');
+    const workField = document.getElementById('WorkaroundField');
     function updateWorkaroundVisibility() {
       const v = (typeInput && typeInput.value) || 'Guide';
       if (workField) workField.style.display = (v === 'Bug' || v === 'Limitation') ? '' : 'none';
@@ -509,9 +514,9 @@
     }
 
     // Show/hide ResolvedDate depending on Status = Resolved
-    const statusInput = el.form.querySelector('#Status');
-    const resolvedField = el.form.querySelector('#ResolvedDateField');
-    const resolvedInput = el.form.querySelector('#ResolvedDate');
+    const statusInput = document.getElementById('Status');
+    const resolvedField = document.getElementById('ResolvedDateField');
+    const resolvedInput = document.getElementById('ResolvedDate');
     function updateResolvedVisibility() {
       const isResolved = (statusInput && statusInput.value) === 'Resolved';
       if (resolvedField) resolvedField.style.display = isResolved ? '' : 'none';
@@ -527,7 +532,34 @@
       e.preventDefault();
       // Belt-and-suspenders: block bubbling to any parent forms (CSOD)
       try { e.stopPropagation(); e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch {}
-      const formData = Object.fromEntries(new FormData(el.form).entries());
+      // Read values
+      let formData;
+      if (el.form) {
+        formData = Object.fromEntries(new FormData(el.form).entries());
+      } else {
+        const get = (id) => {
+          const n = document.getElementById(id);
+          return n && 'value' in n ? String(n.value) : '';
+        };
+        formData = {
+          Title: get('Title'),
+          Description: get('Description'),
+          Type: get('Type'),
+          Tags: get('Tags'),
+          Author: get('Author'),
+          Status: get('Status'),
+          Visibility: get('Visibility'),
+          ResolvedDate: get('ResolvedDate'),
+          ReviewDate: get('ReviewDate'),
+          Workaround: get('Workaround'),
+          RelatedArticles: get('RelatedArticles'),
+        };
+      }
+      // Minimal required validation (manual, to avoid browser postback/validation)
+      const titleVal = (formData.Title || '').trim();
+      const descVal = (formData.Description || '').trim();
+      if (!titleVal) { showError('Title is required.'); try { (document.getElementById('Title')||{}).focus && document.getElementById('Title').focus(); } catch {} return; }
+      if (!descVal) { showError('Description is required.'); try { (document.getElementById('Description')||{}).focus && document.getElementById('Description').focus(); } catch {} return; }
       const now = isoNow();
       const filesToAdd = el.attachPicker && el.attachPicker.files ? el.attachPicker.files : [];
       const removeNames = Array.from(document.querySelectorAll('.att-remove:checked')).map(ch => ch.getAttribute('data-attname')).filter(Boolean);
@@ -700,12 +732,16 @@
       closeForm();
     };
     // Do not rely on form submit at all in CSOD; only Save button
-    el.form.onsubmit = (ev) => { if (ev) { ev.preventDefault(); ev.stopPropagation(); } return false; };
-    el.form.addEventListener('submit', (ev) => { if (ev) { ev.preventDefault(); ev.stopPropagation(); } return false; }, true);
+    if (haveForm) {
+      el.form.onsubmit = (ev) => { if (ev) { ev.preventDefault(); ev.stopPropagation(); } return false; };
+      el.form.addEventListener('submit', (ev) => { if (ev) { ev.preventDefault(); ev.stopPropagation(); } return false; }, true);
+    }
     state.submitHandler = onSubmit;
     // Bind Save button (type=button) and capture to pre-empt host handlers
-    try { el.saveBtn = el.form.querySelector('#saveBtn'); } catch {}
+    try { el.saveBtn = (el.form && el.form.querySelector('#saveBtn')) || document.getElementById('saveBtn'); } catch {}
     if (el.saveBtn) {
+      // Avoid native validation on any surrounding host form
+      try { el.saveBtn.setAttribute('formnovalidate','true'); } catch {}
       const clickHandler = (ev) => { try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation && ev.stopImmediatePropagation(); } catch {} onSubmit(ev); };
       el.saveBtn.addEventListener('click', clickHandler, true);
       // Also block Enter on the Save button to avoid form submit
@@ -714,7 +750,7 @@
       }, true);
     }
     // Prevent Enter key from submitting the host page while modal is open
-    el.form.addEventListener('keydown', (ev) => {
+    (haveForm ? el.form : (el.modal || document)).addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' && ev.target && ev.target.tagName !== 'TEXTAREA') {
         ev.preventDefault();
         // Do not auto-save on Enter; require explicit click to avoid CSOD postbacks
@@ -940,19 +976,7 @@
     window.addEventListener('popstate', handleRoute);
     window.addEventListener('hashchange', handleRoute);
 
-    // Prevent parent page form submissions while our modal is open
-    document.addEventListener('submit', (e) => {
-      try {
-        const open = el.modal && el.modal.getAttribute('aria-hidden') !== 'true' && el.modal.style.display !== 'none';
-        if (open && el.modal.contains(e.target)) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      } catch {}
-    }, true);
-
-    // Remove global save safety net to avoid duplicate submits in host environments
-    // (Save is handled explicitly on the #saveBtn inside the modal.)
+    // Minimal: no global interception. Save is handled inside openForm on #saveBtn only.
 
     // Sort by clicking table headers (except ID)
     document.querySelectorAll('thead th.sortable').forEach(th => {

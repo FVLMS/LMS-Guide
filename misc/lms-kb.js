@@ -279,17 +279,21 @@
     });
   }
   
-  // URL helpers for deep-linking to an article by ?id=
-  function getUrlId() {
-    const p = new URLSearchParams(location.search);
-    const id = p.get('id');
-    return id && String(id);
+  // URL helpers — prefer hash params to avoid conflicting with CSOD's own query
+  function getHashParams() {
+    const raw = (location.hash || '').replace(/^#\??/, '');
+    return new URLSearchParams(raw);
   }
-  function getUrlView() {
-    const p = new URLSearchParams(location.search);
-    const v = p.get('view');
-    return v ? String(v).toLowerCase() : '';
+  function getUrlParam(name, altNames = []) {
+    const hp = getHashParams();
+    const qp = new URLSearchParams(location.search);
+    const names = [name, ...altNames];
+    for (const n of names) { const v = hp.get(n); if (v != null && v !== '') return String(v); }
+    for (const n of names) { const v = qp.get(n); if (v != null && v !== '') return String(v); }
+    return '';
   }
+  function getUrlId() { return getUrlParam('id', ['kbid']); }
+  function getUrlView() { return (getUrlParam('view', ['kbview']) || '').toLowerCase(); }
   function getNameVars() {
     const gv = (k) => (window[k] != null ? String(window[k]) : '');
     const meta = (n) => {
@@ -304,12 +308,16 @@
     const last = gv('LASTNAME') || gv('PAGE_LASTNAME') || meta('LASTNAME') || elt('LASTNAME');
     return { first: first || '', last: last || '' };
   }
-  function setUrlId(id, push=false) {
-    const p = new URLSearchParams(location.search);
-    if (id) p.set('id', String(id)); else p.delete('id');
-    const url = location.pathname + (p.toString() ? '?' + p.toString() : '') + location.hash;
+  function setHashParams(updates, push=false) {
+    const hp = getHashParams();
+    Object.entries(updates).forEach(([k,v]) => {
+      if (v == null || v === '') hp.delete(k); else hp.set(k, String(v));
+    });
+    const hash = hp.toString();
+    const url = location.pathname + location.search + (hash ? '#' + hash : '');
     if (push) history.pushState({}, '', url); else history.replaceState({}, '', url);
   }
+  function setUrlId(id, push=false) { setHashParams({ id: id || '' }, push); }
 
   function selectArticle(id, updateUrl = true) {
     state.selectedId = id || null;
@@ -847,8 +855,9 @@
       goToList();
     });
 
-    // Back/forward navigation — re-evaluate route
+    // Back/forward navigation — re-evaluate route (popstate and hashchange)
     window.addEventListener('popstate', handleRoute);
+    window.addEventListener('hashchange', handleRoute);
 
     // Sort by clicking table headers (except ID)
     document.querySelectorAll('thead th.sortable').forEach(th => {
@@ -919,10 +928,14 @@
   }
 
   function goToList() {
-    const p = new URLSearchParams(location.search);
-    p.delete('view');
-    p.delete('id');
-    const url = location.pathname + (p.toString() ? '?' + p.toString() : '');
+    // Clear our hash params to return to list view
+    const hp = getHashParams();
+    hp.delete('view');
+    hp.delete('kbview');
+    hp.delete('id');
+    hp.delete('kbid');
+    const hash = hp.toString();
+    const url = location.pathname + location.search + (hash ? '#' + hash : '');
     history.pushState({}, '', url);
     handleRoute();
   }

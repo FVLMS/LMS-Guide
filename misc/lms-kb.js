@@ -502,11 +502,14 @@
     }
     if (statusInput) statusInput.addEventListener('change', updateResolvedVisibility);
     updateResolvedVisibility();
+    // Ensure prior handlers are cleared
     if (state.submitHandler) {
-      try { el.form.removeEventListener('submit', state.submitHandler); } catch {}
+      try { el.form.removeEventListener('submit', state.submitHandler, true); } catch {}
     }
     const onSubmit = async (e) => {
       e.preventDefault();
+      // Belt-and-suspenders: block bubbling to any parent forms (CSOD)
+      try { e.stopPropagation(); e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch {}
       const formData = Object.fromEntries(new FormData(el.form).entries());
       const now = isoNow();
       const filesToAdd = el.attachPicker && el.attachPicker.files ? el.attachPicker.files : [];
@@ -679,31 +682,28 @@
       applyFilters();
       closeForm();
     };
-    el.form.onsubmit = onSubmit;
-    el.form.addEventListener('submit', onSubmit);
+    // Do not rely on form submit at all in CSOD; only Save button
+    el.form.onsubmit = (ev) => { if (ev) { ev.preventDefault(); ev.stopPropagation(); } return false; };
+    el.form.addEventListener('submit', (ev) => { if (ev) { ev.preventDefault(); ev.stopPropagation(); } return false; }, true);
     state.submitHandler = onSubmit;
-    // Bind Save button (type=button) if present
+    // Bind Save button (type=button) and capture to pre-empt host handlers
     try { el.saveBtn = el.form.querySelector('#saveBtn'); } catch {}
     if (el.saveBtn) {
-      el.saveBtn.onclick = (ev) => { try { ev.preventDefault(); } catch {} onSubmit(ev); };
+      const clickHandler = (ev) => { try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation && ev.stopImmediatePropagation(); } catch {} onSubmit(ev); };
+      el.saveBtn.addEventListener('click', clickHandler, true);
+      // Also block Enter on the Save button to avoid form submit
+      el.saveBtn.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); }
+      }, true);
     }
-    // Delegate clicks for any submit-like button within this form
-    el.form.addEventListener('click', (ev) => {
-      const btn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
-      if (!btn) return;
-      const type = (btn.getAttribute('type') || 'submit').toLowerCase();
-      if (btn.id === 'saveBtn' || type === 'submit') {
-        try { ev.preventDefault(); } catch {}
-        onSubmit(ev);
-      }
-    }, true);
-    // Prevent Enter key from bubbling a native submit outside our modal
+    // Prevent Enter key from submitting the host page while modal is open
     el.form.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' && ev.target && ev.target.tagName !== 'TEXTAREA') {
         ev.preventDefault();
-        onSubmit(ev);
+        // Do not auto-save on Enter; require explicit click to avoid CSOD postbacks
+        ev.stopPropagation();
       }
-    });
+    }, true);
   }
 
   function inferAudience(visibility) {
@@ -934,20 +934,8 @@
       } catch {}
     }, true);
 
-    // Global Save button safety net
-    document.addEventListener('click', (e) => {
-      const target = e.target && e.target.closest ? e.target.closest('#saveBtn') : null;
-      if (!target) return;
-      if (state.submitHandler) {
-        try { e.preventDefault(); } catch {}
-        if (DEBUG_FLOW) console.log('[KB] Global saveBtn click caught; invoking submit handler');
-        state.submitHandler(e);
-      }
-    }, true);
-
-    // Expose a debug helper to trigger save
-    window.KB = window.KB || {};
-    window.KB.save = () => { if (state.submitHandler) { try { state.submitHandler({ preventDefault(){} }); } catch (err) { console.warn('KB.save failed', err); } } else { console.warn('KB.save: no handler'); } };
+    // Remove global save safety net to avoid duplicate submits in host environments
+    // (Save is handled explicitly on the #saveBtn inside the modal.)
 
     // Sort by clicking table headers (except ID)
     document.querySelectorAll('thead th.sortable').forEach(th => {

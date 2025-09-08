@@ -885,6 +885,7 @@
     // Route-aware init
     handleRoute();
     renderSortIndicators();
+    ensureDebugBanner();
   }
   document.addEventListener('DOMContentLoaded', init);
 
@@ -901,12 +902,35 @@
       state.publicMode = (!first && !last);
     }
     applyPublicUI();
+    ensureDebugBanner();
 
     if (view === 'single') {
       enterSingleMode();
     } else {
       enterListMode();
     }
+  }
+
+  // --- Debug banner (optional via #kbdebug=1) ---
+  function ensureDebugBanner() {
+    const dbg = getUrlParam('kbdebug', ['kbdebug']);
+    const enabled = dbg && dbg !== '0' && dbg !== 'false';
+    let box = document.getElementById('kb-debug');
+    if (!enabled) { if (box) box.remove(); return; }
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'kb-debug';
+      box.style.cssText = 'position:fixed;bottom:8px;right:8px;z-index:9999;background:#111;color:#fff;padding:8px 10px;font:12px/1.4 system-ui;opacity:0.9;border-radius:4px;max-width:50vw;';
+      document.body.appendChild(box);
+    }
+    const { first, last } = getNameVars();
+    const id = getUrlId();
+    const view = getUrlView();
+    box.innerHTML = `KB Debug — mode: <b>${state.publicMode ? 'public' : 'internal'}</b><br/>`+
+      `FIRSTNAME: ${first || '(blank)'}; LASTNAME: ${last || '(blank)'}<br/>`+
+      `id: ${id || '(none)'}; view: ${view || '(none)'}<br/>`+
+      `FLOW_GET_URL: ${FLOW_GET_URL}<br/>`+
+      `FLOW_SAVE_URL: ${FLOW_SAVE_URL}`;
   }
 
   function enterSingleMode() {

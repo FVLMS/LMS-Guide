@@ -63,6 +63,7 @@
     pendingUrlId: null,
     mode: 'list', // 'list' | 'single'
     publicMode: false,
+    submitHandler: null,
   };
 
   // DOM
@@ -448,6 +449,7 @@
   function openForm(existing) {
     el.modal.style.display = 'flex';
     el.modal.setAttribute('aria-hidden', 'false');
+    if (el.form) el.form.setAttribute('novalidate', 'novalidate');
     const isNew = !existing;
     el.formTitle.textContent = isNew ? 'New Article' : `Edit Article #${existing.ArticleID}`;
     if (el.formMeta) {
@@ -502,7 +504,10 @@
     }
     if (statusInput) statusInput.addEventListener('change', updateResolvedVisibility);
     updateResolvedVisibility();
-    el.form.onsubmit = async (e) => {
+    if (state.submitHandler) {
+      try { el.form.removeEventListener('submit', state.submitHandler); } catch {}
+    }
+    const onSubmit = async (e) => {
       e.preventDefault();
       const formData = Object.fromEntries(new FormData(el.form).entries());
       const now = isoNow();
@@ -681,6 +686,9 @@
       applyFilters();
       closeForm();
     };
+    el.form.onsubmit = onSubmit;
+    el.form.addEventListener('submit', onSubmit);
+    state.submitHandler = onSubmit;
   }
 
   function inferAudience(visibility) {

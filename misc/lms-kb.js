@@ -682,6 +682,28 @@
     el.form.onsubmit = onSubmit;
     el.form.addEventListener('submit', onSubmit);
     state.submitHandler = onSubmit;
+    // Bind Save button (type=button) if present
+    try { el.saveBtn = el.form.querySelector('#saveBtn'); } catch {}
+    if (el.saveBtn) {
+      el.saveBtn.onclick = (ev) => { try { ev.preventDefault(); } catch {} onSubmit(ev); };
+    }
+    // Delegate clicks for any submit-like button within this form
+    el.form.addEventListener('click', (ev) => {
+      const btn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+      if (!btn) return;
+      const type = (btn.getAttribute('type') || 'submit').toLowerCase();
+      if (btn.id === 'saveBtn' || type === 'submit') {
+        try { ev.preventDefault(); } catch {}
+        onSubmit(ev);
+      }
+    }, true);
+    // Prevent Enter key from bubbling a native submit outside our modal
+    el.form.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' && ev.target && ev.target.tagName !== 'TEXTAREA') {
+        ev.preventDefault();
+        onSubmit(ev);
+      }
+    });
   }
 
   function inferAudience(visibility) {

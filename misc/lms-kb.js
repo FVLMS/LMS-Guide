@@ -21,7 +21,7 @@
   const SHARE_BASE_URL = readConfig('KB_SHARE_BASE_URL', location.origin + location.pathname + location.search);
   const DEBUG_FLOW = true;
   const FIELDS = [
-    'ArticleID','Title','Summary','Description','Type','Tags','RelatedArticles','Attachments','AttachmentLinks','Author','LastEditor','CreatedDate','UpdatedDate','ResolvedDate','Workaround','Status','Visibility','VersionNumber','ReviewDate','Audience'
+    'ArticleID','Title','Description','Type','Tags','RelatedArticles','Attachments','AttachmentLinks','Author','LastEditor','CreatedDate','UpdatedDate','ResolvedDate','Workaround','Status','Visibility','VersionNumber','ReviewDate','Audience'
   ];
   const TYPES = ['Bug','Limitation','Advisory','Guide'];
 
@@ -213,7 +213,7 @@
 
     let list = state.articles.slice();
     if (q) {
-      list = list.filter(a => [a.Title, a.Summary, a.Description, a.Tags, a.Workaround]
+      list = list.filter(a => [a.Title, a.Description, a.Tags, a.Workaround]
         .some(v => String(v).toLowerCase().includes(q)));
     }
     if (selType) list = list.filter(a => (a.Type || '') === selType);
@@ -260,7 +260,6 @@
       tr.innerHTML = `
         <td class="muted">${a.ArticleID || ''}</td>
         <td>${esc(a.Title)}</td>
-        <td class="muted">${esc(a.Summary)}</td>
         <td class=\"muted\">${esc(a.Type)}</td>
         <td>${renderStatus(a.Status)}</td>
         <td>${renderVisibility(a.Visibility)}</td>
@@ -366,7 +365,6 @@
     if (el.detailsTitle) el.detailsTitle.textContent = a.Title || '';
     el.details.innerHTML = `
       <div class="chips">${renderStatus(a.Status)}${renderVisibility(a.Visibility)}</div>
-      <p class="muted">${esc(a.Summary)}</p>
       ${(a.Type === 'Bug' || a.Type === 'Limitation') && a.Workaround ? `<div class="field"><label>Workaround</label><div>${nl2br(esc(a.Workaround))}</div></div>` : ''}
       <div class="grid-2" style="margin-top:8px">
         <div class="field"><label>Author</label><div>${esc(a.Author)}</div></div>
@@ -457,7 +455,7 @@
     }
     const patch = existing || {};
     // Fill form fields by name
-    for (const f of ['Title','Summary','Description','Type','Tags','Author','Status','Visibility','ResolvedDate','ReviewDate','Workaround','RelatedArticles']) {
+    for (const f of ['Title','Description','Type','Tags','Author','Status','Visibility','ResolvedDate','ReviewDate','Workaround','RelatedArticles']) {
       const input = el.form.querySelector('#'+f);
       if (!input) continue;
       if (f === 'Status' || f === 'Visibility' || f === 'Type') input.value = patch[f] || input.value;
@@ -525,7 +523,6 @@
           request: 'create',
           item: {
             Title: formData.Title,
-            Summary: formData.Summary,
             Description: formData.Description,
             Type: formData.Type || 'Guide',
             Status: formData.Status,
@@ -559,7 +556,6 @@
           let mapped = normalizeArticle(mapFlowItem(item));
           // Fallbacks if flow response omits fields; use entered form values
           mapped.Title = mapped.Title || formData.Title;
-          mapped.Summary = mapped.Summary || formData.Summary;
           mapped.Description = mapped.Description || formData.Description;
           mapped.Type = mapped.Type || (formData.Type || 'Guide');
           mapped.Status = mapped.Status || formData.Status;
@@ -577,7 +573,6 @@
           const rec = normalizeArticle({
             ArticleID: nextId(),
             Title: formData.Title,
-            Summary: formData.Summary,
             Description: formData.Description,
             Type: formData.Type || 'Guide',
             Tags: formData.Tags,
@@ -614,7 +609,6 @@
           id: existing.ArticleID,
           item: {
             Title: formData.Title,
-            Summary: formData.Summary,
             Description: formData.Description,
             Type: formData.Type || existing.Type || 'Guide',
             Status: formData.Status,
@@ -650,7 +644,6 @@
           mapped.ArticleID = mapped.ArticleID || existing.ArticleID;
           // Fallbacks
           mapped.Title = mapped.Title || formData.Title || existing.Title;
-          mapped.Summary = mapped.Summary || formData.Summary || existing.Summary;
           mapped.Description = mapped.Description || formData.Description || existing.Description;
           mapped.Type = mapped.Type || formData.Type || existing.Type;
           mapped.Status = mapped.Status || formData.Status || existing.Status;
@@ -814,7 +807,6 @@
     return {
       ArticleID: String(pick('ArticleID', 'ID', 'Id') || ''),
       Title: pick('Title'),
-      Summary: pick('Summary'),
       Description: pick('Description'),
       Type: readChoice(it.ArticleType) || pick('Type') || 'Guide',
       Tags: pick('Tags'),
@@ -908,6 +900,17 @@
     // Back/forward navigation — re-evaluate route (popstate and hashchange)
     window.addEventListener('popstate', handleRoute);
     window.addEventListener('hashchange', handleRoute);
+
+    // Prevent parent page form submissions while our modal is open
+    document.addEventListener('submit', (e) => {
+      try {
+        const open = el.modal && el.modal.getAttribute('aria-hidden') !== 'true' && el.modal.style.display !== 'none';
+        if (open && el.modal.contains(e.target)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      } catch {}
+    }, true);
 
     // Sort by clicking table headers (except ID)
     document.querySelectorAll('thead th.sortable').forEach(th => {

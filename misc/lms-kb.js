@@ -87,6 +87,7 @@
     selectedId: null,
     // categories removed
     types: new Set(),
+    categories: new Set(),
     authors: new Set(),
     sortBy: 'UpdatedDate',
     sortDir: 'desc',
@@ -105,6 +106,7 @@
     count: $('#count'),
     search: $('#search'),
     // categoryFilter removed
+    categoryFilter: document.querySelector('#categoryFilter'),
     statusFilter: $('#statusFilter'),
     typeFilter: $('#typeFilter'),
     visibilityFilter: $('#visibilityFilter'),
@@ -238,6 +240,7 @@
   function applyFilters() {
     const q = el.search.value.trim().toLowerCase();
     const selType = el.typeFilter ? el.typeFilter.value : '';
+    const selCat = el.categoryFilter ? el.categoryFilter.value : '';
     const st = el.statusFilter.value;
     const vis = el.visibilityFilter.value;
     const au = el.authorFilter.value;
@@ -248,6 +251,7 @@
         .some(v => String(v).toLowerCase().includes(q)));
     }
     if (selType) list = list.filter(a => (a.Type || '') === selType);
+    if (selCat) list = list.filter(a => (a.Category || '') === selCat);
     if (st) list = list.filter(a => a.Status === st);
     if (state.publicMode) {
       list = list.filter(a => (a.Visibility || '') === 'Public');
@@ -453,9 +457,11 @@
   function rebuildTaxonomy() {
     state.authors.clear();
     state.types.clear();
+    state.categories = new Set();
     for (const a of state.articles) {
       if (a.Author) state.authors.add(a.Author);
       if (a.Type) state.types.add(a.Type);
+      if (a.Category) state.categories.add(a.Category);
     }
     // Types (fixed list union data)
     if (el.typeFilter) {
@@ -468,6 +474,14 @@
     el.authorFilter.innerHTML = '<option value="">All authors</option>' +
       Array.from(state.authors).sort().map(a => `<option>${esc(a)}</option>`).join('');
     if (Array.from(el.authorFilter.options).some(o => o.value === cur)) el.authorFilter.value = cur;
+
+    // Categories (from JS list)
+    if (el.categoryFilter) {
+      const prev = el.categoryFilter.value;
+      el.categoryFilter.innerHTML = '<option value="">All categories</option>' +
+        CATEGORIES.map(c => `<option>${esc(c)}</option>`).join('');
+      if (CATEGORIES.includes(prev)) el.categoryFilter.value = prev; else el.categoryFilter.value = '';
+    }
   }
 
   // CRUD
@@ -963,6 +977,7 @@
     ['input','change'].forEach(evt => {
       el.search.addEventListener(evt, applyFilters);
       if (el.typeFilter) el.typeFilter.addEventListener(evt, applyFilters);
+      if (el.categoryFilter) el.categoryFilter.addEventListener(evt, applyFilters);
       el.statusFilter.addEventListener(evt, applyFilters);
       el.visibilityFilter.addEventListener(evt, applyFilters);
       el.authorFilter.addEventListener(evt, applyFilters);
@@ -973,6 +988,7 @@
       if (el.typeFilter) el.typeFilter.value = '';
       el.statusFilter.value = '';
       el.visibilityFilter.value = '';
+      if (el.categoryFilter) el.categoryFilter.value = '';
       el.authorFilter.value = '';
       applyFilters();
     });

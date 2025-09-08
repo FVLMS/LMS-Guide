@@ -934,6 +934,21 @@
       } catch {}
     }, true);
 
+    // Global Save button safety net
+    document.addEventListener('click', (e) => {
+      const target = e.target && e.target.closest ? e.target.closest('#saveBtn') : null;
+      if (!target) return;
+      if (state.submitHandler) {
+        try { e.preventDefault(); } catch {}
+        if (DEBUG_FLOW) console.log('[KB] Global saveBtn click caught; invoking submit handler');
+        state.submitHandler(e);
+      }
+    }, true);
+
+    // Expose a debug helper to trigger save
+    window.KB = window.KB || {};
+    window.KB.save = () => { if (state.submitHandler) { try { state.submitHandler({ preventDefault(){} }); } catch (err) { console.warn('KB.save failed', err); } } else { console.warn('KB.save: no handler'); } };
+
     // Sort by clicking table headers (except ID)
     document.querySelectorAll('thead th.sortable').forEach(th => {
       th.addEventListener('click', () => {

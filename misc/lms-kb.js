@@ -412,7 +412,7 @@
       </div>
       ${a.Tags ? `<div class="field" style="margin-top:8px"><label>Tags</label><div>${esc(a.Tags)}</div></div>` : ''}
       ${a.RelatedArticles ? `<div class="field"><label>Related</label><div>${esc(a.RelatedArticles)}</div></div>` : ''}
-      <div class="field"><label>Description</label><div>${nl2br(esc(a.Description))}</div></div>
+      <div class="field"><label>Description</label><div>${sanitizeHTML(a.Description)}</div></div>
       ${parseAttachmentLinks(a.AttachmentLinks).length ? `<div class="field"><label>Attachments</label><div>${renderAttachmentList(parseAttachmentLinks(a.AttachmentLinks))}</div></div>` : (a.Attachments ? `<div class="field"><label>Attachments</label><div>${renderLinks(a.Attachments)}</div></div>` : '')}
     `;
     // Update action buttons visibility for current article
@@ -437,6 +437,57 @@
     return list.map(a => `<a href="${esc(a.url||'#')}" target="_blank" rel="noopener">${esc(a.name||a.url)}</a>`).join('<br/>');
   }
   function nl2br(s) { return s.replace(/\n/g, '<br/>'); }
+
+  // Basic HTML sanitizer to allow only safe formatting tags
+  function sanitizeHTML(input) {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(String(input || ''), 'text/html');
+      const allowedTags = new Set(['P','BR','STRONG','B','EM','I','UL','OL','LI','A','CODE','PRE','H1','H2','H3']);
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, null);
+      const toRemove = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (!allowedTags.has(node.tagName)) {
+          // Replace unknown element with its children
+          const frag = doc.createDocumentFragment();
+          while (node.firstChild) frag.appendChild(node.firstChild);
+          node.parentNode && node.parentNode.replaceChild(frag, node);
+          continue;
+        }
+        // Clean attributes
+        [...node.attributes].forEach(attr => {
+          const name = attr.name.toLowerCase();
+          if (node.tagName === 'A' && (name === 'href' || name === 'target' || name === 'rel')) return;
+          node.removeAttribute(attr.name);
+        });
+        if (node.tagName === 'A') {
+          const href = node.getAttribute('href') || '';
+          if (!/^https?:\/\//i.test(href) && !href.startsWith('#')) {
+            node.removeAttribute('href');
+          }
+          node.setAttribute('target', '_blank');
+          node.setAttribute('rel', 'noopener');
+        }
+      }
+      return doc.body.innerHTML;
+    } catch (e) {
+      return String(input || '');
+    }
+  }
+
+  function setDescriptionEditorHtml(html) {
+    const ed = document.getElementById('DescriptionEditor');
+    const ta = document.getElementById('Description');
+    if (!ed || !ta) return;
+    ed.innerHTML = sanitizeHTML(html || '');
+    ta.value = ed.innerHTML;
+  }
+  function getDescriptionEditorHtml() {
+    const ed = document.getElementById('DescriptionEditor');
+    if (!ed) return '';
+    return sanitizeHTML(ed.innerHTML || '');
+  }
 
   // Read selected files to base64 payload objects
   function readFilesAsBase64(fileList) {
@@ -547,6 +598,37 @@
       catSel.value = cur && CATEGORIES.includes(cur) ? cur : '';
     }
 
+    // Initialize description editor
+    const descToolbar = document.getElementById('DescToolbar');
+    const descEd = document.getElementById('DescriptionEditor');
+    const descTa = document.getElementById('Description');
+    if (descEd && descTa) {
+      const raw = existing && existing.Description ? String(existing.Description) : '';
+      // If looks like HTML, set as-is; else convert newlines to paragraphs
+      const hasTag = /<\w+[^>]*>/.test(raw);
+      const html = hasTag ? raw : (raw ? `<p>${esc(raw).replace(/\n+/g, '</p><p>')}</p>` : '');
+      setDescriptionEditorHtml(html);
+      // Editor input sync
+      descEd.addEventListener('input', () => { descTa.value = getDescriptionEditorHtml(); });
+      // Toolbar
+      if (descToolbar) {
+        descToolbar.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-cmd]');
+          if (!btn) return;
+          e.preventDefault(); e.stopPropagation();
+          const cmd = btn.getAttribute('data-cmd');
+          descEd.focus();
+          if (cmd === 'createLink') {
+            const url = prompt('Enter URL (https://...)', 'https://');
+            if (url && /^https?:\/\//i.test(url)) document.execCommand('createLink', false, url);
+          } else {
+            document.execCommand(cmd, false, null);
+          }
+          descTa.value = getDescriptionEditorHtml();
+        }, true);
+      }
+    }
+
     // Attachments UI
     const existingLinks = parseAttachmentLinks(existing && existing.AttachmentLinks);
     if (el.existingAtt) {
@@ -590,6 +672,7 @@
       let formData;
       if (el.form) {
         formData = Object.fromEntries(new FormData(el.form).entries());
+        try { const html = getDescriptionEditorHtml(); if (html != null) formData.Description = html; } catch {}
       } else {
         const get = (id) => {
           const n = document.getElementById(id);
@@ -597,7 +680,7 @@
         };
         formData = {
           Title: get('Title'),
-          Description: get('Description'),
+          Description: (function(){ try { return getDescriptionEditorHtml(); } catch { return get('Description'); } })(),
           Type: get('Type'),
           Category: get('Category'),
           Tags: get('Tags'),
@@ -612,9 +695,9 @@
       }
       // Minimal required validation (manual, to avoid browser postback/validation)
       const titleVal = (formData.Title || '').trim();
-      const descVal = (formData.Description || '').trim();
+      const descVal = (getDescriptionEditorHtml() || formData.Description || '').replace(/<[^>]*>/g,'').trim();
       if (!titleVal) { showError('Title is required.'); try { (document.getElementById('Title')||{}).focus && document.getElementById('Title').focus(); } catch {} return; }
-      if (!descVal) { showError('Description is required.'); try { (document.getElementById('Description')||{}).focus && document.getElementById('Description').focus(); } catch {} return; }
+      if (!descVal) { showError('Description is required.'); try { (document.getElementById('DescriptionEditor')||{}).focus && document.getElementById('DescriptionEditor').focus(); } catch {} return; }
       const now = isoNow();
       const filesToAdd = el.attachPicker && el.attachPicker.files ? el.attachPicker.files : [];
       const removeNames = Array.from(document.querySelectorAll('.att-remove:checked')).map(ch => ch.getAttribute('data-attname')).filter(Boolean);

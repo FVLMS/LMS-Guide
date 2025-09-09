@@ -438,40 +438,87 @@
   }
   function nl2br(s) { return s.replace(/\n/g, '<br/>'); }
 
-  // Basic HTML sanitizer to allow only safe formatting tags
+  // Enhanced HTML sanitizer to allow safe formatting tags
   function sanitizeHTML(input) {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(String(input || ''), 'text/html');
-      const allowedTags = new Set(['P','BR','STRONG','B','EM','I','UL','OL','LI','A','CODE','PRE','H1','H2','H3']);
+      
+      // Expanded allowed tags for rich text editing
+      const allowedTags = new Set([
+        'P', 'BR', 'DIV',
+        'STRONG', 'B', 'EM', 'I', 'U', 'S',  // Text formatting
+        'UL', 'OL', 'LI',                     // Lists
+        'A',                                  // Links  
+        'CODE', 'PRE',                        // Code
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6', // Headers
+        'BLOCKQUOTE'                          // Quotes
+      ]);
+      
+      // Allowed attributes per tag
+      const allowedAttributes = {
+        'A': new Set(['href', 'target', 'rel']),
+        'CODE': new Set([]),
+        'PRE': new Set([])
+      };
+      
       const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, null);
       const toRemove = [];
+      
       while (walker.nextNode()) {
         const node = walker.currentNode;
-        if (!allowedTags.has(node.tagName)) {
+        const tagName = node.tagName;
+        
+        if (!allowedTags.has(tagName)) {
           // Replace unknown element with its children
           const frag = doc.createDocumentFragment();
           while (node.firstChild) frag.appendChild(node.firstChild);
-          node.parentNode && node.parentNode.replaceChild(frag, node);
+          if (node.parentNode) {
+            node.parentNode.replaceChild(frag, node);
+          }
           continue;
         }
-        // Clean attributes
+        
+        // Clean attributes - only keep allowed ones
+        const allowedAttrs = allowedAttributes[tagName] || new Set();
         [...node.attributes].forEach(attr => {
           const name = attr.name.toLowerCase();
-          if (node.tagName === 'A' && (name === 'href' || name === 'target' || name === 'rel')) return;
-          node.removeAttribute(attr.name);
+          if (!allowedAttrs.has(name)) {
+            node.removeAttribute(attr.name);
+          }
         });
-        if (node.tagName === 'A') {
+        
+        // Special handling for links
+        if (tagName === 'A') {
           const href = node.getAttribute('href') || '';
+          // Only allow HTTP/HTTPS URLs and internal anchors
           if (!/^https?:\/\//i.test(href) && !href.startsWith('#')) {
             node.removeAttribute('href');
+          } else {
+            // Ensure external links open in new tab with security
+            if (/^https?:\/\//i.test(href)) {
+              node.setAttribute('target', '_blank');
+              node.setAttribute('rel', 'noopener noreferrer');
+            }
           }
-          node.setAttribute('target', '_blank');
-          node.setAttribute('rel', 'noopener');
+        }
+        
+        // Remove empty elements (except BR)
+        if (tagName !== 'BR' && !node.textContent.trim() && !node.querySelector('br, img')) {
+          toRemove.push(node);
         }
       }
+      
+      // Remove empty elements
+      toRemove.forEach(node => {
+        if (node.parentNode) {
+          node.parentNode.removeChild(node);
+        }
+      });
+      
       return doc.body.innerHTML;
     } catch (e) {
+      console.error('sanitizeHTML error:', e);
       return String(input || '');
     }
   }
@@ -489,15 +536,210 @@
     return sanitizeHTML(ed.innerHTML || '');
   }
 
-  function wrapSelectionWith(tag, block=false) {
+  function wrapSelectionWith(tag, attributes = {}) {
     try {
-      const sel = window.getSelection();
-      if (!sel || sel.rangeCount === 0) return;
-      const text = sel.toString();
-      const safe = esc(text || (block ? 'code block' : 'code'));
-      const html = block ? `<pre><code>${safe}</code></pre>` : `<code>${safe}</code>`;
-      document.execCommand('insertHTML', false, html);
-    } catch {}
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+      
+      if (selectedText) {
+        const element = document.createElement(tag);
+        Object.assign(element, attributes);
+        element.textContent = selectedText;
+        
+        range.deleteContents();
+        range.insertNode(element);
+        
+        // Clear selection and place cursor after inserted element
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        // No selection - insert placeholder text
+        const element = document.createElement(tag);
+        Object.assign(element, attributes);
+        element.textContent = tag === 'pre' ? 'code block' : (tag === 'code' ? 'code' : 'text');
+        
+        range.insertNode(element);
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } catch (e) {
+      console.error('wrapSelectionWith error:', e);
+    }
+  }
+  
+  function formatBlock(tagName) {
+    try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      
+      // Find the block-level parent element
+      let blockElement = container.nodeType === Node.TEXT_NODE ? container.parentNode : container;
+      while (blockElement && !['DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(blockElement.tagName)) {
+        blockElement = blockElement.parentNode;
+      }
+      
+      if (blockElement && blockElement.tagName !== tagName.toUpperCase()) {
+        const newElement = document.createElement(tagName);
+        newElement.innerHTML = blockElement.innerHTML;
+        blockElement.parentNode.replaceChild(newElement, blockElement);
+        
+        // Restore selection
+        range.selectNodeContents(newElement);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } catch (e) {
+      console.error('formatBlock error:', e);
+    }
+  }
+  
+  function createLink() {
+    try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+      
+      const url = prompt('Enter URL (https://...)', 'https://');
+      if (url && /^https?:\/\//i.test(url)) {
+        if (selectedText) {
+          const link = document.createElement('a');
+          link.href = url;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.textContent = selectedText;
+          
+          range.deleteContents();
+          range.insertNode(link);
+          
+          // Place cursor after link
+          range.setStartAfter(link);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } else {
+          const link = document.createElement('a');
+          link.href = url;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.textContent = url;
+          
+          range.insertNode(link);
+          range.selectNodeContents(link);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      }
+    } catch (e) {
+      console.error('createLink error:', e);
+    }
+  }
+  
+  function applyFormat(command) {
+    try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+      
+      if (!selectedText) return;
+      
+      let element;
+      switch(command) {
+        case 'bold':
+          element = document.createElement('strong');
+          break;
+        case 'italic':
+          element = document.createElement('em');
+          break;
+        case 'underline':
+          element = document.createElement('u');
+          break;
+        case 'strikethrough':
+          element = document.createElement('s');
+          break;
+        default:
+          return;
+      }
+      
+      element.textContent = selectedText;
+      range.deleteContents();
+      range.insertNode(element);
+      
+      // Select the formatted text
+      range.selectNodeContents(element);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } catch (e) {
+      console.error('applyFormat error:', e);
+    }
+  }
+  
+  function createList(listType) {
+    try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+      
+      const list = document.createElement(listType);
+      const li = document.createElement('li');
+      li.textContent = selectedText || 'List item';
+      list.appendChild(li);
+      
+      range.deleteContents();
+      range.insertNode(list);
+      
+      // Place cursor in the list item
+      range.selectNodeContents(li);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } catch (e) {
+      console.error('createList error:', e);
+    }
+  }
+  
+  function removeLink() {
+    try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      let element = range.commonAncestorContainer;
+      
+      // Find the link element
+      if (element.nodeType === Node.TEXT_NODE) {
+        element = element.parentNode;
+      }
+      
+      while (element && element.tagName !== 'A') {
+        element = element.parentNode;
+        if (!element || element === document.body) return;
+      }
+      
+      if (element && element.tagName === 'A') {
+        const textNode = document.createTextNode(element.textContent);
+        element.parentNode.replaceChild(textNode, element);
+        
+        // Select the unlinked text
+        range.selectNodeContents(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } catch (e) {
+      console.error('removeLink error:', e);
+    }
   }
 
   // Read selected files to base64 payload objects
@@ -630,18 +872,51 @@
           const cmd = btn.getAttribute('data-cmd');
           descEd.focus();
           if (cmd === 'createLink') {
-            const url = prompt('Enter URL (https://...)', 'https://');
-            if (url && /^https?:\/\//i.test(url)) document.execCommand('createLink', false, url);
+            createLink();
           } else if (cmd === 'h2') {
-            document.execCommand('formatBlock', false, 'H2');
+            formatBlock('h2');
           } else if (cmd === 'h3') {
-            document.execCommand('formatBlock', false, 'H3');
+            formatBlock('h3');
           } else if (cmd === 'code') {
-            wrapSelectionWith('code', false);
+            wrapSelectionWith('code');
           } else if (cmd === 'codeblock') {
-            wrapSelectionWith('pre', true);
-          } else {
-            document.execCommand(cmd, false, null);
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            pre.appendChild(code);
+            
+            const selection = window.getSelection();
+            if (selection.rangeCount) {
+              const range = selection.getRangeAt(0);
+              const selectedText = range.toString();
+              code.textContent = selectedText || 'code block';
+              
+              range.deleteContents();
+              range.insertNode(pre);
+              
+              range.selectNodeContents(code);
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          } else if (['bold', 'italic', 'underline', 'strikethrough'].includes(cmd)) {
+            applyFormat(cmd);
+          } else if (cmd === 'insertUnorderedList') {
+            createList('ul');
+          } else if (cmd === 'insertOrderedList') {
+            createList('ol');
+          } else if (cmd === 'unlink') {
+            removeLink();
+          } else if (cmd === 'removeFormat') {
+            // Remove formatting from selection
+            const selection = window.getSelection();
+            if (selection.rangeCount) {
+              const range = selection.getRangeAt(0);
+              const selectedText = range.toString();
+              if (selectedText) {
+                const textNode = document.createTextNode(selectedText);
+                range.deleteContents();
+                range.insertNode(textNode);
+              }
+            }
           }
           descTa.value = getDescriptionEditorHtml();
         }, true);
@@ -1099,17 +1374,6 @@
       el.authorFilter.value = '';
       applyFilters();
     });
-    if (el.importBtn && el.csvFile) {
-      el.importBtn.addEventListener('click', () => el.csvFile.click());
-      el.csvFile.addEventListener('change', () => {
-        const f = el.csvFile.files[0];
-        if (!f) return;
-        const reader = new FileReader();
-        reader.onload = () => importFromText(String(reader.result || ''));
-        reader.readAsText(f);
-      });
-    }
-    if (el.exportBtn) el.exportBtn.addEventListener('click', exportCSV);
     // Harden buttons against host form submits
     try { el.newBtn.setAttribute('type','button'); } catch {}
     try { el.editBtn.setAttribute('type','button'); } catch {}
@@ -1263,7 +1527,7 @@
     state.mode = 'list';
     document.body.classList.remove('single-view');
     // Load full list
-    tryLoadFlow().then(ok => { if (!ok) tryLoadSample(); });
+    tryLoadFlow();
   }
 
   function goToList() {

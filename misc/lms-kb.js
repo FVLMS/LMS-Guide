@@ -489,6 +489,17 @@
     return sanitizeHTML(ed.innerHTML || '');
   }
 
+  function wrapSelectionWith(tag, block=false) {
+    try {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+      const text = sel.toString();
+      const safe = esc(text || (block ? 'code block' : 'code'));
+      const html = block ? `<pre><code>${safe}</code></pre>` : `<code>${safe}</code>`;
+      document.execCommand('insertHTML', false, html);
+    } catch {}
+  }
+
   // Read selected files to base64 payload objects
   function readFilesAsBase64(fileList) {
     const files = Array.from(fileList || []);
@@ -621,6 +632,14 @@
           if (cmd === 'createLink') {
             const url = prompt('Enter URL (https://...)', 'https://');
             if (url && /^https?:\/\//i.test(url)) document.execCommand('createLink', false, url);
+          } else if (cmd === 'h2') {
+            document.execCommand('formatBlock', false, 'H2');
+          } else if (cmd === 'h3') {
+            document.execCommand('formatBlock', false, 'H3');
+          } else if (cmd === 'code') {
+            wrapSelectionWith('code', false);
+          } else if (cmd === 'codeblock') {
+            wrapSelectionWith('pre', true);
           } else {
             document.execCommand(cmd, false, null);
           }
@@ -893,10 +912,15 @@
     }
     // Prevent Enter key from submitting the host page while modal is open
     (haveForm ? el.form : (el.modal || document)).addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter' && ev.target && ev.target.tagName !== 'TEXTAREA') {
-        ev.preventDefault();
-        // Do not auto-save on Enter; require explicit click to avoid CSOD postbacks
-        ev.stopPropagation();
+      if (ev.key === 'Enter') {
+        const t = ev.target;
+        const inEditor = (t && (t.isContentEditable || (t.closest && t.closest('#DescriptionEditor'))));
+        const isTextarea = t && t.tagName === 'TEXTAREA';
+        if (!inEditor && !isTextarea) {
+          ev.preventDefault();
+          // Do not auto-submit; require explicit Save click
+          ev.stopPropagation();
+        }
       }
     }, true);
   }

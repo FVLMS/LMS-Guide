@@ -655,22 +655,85 @@
     console.log('Quill editor initialized with fullscreen support');
   }
 
-  // Fullscreen functionality
+  // CSOD-compatible fullscreen functionality
+  let fullscreenQuill = null;
+  
   function toggleFullscreen(editorElement) {
-    const isFullscreen = editorElement.classList.contains('fullscreen-editor');
-    
-    // Find Quill toolbar and container as siblings (created by Quill)
-    const toolbar = document.querySelector('.ql-toolbar');
-    const container = document.querySelector('.ql-container');
+    const overlay = document.getElementById('fullscreenOverlay');
+    const fullscreenEditor = document.getElementById('fullscreenEditor');
+    const fullscreenContainer = document.getElementById('fullscreenQuillEditor');
+    const closeButton = document.getElementById('fullscreenClose');
+    const isFullscreen = overlay.classList.contains('active');
     
     if (isFullscreen) {
-      // Exit fullscreen
-      editorElement.classList.remove('fullscreen-editor');
-      document.body.classList.remove('editor-fullscreen-mode');
+      exitFullscreen();
+    } else {
+      enterFullscreen();
+    }
+    
+    function enterFullscreen() {
+      // Show overlay and fullscreen editor
+      overlay.classList.add('active');
+      fullscreenEditor.classList.add('active');
       
-      // Remove fullscreen class from toolbar and container
-      if (toolbar) toolbar.classList.remove('fullscreen-toolbar');
-      if (container) container.classList.remove('fullscreen-container');
+      // Create a new Quill instance for fullscreen
+      if (!fullscreenQuill) {
+        fullscreenQuill = new Quill(fullscreenContainer, {
+          theme: 'snow',
+          modules: {
+            toolbar: [
+              [{ 'font': [] }],
+              [{ 'size': ['small', false, 'large', 'huge'] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'color': [] }, { 'background': [] }],
+              [{ 'script': 'sub'}, { 'script': 'super' }],
+              ['blockquote', 'code-block'],
+              [{ 'header': [1, 2, 3, false] }],
+              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+              [{ 'indent': '-1'}, { 'indent': '+1' }],
+              ['link', 'image'],
+              ['clean']
+            ]
+          },
+          formats: ['bold', 'italic', 'underline', 'strike', 'blockquote', 'code', 'code-block', 'header', 'list', 'bullet', 'indent', 'link', 'image', 'font', 'size', 'color', 'background', 'script']
+        });
+      }
+      
+      // Copy content from main editor to fullscreen editor
+      if (state.quill && fullscreenQuill) {
+        fullscreenQuill.root.innerHTML = state.quill.root.innerHTML;
+      }
+      
+      // Update button
+      const button = document.querySelector('.ql-fullscreen');
+      if (button) {
+        button.innerHTML = '✕';
+        button.title = 'Exit Fullscreen';
+      }
+      
+      // Focus the fullscreen editor
+      setTimeout(() => {
+        if (fullscreenQuill) {
+          fullscreenQuill.focus();
+        }
+      }, 100);
+    }
+    
+    function exitFullscreen() {
+      // Copy content back from fullscreen to main editor
+      if (state.quill && fullscreenQuill) {
+        state.quill.root.innerHTML = fullscreenQuill.root.innerHTML;
+        
+        // Trigger content change event to sync with textarea
+        const ta = document.getElementById('Description');
+        if (ta) {
+          ta.value = sanitizeHTML(state.quill.root.innerHTML);
+        }
+      }
+      
+      // Hide overlay and fullscreen editor
+      overlay.classList.remove('active');
+      fullscreenEditor.classList.remove('active');
       
       // Update button
       const button = document.querySelector('.ql-fullscreen');
@@ -678,42 +741,42 @@
         button.innerHTML = '⛶';
         button.title = 'Enter Fullscreen';
       }
-    } else {
-      // Enter fullscreen
-      editorElement.classList.add('fullscreen-editor');
-      document.body.classList.add('editor-fullscreen-mode');
       
-      // Add fullscreen classes to toolbar and container
-      if (toolbar) {
-        toolbar.classList.add('fullscreen-toolbar');
+      // Focus back to main editor
+      if (state.quill) {
+        state.quill.focus();
       }
-      
-      if (container) {
-        container.classList.add('fullscreen-container');
-      }
-      
-      // Update button
-      const button = document.querySelector('.ql-fullscreen');
-      if (button) {
-        button.innerHTML = '✕'; // Change to X for exit
-        button.title = 'Exit Fullscreen';
-      }
-      
-      // Focus the editor
-      state.quill.focus();
     }
     
-    // Add keyboard shortcut (ESC to exit fullscreen)
+    // Set up close button handler
+    if (closeButton && !closeButton.hasEventListener) {
+      closeButton.addEventListener('click', exitFullscreen);
+      closeButton.hasEventListener = true;
+    }
+    
+    // Set up overlay click to close
+    if (overlay && !overlay.hasEventListener) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          exitFullscreen();
+        }
+      });
+      overlay.hasEventListener = true;
+    }
+    
+    // Keyboard shortcut (ESC to exit fullscreen)
     const handleEscape = function(e) {
-      if (e.key === 'Escape' && editorElement.classList.contains('fullscreen-editor')) {
-        toggleFullscreen(editorElement);
+      if (e.key === 'Escape' && overlay.classList.contains('active')) {
+        exitFullscreen();
       }
     };
     
     if (!isFullscreen) {
       document.addEventListener('keydown', handleEscape);
-    } else {
-      document.removeEventListener('keydown', handleEscape);
+      overlay.escapeHandler = handleEscape;
+    } else if (overlay.escapeHandler) {
+      document.removeEventListener('keydown', overlay.escapeHandler);
+      overlay.escapeHandler = null;
     }
   }
   

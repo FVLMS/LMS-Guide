@@ -741,6 +741,54 @@
       console.error('removeLink error:', e);
     }
   }
+  
+  function removeFormatting() {
+    try {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+      
+      if (selectedText) {
+        // Replace formatted selection with plain text
+        const textNode = document.createTextNode(selectedText);
+        range.deleteContents();
+        range.insertNode(textNode);
+        
+        // Select the plain text
+        range.selectNodeContents(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        // No selection - remove formatting from surrounding element
+        let element = range.commonAncestorContainer;
+        if (element.nodeType === Node.TEXT_NODE) {
+          element = element.parentNode;
+        }
+        
+        // Find the closest formatting element
+        const formattingTags = ['STRONG', 'B', 'EM', 'I', 'U', 'S', 'CODE', 'A'];
+        while (element && !formattingTags.includes(element.tagName)) {
+          element = element.parentNode;
+          if (!element || element === document.body) return;
+        }
+        
+        if (element && formattingTags.includes(element.tagName)) {
+          const textNode = document.createTextNode(element.textContent);
+          element.parentNode.replaceChild(textNode, element);
+          
+          // Place cursor after the unformatted text
+          range.setStartAfter(textNode);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      }
+    } catch (e) {
+      console.error('removeFormatting error:', e);
+    }
+  }
 
   // Read selected files to base64 payload objects
   function readFilesAsBase64(fileList) {
@@ -906,17 +954,7 @@
           } else if (cmd === 'unlink') {
             removeLink();
           } else if (cmd === 'removeFormat') {
-            // Remove formatting from selection
-            const selection = window.getSelection();
-            if (selection.rangeCount) {
-              const range = selection.getRangeAt(0);
-              const selectedText = range.toString();
-              if (selectedText) {
-                const textNode = document.createTextNode(selectedText);
-                range.deleteContents();
-                range.insertNode(textNode);
-              }
-            }
+            removeFormatting();
           }
           descTa.value = getDescriptionEditorHtml();
         }, true);

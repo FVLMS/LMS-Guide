@@ -750,7 +750,11 @@
     
     // Set up close button handler
     if (closeButton && !closeButton.hasEventListener) {
-      closeButton.addEventListener('click', exitFullscreen);
+      closeButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        exitFullscreen();
+      });
       closeButton.hasEventListener = true;
     }
     

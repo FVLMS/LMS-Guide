@@ -21,7 +21,7 @@
   const SHARE_BASE_URL = readConfig('KB_SHARE_BASE_URL', location.origin + location.pathname + location.search);
   const DEBUG_FLOW = true;
   const FIELDS = [
-    'ArticleID','Title','Description','Type','Category','Tags','RelatedArticles','Attachments','AttachmentLinks','Author','LastEditor','CreatedDate','UpdatedDate','ResolvedDate','Workaround','Status','Visibility','VersionNumber','ReviewDate','Audience'
+    'ArticleID','Title','Description','Type','Category','Tags','RelatedArticles','Attachments','AttachmentLinks','Author','LastEditor','CreatedDate','UpdatedDate','ResolvedDate','Status','Visibility','VersionNumber','ReviewDate','Audience'
   ];
   const TYPES = ['Bug','Limitation','Knowledge','Guide'];
   function normalizeType(t) {
@@ -54,6 +54,57 @@
     'SCORM',
     'iSpring',
   ];
+
+  // Category-based tag suggestions for templates
+  const CATEGORY_SUGGESTIONS = {
+    'Login': ['authentication', 'sso', 'password', 'access'],
+    'Transcript': ['grades', 'completion', 'certificates', 'records'],
+    'Launch Training': ['scorm', 'tin-can', 'launch-issues', 'content'],
+    'Dashboard': ['ui', 'navigation', 'widgets', 'customization'],
+    'Reporting 2.0': ['reports', 'analytics', 'export', 'data'],
+    'Security': ['permissions', 'roles', 'encryption', 'compliance'],
+    'ILT': ['instructor-led', 'classroom', 'session', 'enrollment'],
+    'Material': ['resources', 'documents', 'files', 'downloads'],
+    'Online Class': ['virtual-classroom', 'webinar', 'live-session'],
+    'Curriculum': ['learning-path', 'sequence', 'prerequisites'],
+    'Test': ['assessment', 'quiz', 'evaluation', 'grading'],
+    'Power Automate': ['workflow', 'automation', 'integration'],
+    'SQL': ['database', 'query', 'data-management'],
+    'Stored Procedures': ['database', 'procedures', 'sql-functions'],
+    'Sharepoint': ['collaboration', 'document-management', 'lists'],
+    'Power Apps': ['custom-app', 'forms', 'low-code'],
+    'Custom Pages': ['csod-customization', 'html', 'javascript'],
+    'SCORM': ['e-learning', 'content-packaging', 'standards'],
+    'iSpring': ['authoring-tool', 'content-creation', 'publishing']
+  };
+
+  // Article templates for pre-filling new articles
+  const ARTICLE_TEMPLATES = {
+    'Bug': {
+      title: 'Bug: [Component] - [Brief Description]',
+      description: '<h2>Problem Description</h2><p>Describe the bug and its impact...</p><h2>Steps to Reproduce</h2><ol><li>Step 1</li><li>Step 2</li></ol><h2>Expected Behavior</h2><p>What should happen...</p><h2>Actual Behavior</h2><p>What actually happens...</p>',
+      tags: 'bug, [component-name]',
+      audience: 'Support'
+    },
+    'Limitation': {
+      title: 'Limitation: [Feature] - [Brief Description]',  
+      description: '<h2>Limitation Overview</h2><p>Describe the system limitation...</p><h2>Impact</h2><p>How this affects users...</p><h2>Alternative Solutions</h2><p>Suggested alternatives...</p>',
+      tags: 'limitation, [feature-name]',
+      audience: 'Support'
+    },
+    'Knowledge': {
+      title: 'Knowledge: [Topic] - [Brief Description]',
+      description: '<h2>Overview</h2><p>Brief explanation of the topic...</p><h2>Key Points</h2><ul><li>Important point 1</li><li>Important point 2</li></ul><h2>Additional Resources</h2><p>Links or references...</p>',
+      tags: 'knowledge, [topic]',
+      audience: 'Support'
+    },
+    'Guide': {
+      title: 'Guide: How to [Action]',
+      description: '<h2>Overview</h2><p>What this guide covers...</p><h2>Prerequisites</h2><p>What you need before starting...</p><h2>Steps</h2><ol><li>Step 1</li><li>Step 2</li></ol><h2>Troubleshooting</h2><p>Common issues and solutions...</p>',
+      tags: 'guide, how-to',
+      audience: 'Support'
+    }
+  };
 
   // Internal users allowlist (First Last). Parsed to normalized keys.
   const INTERNAL_USER_LIST = [
@@ -95,6 +146,7 @@
     mode: 'list', // 'list' | 'single'
     publicMode: false,
     submitHandler: null,
+    quill: null, // Quill editor instance
   };
 
   // DOM
@@ -204,7 +256,7 @@
     // Coerce some
     a.ArticleID = String(a.ArticleID || '');
     a.VersionNumber = String(a.VersionNumber || '1');
-    a.Status = a.Status || 'Draft';
+    a.Status = a.Status || 'Published';
     a.Type = normalizeType(a.Type || 'Guide');
     a.Category = a.Category || '';
     a.Visibility = a.Visibility || 'Internal';
@@ -247,7 +299,7 @@
 
     let list = state.articles.slice();
     if (q) {
-      list = list.filter(a => [a.Title, a.Description, a.Tags, a.Workaround]
+      list = list.filter(a => [a.Title, a.Description, a.Tags]
         .some(v => String(v).toLowerCase().includes(q)));
     }
     if (selType) list = list.filter(a => (a.Type || '') === selType);
@@ -299,7 +351,7 @@
         <td>${renderStatus(a.Status)}</td>
         <td>${renderVisibility(a.Visibility)}</td>
         <td class="muted">${fmtDate(a.UpdatedDate)}</td>
-        <td class="muted">${esc(a.Author)}</td>
+        <td class="muted author-column">${esc(a.Author)}</td>
       `;
       tr.addEventListener('click', () => selectArticle(a.ArticleID));
       frag.appendChild(tr);
@@ -400,7 +452,6 @@
     if (el.detailsTitle) el.detailsTitle.textContent = a.Title || '';
     el.details.innerHTML = `
       <div class="chips">${renderStatus(a.Status)}${renderVisibility(a.Visibility)}</div>
-      ${(a.Type === 'Bug' || a.Type === 'Limitation') && a.Workaround ? `<div class="field"><label>Workaround</label><div>${nl2br(esc(a.Workaround))}</div></div>` : ''}
       <div class="grid-2" style="margin-top:8px">
         <div class="field"><label>Author</label><div>${esc(a.Author)}</div></div>
         <div class="field"><label>Created</label><div>${fmtDate(a.CreatedDate)}</div></div>
@@ -524,271 +575,149 @@
   }
 
   function setDescriptionEditorHtml(html) {
-    const ed = document.getElementById('DescriptionEditor');
-    const ta = document.getElementById('Description');
-    if (!ed || !ta) return;
-    ed.innerHTML = sanitizeHTML(html || '');
-    ta.value = ed.innerHTML;
+    if (state.quill) {
+      const sanitized = sanitizeHTML(html || '');
+      // Clear editor first, then set content
+      state.quill.setText('');
+      if (sanitized.trim()) {
+        state.quill.clipboard.dangerouslyPasteHTML(0, sanitized);
+      }
+      
+      // Update hidden textarea
+      const ta = document.getElementById('Description');
+      if (ta) ta.value = state.quill.root.innerHTML;
+    }
   }
+  
   function getDescriptionEditorHtml() {
-    const ed = document.getElementById('DescriptionEditor');
-    if (!ed) return '';
-    return sanitizeHTML(ed.innerHTML || '');
+    if (state.quill) {
+      const html = state.quill.root.innerHTML;
+      const sanitized = sanitizeHTML(html);
+      
+      // Update hidden textarea
+      const ta = document.getElementById('Description');
+      if (ta) ta.value = sanitized;
+      
+      return sanitized;
+    }
+    return '';
+  }
+  
+  function initializeQuill() {
+    if (typeof Quill === 'undefined') {
+      console.error('Quill.js not loaded');
+      return;
+    }
+    
+    const editorElement = document.getElementById('DescriptionEditor');
+    if (!editorElement) return;
+    
+    // Initialize Quill with custom toolbar
+    state.quill = new Quill('#DescriptionEditor', {
+      theme: 'snow',
+      modules: {
+        toolbar: {
+          container: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'header': [1, 2, 3, false] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image'],
+            ['clean'],
+            ['fullscreen'] // Custom fullscreen button
+          ]
+        }
+      },
+      formats: ['bold', 'italic', 'underline', 'strike', 'blockquote', 'code', 'code-block', 'header', 'list', 'bullet', 'indent', 'link', 'image']
+    });
+    
+    // Update hidden textarea when content changes
+    state.quill.on('text-change', function() {
+      const ta = document.getElementById('Description');
+      if (ta) {
+        ta.value = sanitizeHTML(state.quill.root.innerHTML);
+      }
+    });
+    
+    // Add custom fullscreen button
+    const toolbar = state.quill.getModule('toolbar');
+    const fullscreenButton = document.querySelector('.ql-fullscreen');
+    if (fullscreenButton) {
+      fullscreenButton.innerHTML = '⛶'; // Fullscreen icon
+      fullscreenButton.title = 'Toggle Fullscreen';
+      fullscreenButton.addEventListener('click', function() {
+        const quillContainer = document.querySelector('#DescriptionEditor');
+        toggleFullscreen(quillContainer);
+      });
+    }
+    
+    console.log('Quill editor initialized with fullscreen support');
   }
 
-  function wrapSelectionWith(tag, attributes = {}) {
-    try {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
+  // Fullscreen functionality
+  function toggleFullscreen(editorElement) {
+    const isFullscreen = editorElement.classList.contains('fullscreen-editor');
+    
+    // Find Quill toolbar and container as siblings (created by Quill)
+    const toolbar = document.querySelector('.ql-toolbar');
+    const container = document.querySelector('.ql-container');
+    
+    if (isFullscreen) {
+      // Exit fullscreen
+      editorElement.classList.remove('fullscreen-editor');
+      document.body.classList.remove('editor-fullscreen-mode');
       
-      const range = selection.getRangeAt(0);
-      const selectedText = range.toString();
+      // Remove fullscreen class from toolbar and container
+      if (toolbar) toolbar.classList.remove('fullscreen-toolbar');
+      if (container) container.classList.remove('fullscreen-container');
       
-      if (selectedText) {
-        const element = document.createElement(tag);
-        Object.assign(element, attributes);
-        element.textContent = selectedText;
-        
-        range.deleteContents();
-        range.insertNode(element);
-        
-        // Clear selection and place cursor after inserted element
-        range.selectNodeContents(element);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      } else {
-        // No selection - insert placeholder text
-        const element = document.createElement(tag);
-        Object.assign(element, attributes);
-        element.textContent = tag === 'pre' ? 'code block' : (tag === 'code' ? 'code' : 'text');
-        
-        range.insertNode(element);
-        range.selectNodeContents(element);
-        selection.removeAllRanges();
-        selection.addRange(range);
+      // Update button
+      const button = document.querySelector('.ql-fullscreen');
+      if (button) {
+        button.innerHTML = '⛶';
+        button.title = 'Enter Fullscreen';
       }
-    } catch (e) {
-      console.error('wrapSelectionWith error:', e);
+    } else {
+      // Enter fullscreen
+      editorElement.classList.add('fullscreen-editor');
+      document.body.classList.add('editor-fullscreen-mode');
+      
+      // Add fullscreen classes to toolbar and container
+      if (toolbar) {
+        toolbar.classList.add('fullscreen-toolbar');
+      }
+      
+      if (container) {
+        container.classList.add('fullscreen-container');
+      }
+      
+      // Update button
+      const button = document.querySelector('.ql-fullscreen');
+      if (button) {
+        button.innerHTML = '✕'; // Change to X for exit
+        button.title = 'Exit Fullscreen';
+      }
+      
+      // Focus the editor
+      state.quill.focus();
+    }
+    
+    // Add keyboard shortcut (ESC to exit fullscreen)
+    const handleEscape = function(e) {
+      if (e.key === 'Escape' && editorElement.classList.contains('fullscreen-editor')) {
+        toggleFullscreen(editorElement);
+      }
+    };
+    
+    if (!isFullscreen) {
+      document.addEventListener('keydown', handleEscape);
+    } else {
+      document.removeEventListener('keydown', handleEscape);
     }
   }
   
-  function formatBlock(tagName) {
-    try {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      
-      const range = selection.getRangeAt(0);
-      const container = range.commonAncestorContainer;
-      
-      // Find the block-level parent element
-      let blockElement = container.nodeType === Node.TEXT_NODE ? container.parentNode : container;
-      while (blockElement && !['DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(blockElement.tagName)) {
-        blockElement = blockElement.parentNode;
-      }
-      
-      if (blockElement && blockElement.tagName !== tagName.toUpperCase()) {
-        const newElement = document.createElement(tagName);
-        newElement.innerHTML = blockElement.innerHTML;
-        blockElement.parentNode.replaceChild(newElement, blockElement);
-        
-        // Restore selection
-        range.selectNodeContents(newElement);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    } catch (e) {
-      console.error('formatBlock error:', e);
-    }
-  }
-  
-  function createLink() {
-    try {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      
-      const range = selection.getRangeAt(0);
-      const selectedText = range.toString();
-      
-      const url = prompt('Enter URL (https://...)', 'https://');
-      if (url && /^https?:\/\//i.test(url)) {
-        if (selectedText) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.target = '_blank';
-          link.rel = 'noopener';
-          link.textContent = selectedText;
-          
-          range.deleteContents();
-          range.insertNode(link);
-          
-          // Place cursor after link
-          range.setStartAfter(link);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        } else {
-          const link = document.createElement('a');
-          link.href = url;
-          link.target = '_blank';
-          link.rel = 'noopener';
-          link.textContent = url;
-          
-          range.insertNode(link);
-          range.selectNodeContents(link);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-      }
-    } catch (e) {
-      console.error('createLink error:', e);
-    }
-  }
-  
-  function applyFormat(command) {
-    try {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      
-      const range = selection.getRangeAt(0);
-      const selectedText = range.toString();
-      
-      if (!selectedText) return;
-      
-      let element;
-      switch(command) {
-        case 'bold':
-          element = document.createElement('strong');
-          break;
-        case 'italic':
-          element = document.createElement('em');
-          break;
-        case 'underline':
-          element = document.createElement('u');
-          break;
-        case 'strikethrough':
-          element = document.createElement('s');
-          break;
-        default:
-          return;
-      }
-      
-      element.textContent = selectedText;
-      range.deleteContents();
-      range.insertNode(element);
-      
-      // Select the formatted text
-      range.selectNodeContents(element);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    } catch (e) {
-      console.error('applyFormat error:', e);
-    }
-  }
-  
-  function createList(listType) {
-    try {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      
-      const range = selection.getRangeAt(0);
-      const selectedText = range.toString();
-      
-      const list = document.createElement(listType);
-      const li = document.createElement('li');
-      li.textContent = selectedText || 'List item';
-      list.appendChild(li);
-      
-      range.deleteContents();
-      range.insertNode(list);
-      
-      // Place cursor in the list item
-      range.selectNodeContents(li);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    } catch (e) {
-      console.error('createList error:', e);
-    }
-  }
-  
-  function removeLink() {
-    try {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      
-      const range = selection.getRangeAt(0);
-      let element = range.commonAncestorContainer;
-      
-      // Find the link element
-      if (element.nodeType === Node.TEXT_NODE) {
-        element = element.parentNode;
-      }
-      
-      while (element && element.tagName !== 'A') {
-        element = element.parentNode;
-        if (!element || element === document.body) return;
-      }
-      
-      if (element && element.tagName === 'A') {
-        const textNode = document.createTextNode(element.textContent);
-        element.parentNode.replaceChild(textNode, element);
-        
-        // Select the unlinked text
-        range.selectNodeContents(textNode);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    } catch (e) {
-      console.error('removeLink error:', e);
-    }
-  }
-  
-  function removeFormatting() {
-    try {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      
-      const range = selection.getRangeAt(0);
-      const selectedText = range.toString();
-      
-      if (selectedText) {
-        // Replace formatted selection with plain text
-        const textNode = document.createTextNode(selectedText);
-        range.deleteContents();
-        range.insertNode(textNode);
-        
-        // Select the plain text
-        range.selectNodeContents(textNode);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      } else {
-        // No selection - remove formatting from surrounding element
-        let element = range.commonAncestorContainer;
-        if (element.nodeType === Node.TEXT_NODE) {
-          element = element.parentNode;
-        }
-        
-        // Find the closest formatting element
-        const formattingTags = ['STRONG', 'B', 'EM', 'I', 'U', 'S', 'CODE', 'A'];
-        while (element && !formattingTags.includes(element.tagName)) {
-          element = element.parentNode;
-          if (!element || element === document.body) return;
-        }
-        
-        if (element && formattingTags.includes(element.tagName)) {
-          const textNode = document.createTextNode(element.textContent);
-          element.parentNode.replaceChild(textNode, element);
-          
-          // Place cursor after the unformatted text
-          range.setStartAfter(textNode);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-      }
-    } catch (e) {
-      console.error('removeFormatting error:', e);
-    }
-  }
+  // Custom formatting functions removed - now handled by Quill.js
 
   // Read selected files to base64 payload objects
   function readFilesAsBase64(fileList) {
@@ -842,6 +771,51 @@
     return String(max + 1);
   }
 
+  // Template functionality
+  function applyTemplate(templateType) {
+    if (!templateType) return;
+    
+    // Get template from internal templates
+    const template = ARTICLE_TEMPLATES[templateType];
+    if (!template) {
+      console.warn(`Template "${templateType}" not found`);
+      return;
+    }
+    
+    // Apply template values to form fields
+    const titleField = document.getElementById('Title');
+    const typeField = document.getElementById('Type');
+    const tagsField = document.getElementById('Tags');
+    const audienceField = document.getElementById('Audience');
+    
+    if (titleField && template.title) titleField.value = template.title;
+    if (typeField && templateType) typeField.value = templateType;
+    if (tagsField && template.tags) tagsField.value = template.tags;
+    if (audienceField && template.audience) audienceField.value = template.audience;
+    
+    // Apply template description to Quill editor
+    if (template.description && state.quill) {
+      state.quill.root.innerHTML = template.description;
+      // Update the hidden textarea
+      const descriptionTextarea = document.getElementById('Description');
+      if (descriptionTextarea) {
+        descriptionTextarea.value = sanitizeHTML(template.description);
+      }
+    }
+    
+    // Auto-suggest category tags based on selected category
+    const categoryField = document.getElementById('Category');
+    if (categoryField && categoryField.value && CATEGORY_SUGGESTIONS[categoryField.value]) {
+      const existingTags = tagsField ? tagsField.value : '';
+      const suggestedTags = CATEGORY_SUGGESTIONS[categoryField.value].join(', ');
+      if (tagsField) {
+        tagsField.value = existingTags ? 
+          `${existingTags}, ${suggestedTags}` : suggestedTags;
+      }
+    }
+  }
+
+
   function openForm(existing) {
     // Resolve critical elements at call time for host environments (e.g., CSOD) where
     // scripts may run before the DOM is fully present.
@@ -869,7 +843,7 @@
     }
     const patch = existing || {};
     // Fill form fields by name
-    for (const f of ['Title','Description','Type','Category','Tags','Author','Status','Visibility','ResolvedDate','ReviewDate','Workaround','RelatedArticles']) {
+    for (const f of ['Title','Description','Type','Category','Tags','Author','Status','Visibility','ResolvedDate','ReviewDate','RelatedArticles']) {
       const input = document.getElementById(f);
       if (!input) continue;
       if (f === 'Status' || f === 'Visibility' || f === 'Type' || f === 'Category') input.value = patch[f] || input.value;
@@ -881,15 +855,18 @@
       if (n) n.removeAttribute('required');
     });
 
-    // Show/hide Workaround field depending on Type
-    const typeInput = document.getElementById('Type');
-    const workField = document.getElementById('WorkaroundField');
-    function updateWorkaroundVisibility() {
-      const v = (typeInput && typeInput.value) || 'Guide';
-      if (workField) workField.style.display = (v === 'Bug' || v === 'Limitation') ? '' : 'none';
+    // Setup template selector (only for new articles)
+    const templateSelector = document.getElementById('TemplateSelector');
+    const templateField = document.getElementById('TemplateField');
+    if (templateField) {
+      templateField.style.display = isNew ? 'block' : 'none';
     }
-    if (typeInput) typeInput.addEventListener('change', updateWorkaroundVisibility);
-    updateWorkaroundVisibility();
+    if (templateSelector && isNew) {
+      templateSelector.value = ''; // Reset to blank
+      templateSelector.addEventListener('change', function() {
+        applyTemplate(this.value);
+      });
+    }
 
     // Populate Category options from JS
     const catSel = document.getElementById('Category');
@@ -899,66 +876,13 @@
       catSel.value = cur && CATEGORIES.includes(cur) ? cur : '';
     }
 
-    // Initialize description editor
-    const descToolbar = document.getElementById('DescToolbar');
-    const descEd = document.getElementById('DescriptionEditor');
-    const descTa = document.getElementById('Description');
-    if (descEd && descTa) {
+    // Initialize Quill editor content
+    if (state.quill) {
       const raw = existing && existing.Description ? String(existing.Description) : '';
       // If looks like HTML, set as-is; else convert newlines to paragraphs
       const hasTag = /<\w+[^>]*>/.test(raw);
       const html = hasTag ? raw : (raw ? `<p>${esc(raw).replace(/\n+/g, '</p><p>')}</p>` : '');
       setDescriptionEditorHtml(html);
-      // Editor input sync
-      descEd.addEventListener('input', () => { descTa.value = getDescriptionEditorHtml(); });
-      // Toolbar
-      if (descToolbar) {
-        descToolbar.addEventListener('click', (e) => {
-          const btn = e.target.closest('button[data-cmd]');
-          if (!btn) return;
-          e.preventDefault(); e.stopPropagation();
-          const cmd = btn.getAttribute('data-cmd');
-          descEd.focus();
-          if (cmd === 'createLink') {
-            createLink();
-          } else if (cmd === 'h2') {
-            formatBlock('h2');
-          } else if (cmd === 'h3') {
-            formatBlock('h3');
-          } else if (cmd === 'code') {
-            wrapSelectionWith('code');
-          } else if (cmd === 'codeblock') {
-            const pre = document.createElement('pre');
-            const code = document.createElement('code');
-            pre.appendChild(code);
-            
-            const selection = window.getSelection();
-            if (selection.rangeCount) {
-              const range = selection.getRangeAt(0);
-              const selectedText = range.toString();
-              code.textContent = selectedText || 'code block';
-              
-              range.deleteContents();
-              range.insertNode(pre);
-              
-              range.selectNodeContents(code);
-              selection.removeAllRanges();
-              selection.addRange(range);
-            }
-          } else if (['bold', 'italic', 'underline', 'strikethrough'].includes(cmd)) {
-            applyFormat(cmd);
-          } else if (cmd === 'insertUnorderedList') {
-            createList('ul');
-          } else if (cmd === 'insertOrderedList') {
-            createList('ol');
-          } else if (cmd === 'unlink') {
-            removeLink();
-          } else if (cmd === 'removeFormat') {
-            removeFormatting();
-          }
-          descTa.value = getDescriptionEditorHtml();
-        }, true);
-      }
     }
 
     // Attachments UI
@@ -981,14 +905,18 @@
       };
     }
 
-    // Show/hide ResolvedDate depending on Status = Resolved
+    // Show/hide ResolvedDate field depending on Status = Resolved
     const statusInput = document.getElementById('Status');
-    const resolvedField = document.getElementById('ResolvedDateField');
+    const resolvedDateField = document.getElementById('ResolvedDateField');
     const resolvedInput = document.getElementById('ResolvedDate');
     function updateResolvedVisibility() {
       const isResolved = (statusInput && statusInput.value) === 'Resolved';
-      if (resolvedField) resolvedField.style.display = isResolved ? '' : 'none';
-      if (!isResolved && resolvedInput) resolvedInput.value = '';
+      if (resolvedDateField) {
+        resolvedDateField.style.display = isResolved ? 'block' : 'none';
+      }
+      if (!isResolved) {
+        if (resolvedInput) resolvedInput.value = '';
+      }
     }
     if (statusInput) statusInput.addEventListener('change', updateResolvedVisibility);
     updateResolvedVisibility();
@@ -1021,7 +949,6 @@
           Visibility: get('Visibility'),
           ResolvedDate: get('ResolvedDate'),
           ReviewDate: get('ReviewDate'),
-          Workaround: get('Workaround'),
           RelatedArticles: get('RelatedArticles'),
         };
       }
@@ -1051,7 +978,6 @@
             Status: formData.Status,
             Visibility: formData.Visibility,
             Tags: formData.Tags,
-            Workaround: formData.Workaround,
             ResolvedDate: formData.Status === 'Resolved' ? (formData.ResolvedDate || today()) : '',
             ReviewDate: formData.ReviewDate,
           Audience: inferAudience(formData.Visibility),
@@ -1106,7 +1032,6 @@
             CreatedDate: now,
             UpdatedDate: now,
             ResolvedDate: formData.Status === 'Resolved' ? formData.ResolvedDate : '',
-            Workaround: formData.Workaround,
             Status: formData.Status,
             Visibility: formData.Visibility,
             VersionNumber: '1',
@@ -1139,7 +1064,6 @@
             Status: formData.Status,
             Visibility: formData.Visibility,
             Tags: formData.Tags,
-            Workaround: formData.Workaround,
             ResolvedDate: formData.Status === 'Resolved' ? (formData.ResolvedDate || existing.ResolvedDate || today()) : '',
             ReviewDate: formData.ReviewDate,
             Audience: inferAudience(formData.Visibility || existing.Visibility),
@@ -1373,8 +1297,7 @@
       CreatedDate: created,
       UpdatedDate: modified,
       ResolvedDate: pick('ResolvedDate'),
-      Workaround: pick('Workaround'),
-      Status: readChoice(it.Status) || pick('Status') || 'Draft',
+      Status: readChoice(it.Status) || pick('Status') || 'Published',
       Visibility: readChoice(it.Visibility) || pick('Visibility') || 'Internal',
       VersionNumber: pick('{VersionNumber}', 'VersionNumber', 'Version'),
       ReviewDate: pick('ReviewDate'),
@@ -1478,6 +1401,7 @@
   // Init
   function init() {
     wire();
+    initializeQuill(); // Initialize Quill editor
     // Route-aware init
     handleRoute();
     renderSortIndicators();

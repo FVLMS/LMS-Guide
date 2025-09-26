@@ -12,6 +12,7 @@ import {
   multiColumnDropCursor,
   locales as multiColumnLocales,
 } from '@blocknote/xl-multi-column';
+import { AlertBlock } from './customBlocks/alert';
 // Inline CSS for export (flatten styles to avoid @import at runtime)
 // These imports are only used when building the exported HTML string.
 // Vite will inline them as strings thanks to the ?raw suffix.
@@ -48,15 +49,39 @@ export default function App() {
   const [dirty, setDirty] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const suppressChangeRef = useRef<boolean>(false);
+  
 
   // Enable multi‑column blocks by extending the schema,
   // and use the multi‑column drop cursor.
-  const schema = useMemo(() => withMultiColumn(BlockNoteSchema.create()), []);
-  const editor = useCreateBlockNote({ schema, dropCursor: multiColumnDropCursor });
+  const schema = useMemo(() => {
+    const base = BlockNoteSchema.create();
+    const withAlert = base.extend({ blockSpecs: { alert: AlertBlock() } });
+    return withMultiColumn(withAlert);
+  }, []);
+  const editor = useCreateBlockNote({
+    schema,
+    dropCursor: multiColumnDropCursor,
+    // Client-side image/file paste: store as data URL so no external hosting/CORS needed
+    uploadFile: async (file: File) => {
+      const toDataUrl = (f: File) => new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(f);
+      });
+      return await toDataUrl(file);
+    },
+  });
 
   const getSlashMenuItems = useCallback(async (query: string) => {
     const defaults = getDefaultReactSlashMenuItems(editor);
     const multi = getMultiColumnSlashMenuItems(editor);
+    const callouts = [
+      { title: 'Info Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'info' } }], editor.getTextCursorPosition().block, 'after') },
+      { title: 'Success Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'success' } }], editor.getTextCursorPosition().block, 'after') },
+      { title: 'Warning Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'warning' } }], editor.getTextCursorPosition().block, 'after') },
+      { title: 'Danger Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'danger' } }], editor.getTextCursorPosition().block, 'after') },
+    ].map(i => ({ ...i, size: 'default' as const }));
     // Preserve the default group order (Headings, Subheadings, Basic blocks, ...)
     const groupOrder: string[] = [];
     for (const it of defaults) {
@@ -64,7 +89,7 @@ export default function App() {
         groupOrder.push(it.group);
       }
     }
-    const filtered = filterSuggestionItems([...defaults, ...multi], query);
+    const filtered = filterSuggestionItems([...defaults, ...multi, ...callouts as any], query);
     // Sort filtered items by the default group order so groups stay contiguous
     const orderIndex = (g?: string) => {
       const i = g ? groupOrder.indexOf(g) : -1;
@@ -115,6 +140,8 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(NAME_KEY, fileName);
   }, [fileName]);
+
+  
 
   const onNew = () => {
     if (dirty && !confirm('Discard current local draft?')) return;
@@ -189,8 +216,25 @@ export default function App() {
     }
     if (fmt === 'pdf') {
       const { PDFExporter, pdfDefaultSchemaMappings } = await import('@blocknote/xl-pdf-exporter');
+      const { Text, View } = await import('@react-pdf/renderer');
       const ReactPDF = await import('@react-pdf/renderer');
-      const exporter = new PDFExporter(editor.schema as any, pdfDefaultSchemaMappings as any);
+      // Extend default mappings with an alert block mapping
+      const pdfMappings = {
+        blockMapping: {
+          ...pdfDefaultSchemaMappings.blockMapping,
+          alert: (block: any, _t: any) => {
+            const color = ({info:'#0d6efd',success:'#198754',warning:'#ffc107',danger:'#dc3545'} as any)[block.props.variant || 'info'];
+            return (
+              <View key={'alert'+block.id} style={{ borderLeftColor: color, borderLeftWidth: 3, paddingLeft: 8, paddingVertical: 6 }}>
+                <Text>{_t.transformInlineContent(block.content)}</Text>
+              </View>
+            ) as any;
+          },
+        },
+        inlineContentMapping: pdfDefaultSchemaMappings.inlineContentMapping,
+        styleMapping: pdfDefaultSchemaMappings.styleMapping,
+      } as any;
+      const exporter = new PDFExporter(editor.schema as any, pdfMappings);
       // Double the left/right margin (paddingHorizontal is both left & right)
       const currentPH: any = (exporter.styles.page as any).paddingHorizontal ?? 35;
       (exporter.styles.page as any).paddingHorizontal = currentPH * 2;
@@ -234,7 +278,8 @@ export default function App() {
           }}
         />
         <button onClick={triggerImport}>Import JSON</button>
-        <span className="spacer" />
+      <span className="spacer" />
+        
         <button className="primary" onClick={() => onExport('json')}>Export JSON</button>
         <button onClick={() => onExport('html')}>Export HTML</button>
         <button onClick={() => onExport('mdx')}>Export MDX</button>

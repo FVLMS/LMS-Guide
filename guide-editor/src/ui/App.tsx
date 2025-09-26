@@ -234,7 +234,11 @@ export default function App() {
         inlineContentMapping: pdfDefaultSchemaMappings.inlineContentMapping,
         styleMapping: pdfDefaultSchemaMappings.styleMapping,
       } as any;
-      const exporter = new PDFExporter(editor.schema as any, pdfMappings);
+      const exporter = new PDFExporter(editor.schema as any, pdfMappings, {
+        // Avoid using the default BlockNote CORS proxy; keep data URLs inline,
+        // and leave http(s) URLs unchanged (may fail if remote blocks CORS).
+        resolveFileUrl: async (url: string) => url,
+      } as any);
       // Double the left/right margin (paddingHorizontal is both left & right)
       const currentPH: any = (exporter.styles.page as any).paddingHorizontal ?? 35;
       (exporter.styles.page as any).paddingHorizontal = currentPH * 2;

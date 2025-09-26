@@ -193,7 +193,15 @@ export default function App() {
       return;
     }
     if (fmt === 'html') {
-      const content = await editor.blocksToFullHTML(editor.document);
+      let content = await editor.blocksToFullHTML(editor.document);
+      // Ensure preview-sized images keep their pixel width in static HTML by
+      // inlining a style when a width attribute is present.
+      content = content.replace(/<img([^>]*?)>/g, (m, attrs) => {
+        const w = attrs.match(/\bwidth=\"(\d+)\"/);
+        if (!w) return m;
+        if (/\bstyle=/.test(attrs)) return m;
+        return `<img${attrs} style=\"width:${w[1]}px;height:auto\">`;
+      });
       const stripImports = (css: string) => css.replace(/@import[^;]+;/g, '');
       const fullCss = [
         stripImports(coreStylesCSS),
@@ -206,7 +214,13 @@ export default function App() {
       return;
     }
     if (fmt === 'mdx') {
-      const html = await editor.blocksToFullHTML(editor.document);
+      let html = await editor.blocksToFullHTML(editor.document);
+      html = html.replace(/<img([^>]*?)>/g, (m, attrs) => {
+        const w = attrs.match(/\bwidth=\"(\d+)\"/);
+        if (!w) return m;
+        if (/\bstyle=/.test(attrs)) return m;
+        return `<img${attrs} style=\"width:${w[1]}px;height:auto\">`;
+      });
       const frontmatter = `---\ntitle: "${base.replace(/"/g, '\"')}"\nupdated: "${new Date().toISOString().slice(0,10)}"\n---\n\n`;
       // Embed raw HTML directly; MDX allows raw HTML by default in Astro.
       const mdx = frontmatter + html + '\n';
@@ -227,6 +241,26 @@ export default function App() {
             return (
               <View key={'alert'+block.id} style={{ borderLeftColor: color, borderLeftWidth: 3, paddingLeft: 8, paddingVertical: 6 }}>
                 <Text>{_t.transformInlineContent(block.content)}</Text>
+              </View>
+            ) as any;
+          },
+          image: async (block: any, t: any) => {
+            const PIXELS_PER_POINT = 0.75;
+            // A4 width in points ~ 595.28
+            const A4_WIDTH_PT = 595.28;
+            const pagePadH = (t.styles?.page?.paddingHorizontal ?? 35) * 1; // already in points
+            const maxWidth = A4_WIDTH_PT - 2 * pagePadH;
+            const desiredPx = block.props.previewWidth || null;
+            const widthPt = desiredPx ? desiredPx * PIXELS_PER_POINT : maxWidth;
+            const actualWidth = Math.min(widthPt, maxWidth);
+            return (
+              <View wrap={false} key={'image'+block.id}>
+                <Text style={{ display: 'none' }}>{''}</Text>
+                <Image src={await t.resolveFile(block.props.url)} style={{ width: actualWidth }} />
+                {(() => {
+                  const cap = block.props.caption as string | undefined;
+                  return cap ? <Text style={{ fontSize: 10 }}>{cap}</Text> : null;
+                })()}
               </View>
             ) as any;
           },

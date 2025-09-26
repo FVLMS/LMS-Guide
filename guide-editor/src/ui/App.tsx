@@ -230,7 +230,7 @@ export default function App() {
     }
     if (fmt === 'pdf') {
       const { PDFExporter, pdfDefaultSchemaMappings } = await import('@blocknote/xl-pdf-exporter');
-      const { Text, View } = await import('@react-pdf/renderer');
+      const { Text, View, Image } = await import('@react-pdf/renderer');
       const ReactPDF = await import('@react-pdf/renderer');
       // Extend default mappings with an alert block mapping
       const pdfMappings = {
@@ -255,7 +255,6 @@ export default function App() {
             const actualWidth = Math.min(widthPt, maxWidth);
             return (
               <View wrap={false} key={'image'+block.id}>
-                <Text style={{ display: 'none' }}>{''}</Text>
                 <Image src={await t.resolveFile(block.props.url)} style={{ width: actualWidth }} />
                 {(() => {
                   const cap = block.props.caption as string | undefined;

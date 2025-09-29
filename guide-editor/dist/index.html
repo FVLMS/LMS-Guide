@@ -72,8 +72,27 @@
       .bn-visual-media-wrapper { position: relative; }
       .bn-annot-overlay { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
       .bn-resize-handle { position: absolute; z-index: 1000; width: 12px !important; height: 48px !important; background-color: #ff7a00 !important; border-color: white !important; opacity: 0.9; }
+
+      /* On-screen PDF width preview */
+      body.pdf-preview .wrap { max-width: none !important; }
+      body.pdf-preview .bn-container { max-width: none !important; width: var(--pdf-preview-width, 7.27in) !important; margin: 0 auto; }
+      body.pdf-preview .bn-editor { width: 100% !important; }
+
+      /* Print-exact styles */
+      @page { size: A4; margin: 0.5in; }
+      @media print {
+        :root { color-scheme: light; }
+        body { margin: 0; }
+        header, .row, .tips, .footer { display: none !important; }
+        .wrap { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+        .bn-resize-handle, .bn-convert-btn { display: none !important; }
+        .bn-container { max-width: none !important; width: var(--print-width-px, auto) !important; zoom: var(--print-zoom, 1) !important; transform-origin: top left; }
+        .bn-editor { width: 100% !important; }
+      }
+      /* Optional class to tweak when entering print mode */
+      body.print-exact .wrap { max-width: none; }
     </style>
-    <script type="module" crossorigin src="./assets/index-C8AJu9AT.js"></script>
+    <script type="module" crossorigin src="./assets/index-DIxl0r6W.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-DPTKBP2e.css">
   </head>
   <body>

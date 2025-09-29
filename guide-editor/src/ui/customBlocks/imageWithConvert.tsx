@@ -48,7 +48,7 @@ export const ImageWithConvertBlock = createReactBlockSpec(
           <div style={{ position: 'relative' }}>
             <MyImagePreview {...(props as any)} />
             <div style={{ position: 'absolute', right: 6, top: 6, display: hovered ? 'flex' : 'flex', zIndex: 1000 }}>
-              <button onClick={onConvert} style={{ fontSize: 12, padding: '4px 6px', borderRadius: 6, background: 'rgba(0,0,0,0.55)', color: 'white', border: '1px solid rgba(255,255,255,0.6)' }}>Convert</button>
+              <button className="bn-convert-btn" onClick={onConvert} style={{ fontSize: 12, padding: '4px 6px', borderRadius: 6, background: 'rgba(0,0,0,0.55)', color: 'white', border: '1px solid rgba(255,255,255,0.6)' }}>Convert</button>
             </div>
           </div>
         </ResizableFileBlockWrapper>

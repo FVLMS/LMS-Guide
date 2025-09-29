@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { Buffer as BufferPolyfill } from 'buffer';
 // Static imports to avoid dev-time dynamic import issues
 import { PDFExporter, pdfDefaultSchemaMappings } from '@blocknote/xl-pdf-exporter';
-import { Text, View, Image as PDFImage, Svg, Line, Path, pdf as pdfRenderer } from '@react-pdf/renderer';
+import { Text, View, Image as PDFImage, Svg, Line, Path, pdf as pdfRenderer, Font } from '@react-pdf/renderer';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
   useCreateBlockNote,
@@ -56,6 +56,7 @@ export default function App() {
   }
   const [fileName, setFileName] = useState<string>(() => localStorage.getItem(NAME_KEY) || 'untitled');
   const [dirty, setDirty] = useState<boolean>(false);
+  const [pdfPreview, setPdfPreview] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const suppressChangeRef = useRef<boolean>(false);
   
@@ -178,6 +179,27 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Toggle PDF width preview (A4 width minus 0.5in margins)
+  useEffect(() => {
+    const root = document.documentElement;
+    if (pdfPreview) {
+      try {
+        document.body.classList.add('pdf-preview');
+        // A4: 8.27in total width, 0.5in margins each side -> 7.27in content
+        root.style.setProperty('--pdf-preview-width', '7.27in');
+      } catch {}
+    } else {
+      try {
+        document.body.classList.remove('pdf-preview');
+        root.style.removeProperty('--pdf-preview-width');
+      } catch {}
+    }
+    return () => {
+      try { document.body.classList.remove('pdf-preview'); } catch {}
+      try { root.style.removeProperty('--pdf-preview-width'); } catch {}
+    };
+  }, [pdfPreview]);
+
   // Keep NAME in localStorage
   useEffect(() => {
     localStorage.setItem(NAME_KEY, fileName);
@@ -281,8 +303,8 @@ export default function App() {
           let next = b;
           if (b?.type === 'image' || b?.type === 'annotated_image') {
             const img = document.querySelector(`div[data-id="${b.id}"] img.bn-visual-media`) as HTMLImageElement | null;
-            if (img && (b.props?.previewWidth == null || Number.isNaN(Number(b.props.previewWidth)))) {
-              const measured = Math.round(img.getBoundingClientRect().width);
+            if (img) {
+              const measured = Math.max(1, Math.round(img.getBoundingClientRect().width));
               next = { ...b, props: { ...b.props, previewWidth: measured } };
             }
           }
@@ -295,7 +317,21 @@ export default function App() {
       };
 
       const docForPdf = withMeasuredImageWidths(editor.document as any);
+      // Compute a scale factor so that an image that is X px wide in the editor
+      // becomes X * scale in the PDF, where scale maps the editor content width
+      // to the PDF content width. This preserves relative sizing.
+      const PIXELS_PER_POINT = 0.75;
+      const A4_WIDTH_PT = 595.28;
+      const pagePadHPt = (pdfDefaultSchemaMappings as any) ? ((new PDFExporter(editor.schema as any, pdfDefaultSchemaMappings) as any).styles?.page?.paddingHorizontal ?? 35) : 35;
+      const pdfMaxWidthPt = A4_WIDTH_PT - 2 * pagePadHPt;
+      const pdfMaxWidthPx = pdfMaxWidthPt / PIXELS_PER_POINT;
+      const editorHost = (editor as any)?.domElement as HTMLElement | null;
+      const editorContentEl = (editorHost?.firstElementChild || null) as HTMLElement | null;
+      const editorWidthPx = editorContentEl?.clientWidth ?? editorHost?.clientWidth ?? document.body.clientWidth ?? 800;
+      const pdfScalePx = Math.min(1, pdfMaxWidthPx / editorWidthPx);
       // Extend default mappings with an alert block mapping
+      // Scale down font sizes to match editor density better
+      const fontScale = 0.85; // Reduce by 15% to fit more content per page
       const pdfMappings = {
         blockMapping: {
           ...pdfDefaultSchemaMappings.blockMapping,
@@ -308,14 +344,13 @@ export default function App() {
             ) as any;
           },
           image: async (block: any, t: any) => {
-            const PIXELS_PER_POINT = 0.75;
-            // A4 width in points ~ 595.28
-            const A4_WIDTH_PT = 595.28;
-            const pagePadH = (t.styles?.page?.paddingHorizontal ?? 35) * 1; // already in points
+            const pagePadH = (t.styles?.page?.paddingHorizontal ?? 35) * 1;
             const maxWidth = A4_WIDTH_PT - 2 * pagePadH;
             const desiredPx = block.props.previewWidth || null;
-            const widthPt = desiredPx ? desiredPx * PIXELS_PER_POINT : maxWidth;
-            const actualWidth = Math.min(widthPt, maxWidth);
+            const isFull = desiredPx ? (desiredPx >= editorWidthPx - 2) : false;
+            const targetPx = isFull ? (maxWidth / PIXELS_PER_POINT) : (desiredPx ? desiredPx * pdfScalePx : (maxWidth / PIXELS_PER_POINT));
+            const widthPt = Math.min(targetPx * PIXELS_PER_POINT, maxWidth);
+            const actualWidth = widthPt;
             return (
               <View wrap={false} key={'image'+block.id}>
                 <PDFImage src={await t.resolveFile(block.props.url)} style={{ width: actualWidth }} />
@@ -327,12 +362,12 @@ export default function App() {
             ) as any;
           },
           annotated_image: async (block: any, t: any) => {
-            const PIXELS_PER_POINT = 0.75;
-            const A4_WIDTH_PT = 595.28;
             const pagePadH = (t.styles?.page?.paddingHorizontal ?? 35) * 1;
             const maxWidth = A4_WIDTH_PT - 2 * pagePadH;
             const desiredPx = block.props.previewWidth || null;
-            const widthPt = Math.min(desiredPx ? desiredPx * PIXELS_PER_POINT : maxWidth, maxWidth);
+            const isFull = desiredPx ? (desiredPx >= editorWidthPx - 2) : false;
+            const targetPx = isFull ? (maxWidth / PIXELS_PER_POINT) : (desiredPx ? desiredPx * pdfScalePx : (maxWidth / PIXELS_PER_POINT));
+            const widthPt = Math.min(targetPx * PIXELS_PER_POINT, maxWidth);
             const src = await t.resolveFile(block.props.url);
             // Determine aspect ratio by loading image in browser
             const { w: naturalW, h: naturalH } = await (async () => {
@@ -391,16 +426,72 @@ export default function App() {
           },
         },
         inlineContentMapping: pdfDefaultSchemaMappings.inlineContentMapping,
-        styleMapping: pdfDefaultSchemaMappings.styleMapping,
+        styleMapping: {
+          ...pdfDefaultSchemaMappings.styleMapping,
+          // Override text styles to reduce font sizes
+          text: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.text || {}),
+            fontSize: 12 * fontScale,
+          },
+          h1: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.h1 || {}),
+            fontSize: 24 * fontScale,
+            marginTop: 8 * fontScale,
+            marginBottom: 6 * fontScale,
+          },
+          h2: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.h2 || {}),
+            fontSize: 20 * fontScale,
+            marginTop: 7 * fontScale,
+            marginBottom: 5 * fontScale,
+          },
+          h3: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.h3 || {}),
+            fontSize: 16 * fontScale,
+            marginTop: 6 * fontScale,
+            marginBottom: 4 * fontScale,
+          },
+          paragraph: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.paragraph || {}),
+            fontSize: 12 * fontScale,
+            marginBottom: 4 * fontScale,
+          },
+          list: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.list || {}),
+            fontSize: 12 * fontScale,
+            marginBottom: 4 * fontScale,
+          },
+          listItem: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.listItem || {}),
+            fontSize: 12 * fontScale,
+            marginBottom: 2 * fontScale,
+          },
+          code: {
+            ...((pdfDefaultSchemaMappings.styleMapping as any)?.code || {}),
+            fontSize: 10 * fontScale,
+          },
+        },
       } as any;
+      // Provide a conservative hyphenation callback to avoid overflow on extremely long words
+      try {
+        Font.registerHyphenationCallback((word: string) => {
+          if (!word) return [word];
+          // If the word already has hyphens or is small, leave it
+          if (word.length <= 18 || /[-\u00AD]/.test(word)) return [word];
+          // Otherwise break into chunks of ~12 characters to allow wrapping
+          const size = 12;
+          const parts: string[] = [];
+          for (let i = 0; i < word.length; i += size) parts.push(word.slice(i, i + size));
+          return parts;
+        });
+      } catch {}
+
       const exporter = new PDFExporter(editor.schema as any, pdfMappings, {
         // Avoid using the default BlockNote CORS proxy; keep data URLs inline,
         // and leave http(s) URLs unchanged (may fail if remote blocks CORS).
         resolveFileUrl: async (url: string) => url,
       } as any);
-      // Double the left/right margin (paddingHorizontal is both left & right)
-      const currentPH: any = (exporter.styles.page as any).paddingHorizontal ?? 35;
-      (exporter.styles.page as any).paddingHorizontal = currentPH * 2;
+      // Keep default margins to maximize content width parity with editor
       const pdfDoc = await exporter.toReactPDFDocument(docForPdf as any);
       // In browser, render to Blob and download
       const instance = pdfRenderer(pdfDoc as any);
@@ -409,6 +500,39 @@ export default function App() {
       setDirty(false);
       return;
     }
+  };
+
+  const onPrintExact = () => {
+    try {
+      document.body.classList.add('print-exact');
+      // Compute zoom so printed content preserves on-screen line breaks
+      const editorHost = (editor as any)?.domElement as HTMLElement | null;
+      const editorContentEl = (editorHost?.firstElementChild || null) as HTMLElement | null;
+      const editorWidthPx = editorContentEl?.clientWidth ?? editorHost?.clientWidth ?? document.body.clientWidth ?? 800;
+      const A4_WIDTH_IN = 8.27;
+      const DPI = 96; // CSS px per inch
+      const pagePx = Math.round(A4_WIDTH_IN * DPI);
+      const marginIn = 0.5; // keep in sync with @page
+      const printablePx = Math.max(1, pagePx - Math.round(2 * marginIn * DPI));
+      const ratio = printablePx / editorWidthPx;
+      // If we'd need to shrink more than ~15%, use fit-to-page instead of heavy zooming
+      const useFit = ratio < 0.85;
+      const zoom = useFit ? 1 : Math.min(1, ratio);
+      const root = document.documentElement;
+      root.style.setProperty('--print-width-px', useFit ? `${printablePx}px` : `${editorWidthPx}px`);
+      root.style.setProperty('--print-zoom', `${zoom}`);
+    } catch {}
+    const cleanup = () => {
+      try { document.body.classList.remove('print-exact'); } catch {}
+      try {
+        const root = document.documentElement;
+        root.style.removeProperty('--print-width-px');
+        root.style.removeProperty('--print-zoom');
+      } catch {}
+      window.removeEventListener('afterprint', cleanup as any);
+    };
+    window.addEventListener('afterprint', cleanup as any);
+    try { window.print(); } catch { cleanup(); }
   };
 
   const clearLocal = () => {
@@ -447,6 +571,10 @@ export default function App() {
         <button onClick={() => onExport('html')}>Export HTML</button>
         <button onClick={() => onExport('mdx')}>Export MDX</button>
         <button onClick={() => onExport('pdf')}>Export PDF</button>
+        <button onClick={onPrintExact} title="Use your browser's print-to-PDF for exact layout">Print PDF (Exact)</button>
+        <button onClick={() => setPdfPreview(p => !p)} title="Constrain editor to printable width">
+          {pdfPreview ? 'Preview Width: On' : 'Preview Width: Off'}
+        </button>
         <button onClick={clearLocal} title="Remove the autosaved local draft">Clear Local Draft</button>
       </div>
 

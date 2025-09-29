@@ -5,4 +5,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   base: './',
+  optimizeDeps: {
+    include: [
+      '@react-pdf/renderer',
+      '@blocknote/xl-pdf-exporter',
+      'base64-js',
+      'unicode-properties',
+    ],
+  },
 });

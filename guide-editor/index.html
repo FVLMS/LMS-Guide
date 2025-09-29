@@ -68,6 +68,10 @@
         font-size: 12px;
         color: color-mix(in oklab, CanvasText, transparent 30%);
       }
+      /* Ensure resize handles sit above any custom overlays */
+      .bn-visual-media-wrapper { position: relative; }
+      .bn-annot-overlay { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+      .bn-resize-handle { position: absolute; z-index: 1000; width: 12px !important; height: 48px !important; background-color: #ff7a00 !important; border-color: white !important; opacity: 0.9; }
     </style>
   </head>
   <body>

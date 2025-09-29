@@ -1,4 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { Buffer as BufferPolyfill } from 'buffer';
+// Static imports to avoid dev-time dynamic import issues
+import { PDFExporter, pdfDefaultSchemaMappings } from '@blocknote/xl-pdf-exporter';
+import { Text, View, Image as PDFImage, Svg, Line, Path, pdf as pdfRenderer } from '@react-pdf/renderer';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
   useCreateBlockNote,
@@ -13,6 +17,8 @@ import {
   locales as multiColumnLocales,
 } from '@blocknote/xl-multi-column';
 import { AlertBlock } from './customBlocks/alert';
+import { AnnotatedImageBlock } from './customBlocks/annotatedImage';
+import { ImageWithConvertBlock } from './customBlocks/imageWithConvert';
 // Inline CSS for export (flatten styles to avoid @import at runtime)
 // These imports are only used when building the exported HTML string.
 // Vite will inline them as strings thanks to the ?raw suffix.
@@ -45,6 +51,9 @@ const DRAFT_KEY = 'bn_draft_v1';
 const NAME_KEY  = 'bn_filename_v1';
 
 export default function App() {
+  if (!(globalThis as any).Buffer) {
+    (globalThis as any).Buffer = BufferPolyfill;
+  }
   const [fileName, setFileName] = useState<string>(() => localStorage.getItem(NAME_KEY) || 'untitled');
   const [dirty, setDirty] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,8 +64,8 @@ export default function App() {
   // and use the multi‑column drop cursor.
   const schema = useMemo(() => {
     const base = BlockNoteSchema.create();
-    const withAlert = base.extend({ blockSpecs: { alert: AlertBlock() } });
-    return withMultiColumn(withAlert);
+    const withCustom = base.extend({ blockSpecs: { alert: AlertBlock(), annotated_image: AnnotatedImageBlock(), image: ImageWithConvertBlock() } });
+    return withMultiColumn(withCustom);
   }, []);
   const editor = useCreateBlockNote({
     schema,
@@ -76,11 +85,44 @@ export default function App() {
   const getSlashMenuItems = useCallback(async (query: string) => {
     const defaults = getDefaultReactSlashMenuItems(editor);
     const multi = getMultiColumnSlashMenuItems(editor);
+    const extraActions: any[] = [];
+    try {
+      const cur = editor.getTextCursorPosition().block as any;
+      if (cur?.type === 'image') {
+        extraActions.push({
+          title: 'Convert to Annotated Image',
+          group: 'Basic blocks',
+          onItemClick: () => {
+            const src = cur.props?.url || '';
+            const npw = cur.props?.previewWidth;
+            const cap = cur.props?.caption || '';
+            const name = cur.props?.name || '';
+            const ta = cur.props?.textAlignment || 'left';
+            const bg = cur.props?.backgroundColor || 'default';
+            editor.replaceBlocks([cur], [{
+              type: 'annotated_image',
+              props: {
+                url: src,
+                previewWidth: npw,
+                caption: cap,
+                name,
+                textAlignment: ta,
+                backgroundColor: bg,
+                showPreview: true,
+                annotations: '[]',
+              }
+            } as any]);
+          }
+        });
+      }
+    } catch {}
     const callouts = [
       { title: 'Info Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'info' } }], editor.getTextCursorPosition().block, 'after') },
       { title: 'Success Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'success' } }], editor.getTextCursorPosition().block, 'after') },
       { title: 'Warning Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'warning' } }], editor.getTextCursorPosition().block, 'after') },
       { title: 'Danger Alert', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'alert', props: { variant: 'danger' } }], editor.getTextCursorPosition().block, 'after') },
+      { title: 'Annotated Image', group: 'Basic blocks', onItemClick: () => editor.insertBlocks([{ type: 'annotated_image', props: {} as any }], editor.getTextCursorPosition().block, 'after') },
+      ...extraActions,
     ].map(i => ({ ...i, size: 'default' as const }));
     // Preserve the default group order (Headings, Subheadings, Basic blocks, ...)
     const groupOrder: string[] = [];
@@ -229,9 +271,30 @@ export default function App() {
       return;
     }
     if (fmt === 'pdf') {
-      const { PDFExporter, pdfDefaultSchemaMappings } = await import('@blocknote/xl-pdf-exporter');
-      const { Text, View, Image } = await import('@react-pdf/renderer');
-      const ReactPDF = await import('@react-pdf/renderer');
+
+      // In some cases, users resize images in the editor but the JSON
+      // doesn't yet have previewWidth. As a fallback, read the current
+      // rendered width from the editor DOM and inject it into a shallow
+      // copy of the document for export.
+      const withMeasuredImageWidths = (blocks: any[]): any[] => {
+        const map = (arr: any[]): any[] => arr.map((b) => {
+          let next = b;
+          if (b?.type === 'image' || b?.type === 'annotated_image') {
+            const img = document.querySelector(`div[data-id="${b.id}"] img.bn-visual-media`) as HTMLImageElement | null;
+            if (img && (b.props?.previewWidth == null || Number.isNaN(Number(b.props.previewWidth)))) {
+              const measured = Math.round(img.getBoundingClientRect().width);
+              next = { ...b, props: { ...b.props, previewWidth: measured } };
+            }
+          }
+          if (b?.children?.length) {
+            next = { ...next, children: map(b.children) };
+          }
+          return next;
+        });
+        return map(blocks);
+      };
+
+      const docForPdf = withMeasuredImageWidths(editor.document as any);
       // Extend default mappings with an alert block mapping
       const pdfMappings = {
         blockMapping: {
@@ -255,7 +318,70 @@ export default function App() {
             const actualWidth = Math.min(widthPt, maxWidth);
             return (
               <View wrap={false} key={'image'+block.id}>
-                <Image src={await t.resolveFile(block.props.url)} style={{ width: actualWidth }} />
+                <PDFImage src={await t.resolveFile(block.props.url)} style={{ width: actualWidth }} />
+                {(() => {
+                  const cap = block.props.caption as string | undefined;
+                  return cap ? <Text style={{ fontSize: 10 }}>{cap}</Text> : null;
+                })()}
+              </View>
+            ) as any;
+          },
+          annotated_image: async (block: any, t: any) => {
+            const PIXELS_PER_POINT = 0.75;
+            const A4_WIDTH_PT = 595.28;
+            const pagePadH = (t.styles?.page?.paddingHorizontal ?? 35) * 1;
+            const maxWidth = A4_WIDTH_PT - 2 * pagePadH;
+            const desiredPx = block.props.previewWidth || null;
+            const widthPt = Math.min(desiredPx ? desiredPx * PIXELS_PER_POINT : maxWidth, maxWidth);
+            const src = await t.resolveFile(block.props.url);
+            // Determine aspect ratio by loading image in browser
+            const { w: naturalW, h: naturalH } = await (async () => {
+              return await new Promise<{ w: number; h: number }>((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve({ w: (img as any).naturalWidth || (img as any).width, h: (img as any).naturalHeight || (img as any).height });
+                img.onerror = () => resolve({ w: 1, h: 1 });
+                img.src = src as any;
+              });
+            })();
+            const heightPt = Math.max(1, widthPt * (naturalH / naturalW));
+            // Parse annotations
+            let annotations: any[] = [];
+            try { annotations = JSON.parse(block.props.annotations || '[]'); } catch {}
+            const lines = (annotations || []).filter((a) => a?.type === 'arrow');
+            const dots = (annotations || []).filter((a) => a?.type === 'dot');
+            return (
+              <View wrap={false} key={'annotated_image'+block.id}>
+                <View style={{ position: 'relative', width: widthPt }}>
+                  <PDFImage src={src as any} style={{ width: widthPt }} />
+                  <Svg width={widthPt} height={heightPt} style={{ position: 'absolute', left: 0, top: 0 }}>
+                    {lines.map((a) => {
+                      const x1 = (a.x || 0) * widthPt, y1 = (a.y || 0) * heightPt;
+                      const x2 = (a.x2 || 0) * widthPt, y2 = (a.y2 || 0) * heightPt;
+                      // arrow head as two short lines at the end
+                      const angle = Math.atan2((y2 - y1), (x2 - x1));
+                      const headLen = 8; // points
+                      const leftAng = angle - Math.PI / 6;
+                      const rightAng = angle + Math.PI / 6;
+                      const lx = x2 - headLen * Math.cos(leftAng);
+                      const ly = y2 - headLen * Math.sin(leftAng);
+                      const rx = x2 - headLen * Math.cos(rightAng);
+                      const ry = y2 - headLen * Math.sin(rightAng);
+                      return (
+                        <React.Fragment key={a.id}>
+                          <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#ff7a00" strokeWidth={3} />
+                          <Line x1={x2} y1={y2} x2={lx} y2={ly} stroke="#ff7a00" strokeWidth={3} />
+                          <Line x1={x2} y1={y2} x2={rx} y2={ry} stroke="#ff7a00" strokeWidth={3} />
+                        </React.Fragment>
+                      );
+                    })}
+                    {dots.map((a) => {
+                      const cx = (a.x || 0) * widthPt, cy = (a.y || 0) * heightPt;
+                      const r = 5;
+                      const d = `M ${cx + r},${cy} A ${r},${r} 0 1 0 ${cx - r},${cy} A ${r},${r} 0 1 0 ${cx + r},${cy}`;
+                      return <Path key={a.id} d={d} fill="#ff7a00" />;
+                    })}
+                  </Svg>
+                </View>
                 {(() => {
                   const cap = block.props.caption as string | undefined;
                   return cap ? <Text style={{ fontSize: 10 }}>{cap}</Text> : null;
@@ -275,9 +401,9 @@ export default function App() {
       // Double the left/right margin (paddingHorizontal is both left & right)
       const currentPH: any = (exporter.styles.page as any).paddingHorizontal ?? 35;
       (exporter.styles.page as any).paddingHorizontal = currentPH * 2;
-      const pdfDoc = await exporter.toReactPDFDocument(editor.document as any);
+      const pdfDoc = await exporter.toReactPDFDocument(docForPdf as any);
       // In browser, render to Blob and download
-      const instance = ReactPDF.pdf(pdfDoc as any);
+      const instance = pdfRenderer(pdfDoc as any);
       const blob = await instance.toBlob();
       download(base + '.pdf', 'application/pdf', blob);
       setDirty(false);

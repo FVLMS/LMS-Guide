@@ -502,7 +502,7 @@ export default function App() {
     }
   };
 
-  const onPrintExact = () => {
+  const onPrintExact = async () => {
     try {
       document.body.classList.add('print-exact');
       // Compute zoom so printed content preserves on-screen line breaks
@@ -532,7 +532,13 @@ export default function App() {
       window.removeEventListener('afterprint', cleanup as any);
     };
     window.addEventListener('afterprint', cleanup as any);
-    try { window.print(); } catch { cleanup(); }
+    try {
+      const f: any = (document as any).fonts;
+      if (f && typeof f.ready?.then === 'function') {
+        try { await f.ready; } catch {}
+      }
+      window.print();
+    } catch { cleanup(); }
   };
 
   const clearLocal = () => {

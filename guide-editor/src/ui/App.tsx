@@ -502,43 +502,14 @@ export default function App() {
     }
   };
 
-  const onPrintExact = async () => {
-    try {
-      document.body.classList.add('print-exact');
-      // Compute zoom so printed content preserves on-screen line breaks
-      const editorHost = (editor as any)?.domElement as HTMLElement | null;
-      const editorContentEl = (editorHost?.firstElementChild || null) as HTMLElement | null;
-      const editorWidthPx = editorContentEl?.clientWidth ?? editorHost?.clientWidth ?? document.body.clientWidth ?? 800;
-      const A4_WIDTH_IN = 8.27;
-      const DPI = 96; // CSS px per inch
-      const pagePx = Math.round(A4_WIDTH_IN * DPI);
-      const marginIn = 0.5; // keep in sync with @page
-      const printablePx = Math.max(1, pagePx - Math.round(2 * marginIn * DPI));
-      const ratio = printablePx / editorWidthPx;
-      // If we'd need to shrink more than ~15%, use fit-to-page instead of heavy zooming
-      const useFit = ratio < 0.85;
-      const zoom = useFit ? 1 : Math.min(1, ratio);
-      const root = document.documentElement;
-      root.style.setProperty('--print-width-px', useFit ? `${printablePx}px` : `${editorWidthPx}px`);
-      root.style.setProperty('--print-zoom', `${zoom}`);
-    } catch {}
+  const onPrintExact = () => {
+    try { document.body.classList.add('print-exact'); } catch {}
     const cleanup = () => {
       try { document.body.classList.remove('print-exact'); } catch {}
-      try {
-        const root = document.documentElement;
-        root.style.removeProperty('--print-width-px');
-        root.style.removeProperty('--print-zoom');
-      } catch {}
       window.removeEventListener('afterprint', cleanup as any);
     };
     window.addEventListener('afterprint', cleanup as any);
-    try {
-      const f: any = (document as any).fonts;
-      if (f && typeof f.ready?.then === 'function') {
-        try { await f.ready; } catch {}
-      }
-      window.print();
-    } catch { cleanup(); }
+    try { window.print(); } catch { cleanup(); }
   };
 
   const clearLocal = () => {

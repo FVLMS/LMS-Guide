@@ -79,23 +79,23 @@
       body.pdf-preview .bn-editor { width: 100% !important; }
 
       /* Print-exact styles */
-      @page { size: A4; margin: 0.5in; }
+      @page { size: A4; margin: 0.65in 0.5in 0.5in; }
       @media print {
         :root { color-scheme: light; }
         body { margin: 0; }
         header, .row, .tips, .footer { display: none !important; }
         .wrap { max-width: none !important; padding: 0 !important; margin: 0 !important; }
         .bn-resize-handle, .bn-convert-btn { display: none !important; }
-        .bn-container { max-width: none !important; width: var(--print-width-px, auto) !important; zoom: var(--print-zoom, 1) !important; transform-origin: top left; }
-        .bn-editor { width: 100% !important; }
-        /* Prevent print engine from synthesizing bold/stems; improve consistency */
-        .bn-container, .bn-container * {
-          font-weight: 400 !important;
-          font-synthesis: none !important;
-          -webkit-font-smoothing: antialiased !important;
-          -moz-osx-font-smoothing: grayscale !important;
-          text-rendering: geometricPrecision !important;
+        .bn-container {
+          max-width: none !important;
+          width: 7.27in !important; /* A4 content width for 0.65in top, 0.5in sides */
+          margin: 0 auto;
         }
+        .bn-editor { width: 100% !important; }
+        /* Ensure images behave well with container padding and avoid awkward splits */
+        .bn-visual-media-wrapper { page-break-inside: avoid; break-inside: avoid; }
+        img.bn-visual-media { display: block; max-width: 100% !important; height: auto !important; }
+        
       }
       /* Optional class to tweak when entering print mode */
       body.print-exact .wrap { max-width: none; }

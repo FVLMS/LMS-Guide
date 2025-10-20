@@ -92,6 +92,14 @@
           margin: 0 auto;
         }
         .bn-editor { width: 100% !important; }
+        /* Prevent print engine from synthesizing bold/stems; improve consistency */
+        .bn-container, .bn-container * {
+          font-weight: 400 !important;
+          font-synthesis: none !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          text-rendering: geometricPrecision !important;
+        }
         /* Ensure images behave well with container padding and avoid awkward splits */
         .bn-visual-media-wrapper { page-break-inside: avoid; break-inside: avoid; }
         img.bn-visual-media { display: block; max-width: 100% !important; height: auto !important; }

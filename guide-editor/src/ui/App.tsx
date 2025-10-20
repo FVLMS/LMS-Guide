@@ -551,7 +551,11 @@ export default function App() {
       try {
         const fonts: any = (document as any).fonts;
         if (!fonts || typeof fonts.check !== 'function') return false;
-        return fonts.check('400 12px "Inter"') || fonts.check('400 12px Inter');
+        return (
+          fonts.check('400 12px "Inter"') ||
+          fonts.check('400 12px Inter') ||
+          fonts.check('400 12px "Inter-Regular"')
+        );
       } catch {
         return false;
       }

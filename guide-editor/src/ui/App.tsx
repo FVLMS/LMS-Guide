@@ -506,29 +506,83 @@ export default function App() {
     try { document.body.classList.add('print-exact'); } catch {}
     const cleanup = () => {
       try { document.body.classList.remove('print-exact'); } catch {}
+      try {
+        const root = document.documentElement;
+        root.style.removeProperty('--print-width-px');
+        root.style.removeProperty('--print-zoom');
+      } catch {}
       window.removeEventListener('afterprint', cleanup as any);
     };
     window.addEventListener('afterprint', cleanup as any);
+    try {
+      const editorHost = (editor as any)?.domElement as HTMLElement | null;
+      const editorContentEl = (editorHost?.firstElementChild || null) as HTMLElement | null;
+      const editorWidthPx =
+        editorContentEl?.clientWidth ??
+        editorHost?.clientWidth ??
+        document.body.clientWidth ??
+        800;
+      const A4_WIDTH_IN = 8.27;
+      const DPI = 96;
+      const pagePx = Math.round(A4_WIDTH_IN * DPI);
+      const marginIn = 0.5; // keep in sync with @page margins
+      const printablePx = Math.max(1, pagePx - Math.round(2 * marginIn * DPI));
+      const ratio = printablePx / editorWidthPx;
+      const useFit = ratio < 0.85;
+      const zoom = useFit ? 1 : Math.min(1, ratio);
+      const root = document.documentElement;
+      root.style.setProperty('--print-width-px', useFit ? `${printablePx}px` : `${editorWidthPx}px`);
+      root.style.setProperty('--print-zoom', `${zoom}`);
+    } catch {}
+
     const invokePrint = () => {
       try { window.print(); } catch { cleanup(); }
     };
+
     let didPrint = false;
     const safePrint = () => {
       if (didPrint) return;
       didPrint = true;
       invokePrint();
     };
+
+    const fontReadyTimeout = setTimeout(safePrint, 1200);
+    const checkInterLoaded = () => {
+      try {
+        const fonts: any = (document as any).fonts;
+        if (!fonts || typeof fonts.check !== 'function') return false;
+        return fonts.check('400 12px "Inter"') || fonts.check('400 12px Inter');
+      } catch {
+        return false;
+      }
+    };
+
+    const waitForInter = () => {
+      if (checkInterLoaded()) {
+        clearTimeout(fontReadyTimeout);
+        requestAnimationFrame(safePrint);
+        return;
+      }
+      window.setTimeout(waitForInter, 50);
+    };
+
     try {
       const fonts: any = (document as any).fonts;
       if (fonts && fonts.status !== 'loaded' && typeof fonts.ready?.then === 'function') {
-        fonts.ready
-          .then(() => requestAnimationFrame(safePrint))
-          .catch(safePrint);
-        setTimeout(safePrint, 500);
+        fonts.ready.then(waitForInter).catch(() => {
+          clearTimeout(fontReadyTimeout);
+          safePrint();
+        });
         return;
       }
     } catch {}
-    safePrint();
+
+    if (checkInterLoaded()) {
+      clearTimeout(fontReadyTimeout);
+      safePrint();
+    } else {
+      waitForInter();
+    }
   };
 
   const clearLocal = () => {

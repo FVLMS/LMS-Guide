@@ -166,6 +166,7 @@ export default function App() {
             try { editor.focus(); } catch {}
           }
           setDirty(true);
+          bumpDocVersion();
         } catch {}
       } else {
         localStorage.removeItem(DRAFT_KEY);
@@ -300,7 +301,23 @@ export default function App() {
         }
         return '';
       };
-      return walkBlocks((editor?.document ?? []) as any) || '';
+      const fromDocument = walkBlocks((editor?.document ?? []) as any);
+      if (fromDocument?.trim()) return fromDocument.trim();
+      if (typeof document !== 'undefined') {
+        const host = document.querySelector('.bn-editor');
+        if (host?.textContent) {
+          const text = host.textContent;
+          if (text) {
+            for (const segment of text.split(/\n+/)) {
+              const trimmed = segment.trim();
+              if (trimmed) return trimmed;
+            }
+            const fallback = text.replace(/\s+/g, ' ').trim();
+            if (fallback) return fallback;
+          }
+        }
+      }
+      return '';
     } catch {
       return '';
     }

@@ -88,6 +88,15 @@
         .bn-resize-handle, .bn-convert-btn { display: none !important; }
         .bn-container { max-width: none !important; width: var(--print-width-px, auto) !important; zoom: var(--print-zoom, 1) !important; transform-origin: top left; }
         .bn-editor { width: 100% !important; }
+        /* Prevent synthetic bolding and keep font rendering consistent */
+        .bn-container, .bn-container * {
+          font-weight: 400 !important;
+          font-synthesis: none !important;
+          font-variation-settings: "wght" 400 !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          text-rendering: optimizeLegibility !important;
+        }
       }
       /* Optional class to tweak when entering print mode */
       body.print-exact .wrap { max-width: none; }

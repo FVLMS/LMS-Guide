@@ -509,7 +509,26 @@ export default function App() {
       window.removeEventListener('afterprint', cleanup as any);
     };
     window.addEventListener('afterprint', cleanup as any);
-    try { window.print(); } catch { cleanup(); }
+    const invokePrint = () => {
+      try { window.print(); } catch { cleanup(); }
+    };
+    let didPrint = false;
+    const safePrint = () => {
+      if (didPrint) return;
+      didPrint = true;
+      invokePrint();
+    };
+    try {
+      const fonts: any = (document as any).fonts;
+      if (fonts && fonts.status !== 'loaded' && typeof fonts.ready?.then === 'function') {
+        fonts.ready
+          .then(() => requestAnimationFrame(safePrint))
+          .catch(safePrint);
+        setTimeout(safePrint, 500);
+        return;
+      }
+    } catch {}
+    safePrint();
   };
 
   const clearLocal = () => {

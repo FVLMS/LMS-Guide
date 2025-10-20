@@ -503,7 +503,56 @@ export default function App() {
   };
 
   const onPrintExact = () => {
-    try { document.body.classList.add('print-exact'); } catch {}
+    const getFirstLine = () => {
+      const visitedInline = new Set<any>();
+      const flattenInline = (nodes?: any[]): string => {
+        if (!Array.isArray(nodes) || visitedInline.has(nodes)) return '';
+        visitedInline.add(nodes);
+        for (const node of nodes) {
+          if (!node) continue;
+          if (typeof node.text === 'string') {
+            const trimmed = node.text.trim();
+            if (trimmed) return trimmed;
+          }
+          const childContent = flattenInline(node.children);
+          if (childContent) return childContent;
+          const nestedContent = flattenInline(node.content);
+          if (nestedContent) return nestedContent;
+        }
+        return '';
+      };
+      const visitedBlocks = new Set<any>();
+      const walkBlocks = (blocks?: any[]): string => {
+        if (!Array.isArray(blocks) || visitedBlocks.has(blocks)) return '';
+        visitedBlocks.add(blocks);
+        for (const block of blocks) {
+          if (!block) continue;
+          const inline = flattenInline(block.content);
+          if (inline) return inline;
+          const child = walkBlocks(block.children);
+          if (child) return child;
+        }
+        return '';
+      };
+      return walkBlocks(editor.document as any);
+    };
+
+    const rawPreferredTitle =
+      (getFirstLine() || fileName || '')
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim() || 'Guide';
+    const preferredTitle = rawPreferredTitle.length > 120 ? rawPreferredTitle.slice(0, 120) : rawPreferredTitle;
+
+    const originalTitle = typeof document !== 'undefined' ? document.title : '';
+    let appliedPrintTitle = false;
+    const applyPrintTitle = () => {
+      if (!appliedPrintTitle && preferredTitle && preferredTitle !== originalTitle) {
+        try { document.title = preferredTitle; } catch {}
+        appliedPrintTitle = true;
+      }
+    };
+
     const cleanup = () => {
       try { document.body.classList.remove('print-exact'); } catch {}
       try {
@@ -511,9 +560,15 @@ export default function App() {
         root.style.removeProperty('--print-width-px');
         root.style.removeProperty('--print-zoom');
       } catch {}
+      if (appliedPrintTitle) {
+        try { document.title = originalTitle; } catch {}
+        appliedPrintTitle = false;
+      }
       window.removeEventListener('afterprint', cleanup as any);
     };
     window.addEventListener('afterprint', cleanup as any);
+    applyPrintTitle();
+    try { document.body.classList.add('print-exact'); } catch {}
     try {
       const editorHost = (editor as any)?.domElement as HTMLElement | null;
       const editorContentEl = (editorHost?.firstElementChild || null) as HTMLElement | null;

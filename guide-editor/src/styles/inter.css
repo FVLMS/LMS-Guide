@@ -1,8 +1,8 @@
 body, .bn-container {
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .bn-default-styles,
 .bn-default-styles * {
-  font-family: Georgia, 'Times New Roman', Times, serif !important;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }

@@ -55,11 +55,15 @@ export default function App() {
     (globalThis as any).Buffer = BufferPolyfill;
   }
   const [fileName, setFileName] = useState<string>(() => localStorage.getItem(NAME_KEY) || 'untitled');
+  const [docVersion, setDocVersion] = useState<number>(0);
   const [dirty, setDirty] = useState<boolean>(false);
   const [pdfPreview, setPdfPreview] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const suppressChangeRef = useRef<boolean>(false);
   
+  const bumpDocVersion = useCallback(() => {
+    setDocVersion((v) => v + 1);
+  }, []);
 
   // Enable multi‑column blocks by extending the schema,
   // and use the multi‑column drop cursor.
@@ -205,6 +209,20 @@ export default function App() {
     localStorage.setItem(NAME_KEY, fileName);
   }, [fileName]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const baseTitle = 'Guide';
+    const rawPreferred =
+      (getFirstLine() || fileName || '')
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim() || baseTitle;
+    const limited = rawPreferred.length > 120 ? rawPreferred.slice(0, 120) : rawPreferred;
+    try {
+      document.title = limited;
+    } catch {}
+  }, [getFirstLine, fileName, docVersion]);
+
   
 
   const onNew = () => {
@@ -219,6 +237,7 @@ export default function App() {
     localStorage.removeItem(DRAFT_KEY);
     setDirty(false);
     setFileName('untitled');
+    bumpDocVersion();
   };
 
   const onImportJSON = (file?: File) => {
@@ -238,6 +257,7 @@ export default function App() {
         setFileName(base);
         localStorage.setItem(DRAFT_KEY, JSON.stringify(blocks));
         setDirty(true);
+        bumpDocVersion();
       } catch {
         alert('Invalid JSON file.');
       }
@@ -247,6 +267,44 @@ export default function App() {
   const triggerImport = () => {
     fileInputRef.current?.click();
   };
+
+  const getFirstLine = useCallback(() => {
+    try {
+      const visitedInline = new Set<any>();
+      const flattenInline = (nodes?: any[]): string => {
+        if (!Array.isArray(nodes) || visitedInline.has(nodes)) return '';
+        visitedInline.add(nodes);
+        for (const node of nodes) {
+          if (!node) continue;
+          if (typeof node.text === 'string') {
+            const trimmed = node.text.trim();
+            if (trimmed) return trimmed;
+          }
+          const childContent = flattenInline(node.children);
+          if (childContent) return childContent;
+          const nestedContent = flattenInline(node.content);
+          if (nestedContent) return nestedContent;
+        }
+        return '';
+      };
+      const visitedBlocks = new Set<any>();
+      const walkBlocks = (blocks?: any[]): string => {
+        if (!Array.isArray(blocks) || visitedBlocks.has(blocks)) return '';
+        visitedBlocks.add(blocks);
+        for (const block of blocks) {
+          if (!block) continue;
+          const inline = flattenInline((block as any).content);
+          if (inline) return inline;
+          const child = walkBlocks((block as any).children);
+          if (child) return child;
+        }
+        return '';
+      };
+      return walkBlocks((editor?.document ?? []) as any) || '';
+    } catch {
+      return '';
+    }
+  }, [editor]);
 
   const onExport = async (fmt: SaveFormat) => {
     const base = slugify(fileName);
@@ -503,40 +561,6 @@ export default function App() {
   };
 
   const onPrintExact = () => {
-    const getFirstLine = () => {
-      const visitedInline = new Set<any>();
-      const flattenInline = (nodes?: any[]): string => {
-        if (!Array.isArray(nodes) || visitedInline.has(nodes)) return '';
-        visitedInline.add(nodes);
-        for (const node of nodes) {
-          if (!node) continue;
-          if (typeof node.text === 'string') {
-            const trimmed = node.text.trim();
-            if (trimmed) return trimmed;
-          }
-          const childContent = flattenInline(node.children);
-          if (childContent) return childContent;
-          const nestedContent = flattenInline(node.content);
-          if (nestedContent) return nestedContent;
-        }
-        return '';
-      };
-      const visitedBlocks = new Set<any>();
-      const walkBlocks = (blocks?: any[]): string => {
-        if (!Array.isArray(blocks) || visitedBlocks.has(blocks)) return '';
-        visitedBlocks.add(blocks);
-        for (const block of blocks) {
-          if (!block) continue;
-          const inline = flattenInline(block.content);
-          if (inline) return inline;
-          const child = walkBlocks(block.children);
-          if (child) return child;
-        }
-        return '';
-      };
-      return walkBlocks(editor.document as any);
-    };
-
     const rawPreferredTitle =
       (getFirstLine() || fileName || '')
         .replace(/[\r\n]+/g, ' ')
@@ -706,6 +730,7 @@ export default function App() {
               } catch {}
               setDirty(true);
             }
+            bumpDocVersion();
           }}
         >
           <SuggestionMenuController

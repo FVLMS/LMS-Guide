@@ -1,3 +1,8 @@
 body, .bn-container {
   font-family: Georgia, 'Times New Roman', Times, serif;
 }
+
+.bn-default-styles,
+.bn-default-styles * {
+  font-family: Georgia, 'Times New Roman', Times, serif !important;
+}

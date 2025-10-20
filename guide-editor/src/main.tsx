@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import '@mantine/core/styles.css'
-import '@blocknote/core/fonts/inter.css'
+import './styles/inter.css'
 import '@blocknote/mantine/style.css'
 import App from './ui/App'
 

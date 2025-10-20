@@ -6,24 +6,14 @@
     <title>BlockNote Editor (Import/Export)</title>
     <meta name="description" content="Client-side BlockNote editor with Import/Export and localStorage autosave." />
     <link rel="icon" href="/favicon.ico" />
-    <link rel="preload" href="./fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="./fonts/Inter-Regular.woff" as="font" type="font/woff" crossorigin>
     <style>
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 400;
-        font-display: block;
-        src: url('./fonts/Inter-Regular.woff2') format('woff2'),
-             url('./fonts/Inter-Regular.woff') format('woff');
-      }
       :root {
         color-scheme: light dark;
         --maxw: 1100px;
       }
       body {
         margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        font-family: Georgia, "Times New Roman", Times, serif;
       }
       header {
         position: sticky;
@@ -101,7 +91,10 @@
           width: var(--print-width-px, auto) !important;
           zoom: var(--print-zoom, 1) !important;
           transform-origin: top left;
-          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+          font-family: Georgia, "Times New Roman", Times, serif !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          background-color: inherit !important;
         }
         .bn-editor { width: 100% !important; }
         /* Prevent synthetic bolding and keep font rendering consistent */

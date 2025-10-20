@@ -502,20 +502,14 @@ export default function App() {
     }
   };
 
-  const onPrintExact = async () => {
+  const onPrintExact = () => {
     try { document.body.classList.add('print-exact'); } catch {}
     const cleanup = () => {
       try { document.body.classList.remove('print-exact'); } catch {}
       window.removeEventListener('afterprint', cleanup as any);
     };
     window.addEventListener('afterprint', cleanup as any);
-    try {
-      const fonts: any = (document as any).fonts;
-      if (fonts && typeof fonts.ready?.then === 'function') {
-        try { await fonts.ready; } catch {}
-      }
-      window.print();
-    } catch { cleanup(); }
+    try { window.print(); } catch { cleanup(); }
   };
 
   const clearLocal = () => {

@@ -55,16 +55,11 @@ export default function App() {
     (globalThis as any).Buffer = BufferPolyfill;
   }
   const [fileName, setFileName] = useState<string>(() => localStorage.getItem(NAME_KEY) || 'untitled');
-  const [docVersion, setDocVersion] = useState<number>(0);
   const [dirty, setDirty] = useState<boolean>(false);
   const [pdfPreview, setPdfPreview] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const suppressChangeRef = useRef<boolean>(false);
   
-  const bumpDocVersion = useCallback(() => {
-    setDocVersion((v) => v + 1);
-  }, []);
-
   // Enable multi‑column blocks by extending the schema,
   // and use the multi‑column drop cursor.
   const schema = useMemo(() => {
@@ -166,7 +161,6 @@ export default function App() {
             try { editor.focus(); } catch {}
           }
           setDirty(true);
-          bumpDocVersion();
         } catch {}
       } else {
         localStorage.removeItem(DRAFT_KEY);
@@ -212,19 +206,9 @@ export default function App() {
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const baseTitle = 'Guide';
-    const rawPreferred =
-      (getFirstLine() || fileName || '')
-        .replace(/[\r\n]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim() || baseTitle;
-    const limited = rawPreferred.length > 120 ? rawPreferred.slice(0, 120) : rawPreferred;
-    try {
-      document.title = limited;
-    } catch {}
-  }, [getFirstLine, fileName, docVersion]);
+    try { document.title = 'Guide'; } catch {}
+  }, []);
 
-  
 
   const onNew = () => {
     if (dirty && !confirm('Discard current local draft?')) return;
@@ -238,7 +222,6 @@ export default function App() {
     localStorage.removeItem(DRAFT_KEY);
     setDirty(false);
     setFileName('untitled');
-    bumpDocVersion();
   };
 
   const onImportJSON = (file?: File) => {
@@ -258,7 +241,6 @@ export default function App() {
         setFileName(base);
         localStorage.setItem(DRAFT_KEY, JSON.stringify(blocks));
         setDirty(true);
-        bumpDocVersion();
       } catch {
         alert('Invalid JSON file.');
       }
@@ -747,7 +729,6 @@ export default function App() {
               } catch {}
               setDirty(true);
             }
-            bumpDocVersion();
           }}
         >
           <SuggestionMenuController
